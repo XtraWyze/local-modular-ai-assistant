@@ -1,33 +1,32 @@
-"""Media playback control using Windows hotkeys."""
-
-import sys
-import ctypes
+"""Media playback and volume control using the ``keyboard`` library."""
 
 from error_logger import log_error
 
-MODULE_NAME = "media_controls"
+try:  # pragma: no cover - optional runtime dependency
+    import keyboard
+except Exception as e:  # pragma: no cover - optional dep
+    keyboard = None
+    _IMPORT_ERROR = e
+else:  # pragma: no cover - optional dep
+    _IMPORT_ERROR = None
 
-VK_MEDIA_NEXT_TRACK = 0xB0
-VK_MEDIA_PREV_TRACK = 0xB1
-VK_MEDIA_STOP = 0xB2
-VK_MEDIA_PLAY_PAUSE = 0xB3
+MODULE_NAME = "media_controls"
 
 __all__ = [
     "play_pause",
-    "stop",
     "next_track",
     "previous_track",
+    "volume_up",
+    "volume_down",
 ]
 
 
-def _send_vk(code: int) -> str:
-    """Send a Windows media key event."""
-    if not sys.platform.startswith("win"):
-        return "Media controls only supported on Windows"
+def _send_key(name: str) -> str:
+    """Send a media key using ``keyboard`` if available."""
+    if keyboard is None:
+        return f"keyboard module missing: {_IMPORT_ERROR}"
     try:
-        KEYEVENTF_KEYUP = 0x0002
-        ctypes.windll.user32.keybd_event(code, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(code, 0, KEYEVENTF_KEYUP, 0)
+        keyboard.send(name)
         return "ok"
     except Exception as e:  # pragma: no cover - OS specific
         log_error(f"[{MODULE_NAME}] key send error: {e}")
@@ -36,44 +35,51 @@ def _send_vk(code: int) -> str:
 
 def play_pause() -> str:
     """Toggle play/pause."""
-    result = _send_vk(VK_MEDIA_PLAY_PAUSE)
+    result = _send_key("play/pause media")
     return "Play/Pause pressed" if result == "ok" else result
-
-
-def stop() -> str:
-    """Stop playback."""
-    result = _send_vk(VK_MEDIA_STOP)
-    return "Stop pressed" if result == "ok" else result
 
 
 def next_track() -> str:
     """Skip to the next track."""
-    result = _send_vk(VK_MEDIA_NEXT_TRACK)
+    result = _send_key("next track")
     return "Next track pressed" if result == "ok" else result
 
 
 def previous_track() -> str:
     """Go to the previous track."""
-    result = _send_vk(VK_MEDIA_PREV_TRACK)
+    result = _send_key("previous track")
     return "Previous track pressed" if result == "ok" else result
+
+
+def volume_up() -> str:
+    """Increase the system volume."""
+    result = _send_key("volume up")
+    return "Volume up pressed" if result == "ok" else result
+
+
+def volume_down() -> str:
+    """Decrease the system volume."""
+    result = _send_key("volume down")
+    return "Volume down pressed" if result == "ok" else result
 
 
 def get_info():
     return {
         "name": MODULE_NAME,
-        "description": "Control Windows media playback using system hotkeys.",
+        "description": "Control system media playback and volume.",
         "functions": [
             "play_pause",
-            "stop",
             "next_track",
             "previous_track",
+            "volume_up",
+            "volume_down",
         ],
     }
 
 
 def get_description() -> str:
     """Return a short description of this module."""
-    return "Control Windows media playback with play/pause and track skipping."
+    return "Send OS media keys for play/pause, track skipping and volume."
 
 
 def register():
@@ -83,9 +89,10 @@ def register():
         MODULE_NAME,
         {
             "play_pause": play_pause,
-            "stop": stop,
             "next_track": next_track,
             "previous_track": previous_track,
+            "volume_up": volume_up,
+            "volume_down": volume_down,
             "get_info": get_info,
         },
     )
