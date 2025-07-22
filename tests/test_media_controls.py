@@ -1,31 +1,32 @@
 import importlib
 import types
-import sys
 
 
-def test_play_pause_non_windows(monkeypatch):
+def test_play_pause_missing_keyboard(monkeypatch):
     mc = importlib.import_module('modules.media_controls')
-    monkeypatch.setattr(sys, 'platform', 'linux')
+    monkeypatch.setattr(mc, 'keyboard', None)
+    monkeypatch.setattr(mc, '_IMPORT_ERROR', RuntimeError('missing'))
     out = mc.play_pause()
-    assert 'Windows' in out
+    assert 'keyboard module missing' in out
 
 
-def test_play_pause_windows(monkeypatch):
+def test_play_pause_sends_key(monkeypatch):
     mc = importlib.import_module('modules.media_controls')
-    monkeypatch.setattr(sys, 'platform', 'win32')
-
-    class DummyUser32:
-        def __init__(self):
-            self.calls = []
-        def keybd_event(self, code, a, flag, d):
-            self.calls.append((code, flag))
-
-    dummy_user32 = DummyUser32()
-    dummy_ctypes = types.SimpleNamespace(windll=types.SimpleNamespace(user32=dummy_user32))
-    monkeypatch.setattr(mc, 'ctypes', dummy_ctypes)
-
+    events = []
+    fake_kb = types.SimpleNamespace(send=lambda name: events.append(name))
+    monkeypatch.setattr(mc, 'keyboard', fake_kb)
+    monkeypatch.setattr(mc, '_IMPORT_ERROR', None)
     out = mc.play_pause()
     assert 'Play/Pause pressed' in out
-    assert (mc.VK_MEDIA_PLAY_PAUSE, 0) in dummy_user32.calls
-    assert (mc.VK_MEDIA_PLAY_PAUSE, 0x0002) in dummy_user32.calls
+    assert events == ['play/pause media']
 
+
+def test_volume_down(monkeypatch):
+    mc = importlib.import_module('modules.media_controls')
+    events = []
+    fake_kb = types.SimpleNamespace(send=lambda name: events.append(name))
+    monkeypatch.setattr(mc, 'keyboard', fake_kb)
+    monkeypatch.setattr(mc, '_IMPORT_ERROR', None)
+    out = mc.volume_down()
+    assert 'Volume down pressed' in out
+    assert events == ['volume down']
