@@ -20,3 +20,5 @@ TTS
 vosk
 watchdog
 pygetwindow
+pycaw
+comtypes
