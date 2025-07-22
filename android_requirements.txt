@@ -1,0 +1,3 @@
+# Packages needed to build the Android APK
+kivy
+buildozer

@@ -1,0 +1,55 @@
+{
+  "tts_model": "tts_models/en/jenny/jenny",
+  "tts_voice": null,
+  "tts_volume": 0.85,
+  "tts_speed": 1.1,
+  "use_voice": true,
+  "prefer_local_llm": true,
+  "llm_backend": "localai",
+  "llm_model": "llama3",
+  "google_api_key": "your-gemini-api-key-here",
+  "google_model": "gemini-pro",
+  "simulate_actions": false,
+  "vosk_model_path": "vosk-model-small-en-us-0.15",
+  "memory_max": 9999999999,
+  "auto_memory_increase": true,
+  "enable_plugins": true,
+  "wake_phrases": [
+    "hey assistant",
+    "wake up",
+    "hello assistant"
+  ],
+  "sleep_phrases": [
+    "go to sleep",
+    "stop listening",
+    "ok that's all"
+  ],
+  "cancel_phrases": [
+    "stop assistant"
+  ],
+  "resume_phrases": [
+    "next question",
+    "next answer"
+  ],
+  "mic_overlay": true,
+  "mic_overlay_colors": {
+    "listening": "green",
+    "sleeping": "red",
+    "muted": "gray"
+  },
+  "startup_message": "Welcome to your local AI assistant!",
+  "tips": [
+    "Try: capture region 100 200 300 300",
+    "Say 'go to sleep' to pause listening.",
+    "Click the mic icon to fully mute/unmute."
+  ],
+  "hotword": "hey assistant",
+  "enable_hotword": true,
+  "pause_threshold": 2.0,
+  "max_speech_length": 30,
+  "auto_sleep_timeout": 15,
+  "voice_beep": false,
+  "log_level": "info",
+  "enable_advanced_logging": false,
+  "busy_timeout": 60
+}

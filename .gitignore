@@ -1,0 +1,19 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Test cache
+.pytest_cache/
+
+# Logs and databases
+*.log
+*.db
+
+# Local state files
+assistant_memory.json
+assistant_state.json
+learned_actions.json
+
+# VS Code or other editor settings
+.vscode/
+

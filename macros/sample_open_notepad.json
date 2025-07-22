@@ -1,0 +1,5 @@
+[
+  {"x": 100, "y": 100, "button": "left", "type": "click"},
+  {"text": "notepad", "type": "write"},
+  {"key": "enter", "type": "press"}
+]
