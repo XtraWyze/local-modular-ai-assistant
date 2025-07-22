@@ -86,8 +86,12 @@ def list_taskbar_windows():
 
 def close_taskbar_item(index: int):
     """Robustly close the window at `index`."""
+    if index < 0:
+        return False, f"Invalid window index: {index}"
+    if gw is None or _IMPORT_ERROR:
+        return False, f"pygetwindow not available: {_IMPORT_ERROR}" if _IMPORT_ERROR else "pygetwindow not available"
     windows = [w for w in gw.getAllWindows() if w.title.strip()]
-    if index < 0 or index >= len(windows):
+    if index >= len(windows):
         return False, f"Invalid window index: {index}"
     win = windows[index]
 

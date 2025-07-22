@@ -20,6 +20,7 @@ from modules.tts_manager import speak, is_speaking, stop_speech
 from modules import window_tools, vision_tools
 from modules.automation_learning import record_macro, play_macro
 from modules.desktop_shortcuts import build_shortcut_map, open_shortcut
+from modules.chitchat import is_chitchat, talk_to_llm
 import planning_agent
 import remote_agent
 from state_manager import (
@@ -814,22 +815,6 @@ def process_input(user_input, output_widget):
 WAKE_PHRASES = config.get("wake_phrases", ["hey assistant"])
 SLEEP_PHRASES = config.get("sleep_phrases", ["ok that's all"])
 RESUME_PHRASES = config.get("resume_phrases", ["next question", "next answer"])
-# Simple list of greetings and small-talk phrases
-CHITCHAT_PHRASES = [
-    "hello",
-    "hi",
-    "hey",
-    "how are you",
-    "how's it going",
-    "how is your day",
-    "what's up",
-]
-
-# Precompiled regex patterns for chit-chat detection
-_CHITCHAT_PATTERNS = [
-    re.compile(rf"\b{re.escape(p)}\b", re.IGNORECASE) for p in CHITCHAT_PHRASES
-]
-# module-level, global listening state
 _listening = False
 
 
@@ -875,10 +860,6 @@ def set_listening(val: bool):
     global _listening
     _listening = bool(val)
 
-
-def is_chitchat(text: str) -> bool:
-    """Return True if ``text`` looks like casual conversation."""
-    return any(p.search(text) for p in _CHITCHAT_PATTERNS)
 
 
 # --- Response classification helpers ---
@@ -1004,45 +985,6 @@ def _is_bad_response(resp: str) -> bool:
     return len(words) < min_words or len(resp.strip()) < min_chars
 
 
-def talk_to_llm(prompt):
-    """Send ``prompt`` to the LLM with local/cloud heuristics."""
-    try:
-        max_hist = config.get("conversation_history_limit", 6)
-        conversation_history.append({"role": "user", "content": prompt})
-        state_dict["conversation_history"] = conversation_history
-        save_state()
-        history = conversation_history[-max_hist:]
-
-        prefer = config.get("prefer_local_llm", True)
-        response = None
-
-        def record(resp: str) -> str:
-            conversation_history.append({"role": "assistant", "content": resp})
-            state_dict["conversation_history"] = conversation_history
-            save_state()
-            store_memory(prompt, resp)
-            save_entry(f"Q: {prompt}\nA: {resp}")
-            assistant_memory["last_prompt"] = prompt
-            assistant_memory["last_response"] = resp
-            save_memory(assistant_memory)
-            update_state(last_prompt=prompt, last_response=resp)
-            return resp
-
-        if prefer == "auto":
-            prefer = not _is_complex_prompt(prompt)
-
-        if prefer is True:
-            response = _call_local_llm(prompt, history)
-            if _is_bad_response(response):
-                response = _call_cloud_llm(prompt)
-        else:
-            response = _call_cloud_llm(prompt)
-            if _is_bad_response(response):
-                response = _call_local_llm(prompt, history)
-
-        return record(response)
-    except Exception as e:
-        return f"Error with local model: {e}"
 
 
 def online_fallback(prompt):
