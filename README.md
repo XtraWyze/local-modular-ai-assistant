@@ -52,6 +52,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
   (on Windows set `TESSERACT_CMD` if not installed in the default location)
 - `pygetwindow` (or `wmctrl` on Linux) for listing open windows and focusing
   them
+- `pycaw` and `comtypes` for adjusting system volume on Windows
 
 **Install Python dependencies:**
 ```bash
