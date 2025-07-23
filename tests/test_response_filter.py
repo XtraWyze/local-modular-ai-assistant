@@ -48,4 +48,5 @@ def test_user_wants_code_detection(monkeypatch):
     assert assistant.user_wants_code("Calculate the sum of 5 and 8.")
     assert assistant.user_wants_code("close notepad")
     assert assistant.user_wants_code("Move the mouse to 100 200")
+    assert assistant.user_wants_code("terminate notepad")
 

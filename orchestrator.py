@@ -46,6 +46,21 @@ PROMPT_HEADER = (
 
 def parse_and_execute(user_text: str) -> str:
     """Parse the LLM response and safely execute a whitelisted function."""
+
+    # Quick manual handling for common phrases like "terminate <app>"
+    term = re.match(r"\b(?:terminate|kill)\s+(.+)", user_text, re.IGNORECASE)
+    if term:
+        app = term.group(1)
+        if "close_app" not in ALLOWED_FUNCTIONS:
+            return talk_to_llm(user_text)
+        if "close_app" in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
+            return "Error: close_app requires elevated privileges."
+        func = ALLOWED_FUNCTIONS["close_app"]
+        try:
+            return func(app)
+        except Exception as e:
+            return f"Error running close_app: {e}"
+
     call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {user_text}\nAssistant:")
     m = re.match(r"(\w+)\((.*)\)", call.strip())
     if not m:
