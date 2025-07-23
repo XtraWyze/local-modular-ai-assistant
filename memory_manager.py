@@ -30,7 +30,19 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
 
     np = _SimpleNumpy()
 from config_loader import ConfigLoader
-from modules.utils import resource_path
+
+# Ensure the 'modules' package can be imported even if the working directory
+# isn't the project root. This commonly happens on Windows when launching the
+# application via shortcuts or different shells.
+try:
+    from modules.utils import resource_path
+except ModuleNotFoundError:  # pragma: no cover - runtime safeguard
+    import sys
+
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    from modules.utils import resource_path
 
 try:
     from sentence_transformers import SentenceTransformer
