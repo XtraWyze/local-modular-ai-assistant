@@ -62,6 +62,9 @@ python install_requirements.py
 # Windows: run install_requirements.bat for a quick install
 # or run setup_venv.py (Windows: setup_venv.bat) to create the `venv/` folder
 # and install everything automatically
+# Optional: fetch local LLM backends
+python install_llm_backends.py --all
+# Windows users can run install_llm_backends.bat
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
 2. Configuration
