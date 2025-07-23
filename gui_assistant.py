@@ -76,7 +76,7 @@ output.insert(tk.END, "Assistant: Assistant is sleeping. Say your wake phrase to
 
 # Input box for CLI-style commands
 entry = ttk.Entry(root, width=60)
-entry.pack(side=tk.LEFT, padx=(10,0), pady=(0,10))
+entry.pack(side=tk.LEFT, padx=(10, 0), pady=(0, 10))
 entry.bind("<Return>", lambda event: send())
 
 # New input box for natural language task descriptions
@@ -121,7 +121,6 @@ mic_status_label.place(relx=1.0, rely=0.0, anchor="ne", x=-60, y=20)
 mic_hard_muted = False
 
 def update_mic_overlay():
-    global mic_hard_muted
     if mic_hard_muted:
         mic_button.configure(image=mic_hardmute_icon)
         mic_status_label.config(text="Mic: Fully Muted", fg="gray")
@@ -312,15 +311,19 @@ def reload_config():
 
 # ========== BUTTON HANDLER (UI ONLY) ==========
 send_button = ttk.Button(root, text="Send", command=send)
-send_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+send_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 task_button = ttk.Button(root, text="Run Task", command=send_task)
-task_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+task_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 reload_button = ttk.Button(root, text="Reload Config", command=reload_config)
-reload_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+reload_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 memory_button = ttk.Button(root, text="Edit Memory", command=open_memory_window)
-memory_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+memory_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 screen_button = ttk.Button(root, text="What's on my screen?", command=open_screen_viewer)
-screen_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+screen_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+
+# Instantiate GUI assistant and bind Enter key
+gui = GuiAssistant(orchestrator, output, entry)
+entry.bind("<Return>", gui.on_enter_pressed)
 
 # Instantiate GUI assistant and bind Enter key
 gui = GuiAssistant(orchestrator, output, entry)
@@ -337,7 +340,7 @@ speed_scale = tk.Scale(
     command=lambda v: tts_module.set_speed(float(v)),
 )
 speed_scale.set(config.get("tts_speed", 1.0))
-speed_scale.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+speed_scale.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 
 # ========== TTS VOLUME SLIDER ==========
 volume_scale = tk.Scale(
@@ -350,7 +353,7 @@ volume_scale = tk.Scale(
     command=lambda v: tts_module.set_volume(float(v)),
 )
 volume_scale.set(config.get("tts_volume", 0.8))
-volume_scale.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+volume_scale.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 
 # ========== TTS VOICE MENU ==========
 voices = tts_module.list_voices()
@@ -359,7 +362,7 @@ current_voice = config.get("tts_voice") or (voices[0] if voices else "")
 voice_var.set(current_voice)
 voice_menu = ttk.OptionMenu(root, voice_var, current_voice, *voices, command=lambda v: tts_module.set_voice(v))
 voice_menu.configure(text="TTS Voice")
-voice_menu.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+voice_menu.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 
 # ========== START VOICE LISTENERS & SCHEDULE THREADS ==========
 threading.Thread(
@@ -420,7 +423,7 @@ if pystray is not None:
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
 output.insert(tk.END, "Assistant: Try: capture region 100 200 300 300  | click image red_button.png\n\n")
 
-#=========Watcher Thread========
+# ========= Watcher Thread ========
 def start_config_watcher():
     if not WATCHDOG_AVAILABLE:
         print("[ConfigWatcher] watchdog not available; config auto-reload disabled")
