@@ -66,6 +66,8 @@ python install_requirements.py
 # Optional: fetch local LLM backends
 python install_llm_backends.py --all
 # Windows users can run install_llm_backends.bat
+# Remove caches and temporary files
+python cleanup.py
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
 2. Configuration
