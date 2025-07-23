@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 120
+extend-ignore = F401,F821,F841,E402,E741,E731,E501,E302,E303,E305,E306,E301,W391,E203
+exclude = vosk-model-small-en-us-0.15

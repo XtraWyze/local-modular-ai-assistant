@@ -22,7 +22,7 @@ except ImportError:  # pragma: no cover - fallback for minimal environments
             def norm(x, axis=None):
                 if axis is None:
                     return (sum(i * i for i in x)) ** 0.5
-                return [ (sum(i * i for i in row)) ** 0.5 for row in x ]
+                return [(sum(i * i for i in row)) ** 0.5 for row in x]
 
         @staticmethod
         def argsort(seq):
