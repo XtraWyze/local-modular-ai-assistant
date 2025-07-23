@@ -31,7 +31,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **List open windows via the taskbar (e.g. "what windows are open?")**
 - **Control music playback with Windows media keys (play, pause, skip)**
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
-- **Simulation mode:** set `simulate_actions` to true to practice commands safely
+- **Emulation mode:** set `emulate_actions` to true to practice commands safely
 
 Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase volume", or "use jenny voice." The GUI sliders and menu mirror these settings.
 
@@ -92,7 +92,7 @@ Sample config.json:
   "llm_model": "llama3",
   "google_api_key": "your-gemini-api-key-here",
   "google_model": "gemini-pro",
-  "simulate_actions": false,
+  "emulate_actions": false,
 
   "vosk_model_path": "vosk-model-small-en-us-0.15",
 

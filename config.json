@@ -9,7 +9,7 @@
   "llm_model": "llama3",
   "google_api_key": "AIzaSyC66JlplV0FpMSjzkAuZy887dLlw2ZrNLo",
   "google_model": "gemini-pro",
-  "simulate_actions": false,
+  "emulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
   "memory_max": 999999999,
   "auto_memory_increase": true,
