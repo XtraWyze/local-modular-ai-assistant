@@ -110,7 +110,7 @@ def cli_loop():
             continue
 
         # 7) Fallback to orchestrator/LLM
-        result = parse_and_execute(user_input)
+        result = parse_and_execute(user_input, via_voice=False)
         print("Assistant:", result)
 
 if __name__ == "__main__":
