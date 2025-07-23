@@ -322,9 +322,12 @@ screen_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 =======
 screen_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> parent of ff4d9c9 (Merge pull request #5 from XtraWyze/codex/update-guiassistant-with-new-methods-and-tests)
 =======
 >>>>>>> parent of ff4d9c9 (Merge pull request #5 from XtraWyze/codex/update-guiassistant-with-new-methods-and-tests)
+=======
+>>>>>>> parent of 9620470 (feat(gui): add unified input handler)
 
 # ========== TTS SPEED SLIDER ==========
 speed_scale = tk.Scale(
