@@ -48,7 +48,7 @@ def test_parse_and_execute_invalid_function(monkeypatch):
     orch = importlib.reload(importlib.import_module("orchestrator"))
 
     result = orch.parse_and_execute("run bad")
-    assert result == "fallback"
+    assert "I don\u2019t know a skill" in result
 
 
 def test_parse_and_execute_type_validation(monkeypatch):
