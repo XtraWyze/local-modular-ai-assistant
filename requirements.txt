@@ -217,13 +217,13 @@ thinc==8.3.4
 threadpoolctl==3.6.0
 tokenizers==0.21.2
 tomli==2.2.1
-torch==2.7.1+cu118
-torchaudio==2.7.1+cu118
-torchvision==0.22.1+cu118
+torch==2.7.1
+torchaudio==2.7.1
+torchvision==0.22.1
 tqdm==4.67.1
 trainer==0.0.36
 transformers==4.53.2
-TTS @ git+https://github.com/coqui-ai/TTS.git@dbf1a08a0d4e47fdad6172e433eeb34bc6b13b4e
+TTS
 typeguard==4.4.4
 typer==0.16.0
 typing-inspection==0.4.1
