@@ -260,4 +260,4 @@ def get_info():
 
 def get_description() -> str:
     """Return a short description of this module."""
-    return "Collection of helper utilities for OCR, system commands and scheduling." 
+    return "Collection of helper utilities for OCR, system commands and scheduling."

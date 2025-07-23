@@ -72,7 +72,7 @@ class ModuleRegistry:
                 except Exception:
                     info[name] = ""
         return info
-    
+
     def auto_discover(self, modules_dir="modules", config_map=None):
         """Load all ``.py`` files in ``modules_dir`` as plugins."""
         init_path = os.path.join(modules_dir, "__init__.py")
