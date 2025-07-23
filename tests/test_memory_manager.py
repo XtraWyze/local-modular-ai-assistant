@@ -1,6 +1,8 @@
 import importlib
+import importlib.util
 import sys
 import types
+from pathlib import Path
 
 
 def test_store_memory_keeps_arrays(monkeypatch):
@@ -120,3 +122,23 @@ def test_auto_memory_increase(monkeypatch):
 
     assert mm.MEMORY_MAX > 2
     assert len(mm.memory["texts"]) == 3
+
+
+def test_import_outside_project(monkeypatch, tmp_path):
+    """Ensure ``memory_manager`` imports even when the project root isn't on ``sys.path``."""
+    project_root = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(project_root)
+    new_path = [p for p in sys.path if p not in ("", str(project_root))]
+    monkeypatch.setattr(sys, "path", new_path, raising=False)
+    sys.modules.pop("modules", None)
+    sys.modules.pop("modules.utils", None)
+
+    spec = importlib.util.spec_from_file_location(
+        "memory_manager", project_root / "memory_manager.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+
+    assert "modules.utils" in sys.modules
+    assert str(project_root) in sys.path
