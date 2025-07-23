@@ -552,8 +552,7 @@ def process_input(user_input, output_widget):
                 result[0] = "QUIT"
                 return
 
-            output_widget.insert("end", f"You: {text}\n")
-            output_widget.see("end")
+
 
             # === Synonym action logic ===
             if cancel_event.is_set():
@@ -757,7 +756,7 @@ def process_input(user_input, output_widget):
                 if user_wants_code(text):
                     from orchestrator import parse_and_execute
 
-                    response = parse_and_execute(text)
+                    response = parse_and_execute(text, via_voice=False)
                 else:
                     response = talk_to_llm(text)
             except Exception as e:
