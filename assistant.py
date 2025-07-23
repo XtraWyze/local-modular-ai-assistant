@@ -904,6 +904,7 @@ _CODE_INTENT = [
     "code",
     "open",
     "close",
+    "terminate",
     "click",
     "type",
     "move",
