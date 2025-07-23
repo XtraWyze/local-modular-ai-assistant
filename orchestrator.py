@@ -5,6 +5,7 @@ import re
 import ast
 import inspect
 import os
+import socket
 from pathlib import Path
 from assistant import talk_to_llm
 
@@ -45,6 +46,21 @@ PROMPT_HEADER = (
 
 def parse_and_execute(user_text: str) -> str:
     """Parse the LLM response and safely execute a whitelisted function."""
+
+    # Quick manual handling for common phrases like "terminate <app>"
+    term = re.match(r"\b(?:terminate|kill)\s+(.+)", user_text, re.IGNORECASE)
+    if term:
+        app = term.group(1)
+        if "close_app" not in ALLOWED_FUNCTIONS:
+            return talk_to_llm(user_text)
+        if "close_app" in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
+            return "Error: close_app requires elevated privileges."
+        func = ALLOWED_FUNCTIONS["close_app"]
+        try:
+            return func(app)
+        except Exception as e:
+            return f"Error running close_app: {e}"
+
     call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {user_text}\nAssistant:")
     m = re.match(r"(\w+)\((.*)\)", call.strip())
     if not m:
@@ -89,3 +105,61 @@ def parse_and_execute(user_text: str) -> str:
         return result
     except Exception as e:
         return f"Error running {fn}: {e}"
+
+
+def handle_system_scan() -> dict:
+    """Collect and return basic system metrics."""
+    import psutil
+
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+
+    vm = psutil.virtual_memory()
+    memory = {
+        "total": vm.total,
+        "available": vm.available,
+        "percent": vm.percent,
+    }
+
+    disks = []
+    for part in psutil.disk_partitions(all=False):
+        try:
+            usage = psutil.disk_usage(part.mountpoint)
+        except Exception:
+            continue
+        disks.append({
+            "mountpoint": part.mountpoint,
+            "total": usage.total,
+            "percent": usage.percent,
+        })
+
+    net = []
+    for iface, addrs in psutil.net_if_addrs().items():
+        for addr in addrs:
+            if addr.family == socket.AF_INET:
+                net.append({"interface": iface, "address": addr.address})
+
+    procs = []
+    for proc in psutil.process_iter(attrs=["pid", "name", "memory_percent"]):
+        try:
+            info = proc.info
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        procs.append(info)
+
+    procs.sort(key=lambda p: p.get("memory_percent", 0), reverse=True)
+    top_processes = [
+        {
+            "pid": p["pid"],
+            "name": p.get("name", ""),
+            "memory_percent": p.get("memory_percent", 0.0),
+        }
+        for p in procs[:5]
+    ]
+
+    return {
+        "cpu": {"percent": cpu_percent},
+        "memory": memory,
+        "disks": disks,
+        "network": net,
+        "top_processes": top_processes,
+    }
