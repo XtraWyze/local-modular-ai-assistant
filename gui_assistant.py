@@ -317,7 +317,11 @@ reload_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 memory_button = ttk.Button(root, text="Edit Memory", command=open_memory_window)
 memory_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
 screen_button = ttk.Button(root, text="What's on my screen?", command=open_screen_viewer)
+<<<<<<< HEAD
 screen_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+=======
+screen_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
+>>>>>>> parent of ff4d9c9 (Merge pull request #5 from XtraWyze/codex/update-guiassistant-with-new-methods-and-tests)
 
 # ========== TTS SPEED SLIDER ==========
 speed_scale = tk.Scale(
