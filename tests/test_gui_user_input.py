@@ -1,23 +1,28 @@
-from types import SimpleNamespace
-
 from gui_assistant_core import GuiAssistant
+
 
 class DummyOrchestrator:
     def __init__(self):
         self.calls = []
+
     def parse_and_execute(self, text, via_voice=False):
         self.calls.append((text, via_voice))
         return "ok"
 
+
 class DummyText:
     def __init__(self):
         self.data = ""
+
     def insert(self, _pos, text):
         self.data += text
+
     def see(self, _pos):
         pass
+
     def get(self, *_):
         return self.data
+
 
 class DummyEntry(DummyText):
     def delete(self, *_):
@@ -51,5 +56,3 @@ def test_on_user_input_voice():
     assert "Assistant: ok" in log.get()
     assert entry.get() == "keep"
     assert orch.calls == [("hello", True)]
-
-

@@ -2,10 +2,16 @@ import threading
 import tkinter as tk
 from assistant import speak
 
-class GuiAssistant:
-    """Handles user input for the Tk GUI."""
 
-    def __init__(self, orchestrator_module, chat_log: tk.Text, input_box: tk.Entry) -> None:
+class GuiAssistant:
+    """Handle user input for the Tk GUI."""
+
+    def __init__(
+        self,
+        orchestrator_module,
+        chat_log: tk.Text,
+        input_box: tk.Entry,
+    ) -> None:
         self.orchestrator = orchestrator_module
         self.chat_log = chat_log
         self.input_box = input_box
@@ -23,7 +29,11 @@ class GuiAssistant:
         if response:
             self.chat_log.insert(tk.END, f"Assistant: {response}\n")
             self.chat_log.see(tk.END)
-            threading.Thread(target=speak, args=(response,), daemon=True).start()
+            threading.Thread(
+                target=speak,
+                args=(response,),
+                daemon=True,
+            ).start()
 
     def on_enter_pressed(self, event) -> None:
         text = self.input_box.get()
