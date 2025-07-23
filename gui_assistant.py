@@ -34,6 +34,8 @@ from assistant import (
 )
 # voice_input module lives inside the modules package
 from modules.voice_input import start_voice_listener
+from gui_assistant_core import GuiAssistant
+import orchestrator
 from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 # utils is located within the modules package
@@ -320,6 +322,10 @@ memory_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
 screen_button = ttk.Button(root, text="What's on my screen?", command=open_screen_viewer)
 screen_button.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
 
+# Instantiate GUI assistant and bind Enter key
+gui = GuiAssistant(orchestrator, output, entry)
+entry.bind("<Return>", gui.on_enter_pressed)
+
 # ========== TTS SPEED SLIDER ==========
 speed_scale = tk.Scale(
     root,
@@ -358,7 +364,7 @@ voice_menu.pack(side=tk.LEFT, padx=(5,10), pady=(0,10))
 # ========== START VOICE LISTENERS & SCHEDULE THREADS ==========
 threading.Thread(
     target=start_voice_listener,
-    args=(output, VOSK_MODEL_PATH, lambda: mic_hard_muted),  # UI output, model path, mic state
+    args=(gui, VOSK_MODEL_PATH, lambda: mic_hard_muted),  # pass GUI instance
     daemon=True
 ).start()
 

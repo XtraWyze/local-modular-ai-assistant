@@ -43,8 +43,17 @@ PROMPT_HEADER = (
     "\nOnly use a function if the user is very explicit. For questions, just return an empty string."
 )
 
-def parse_and_execute(user_text: str) -> str:
-    """Parse the LLM response and safely execute a whitelisted function."""
+def parse_and_execute(user_text: str, via_voice: bool = False) -> str:
+    """Parse the LLM response and safely execute a whitelisted function.
+
+    Parameters
+    ----------
+    user_text:
+        Raw text from the user.
+    via_voice:
+        ``True`` if the text originated from speech input.  Currently the
+        parameter is informational but is accepted for API compatibility.
+    """
     call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {user_text}\nAssistant:")
     m = re.match(r"(\w+)\((.*)\)", call.strip())
     if not m:
