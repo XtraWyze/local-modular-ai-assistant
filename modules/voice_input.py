@@ -85,12 +85,10 @@ def _beep():
         # Fallback to console bell
         print("\a", end="", flush=True)
 
-def start_voice_listener(gui_assistant, vosk_model_path, mic_hard_muted_func, stop_event=None):
+def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, stop_event=None):
     """Unified loop for wake-word detection and speech recognition."""
     if _IMPORT_ERROR:
         return f"Missing dependency: {_IMPORT_ERROR}"
-
-    output_widget = getattr(gui_assistant, "chat_log", None)
 
     # Hotword detection setup
     model = Model(vosk_model_path)
@@ -206,8 +204,9 @@ def start_voice_listener(gui_assistant, vosk_model_path, mic_hard_muted_func, st
                     output_widget.see("end")
                     continue
 
-                if hasattr(gui_assistant, "on_user_input"):
-                    gui_assistant.on_user_input(text, via_voice=True)
+                output_widget.insert("end", f"You (voice): {text}\n")
+                output_widget.see("end")
+                threading.Thread(target=process_input, args=(text, output_widget), daemon=True).start()
             else:
                 time.sleep(0.1)
     finally:
@@ -216,18 +215,18 @@ def start_voice_listener(gui_assistant, vosk_model_path, mic_hard_muted_func, st
         pa.terminate()
 
 # Simple wrappers used by get_info for discovery
-def listen(gui_assistant, vosk_model_path, mic_hard_muted_func):
+def listen(output_widget, vosk_model_path, mic_hard_muted_func):
     """Start the unified voice listener in a background thread."""
     if _IMPORT_ERROR:
         return f"Missing dependency: {_IMPORT_ERROR}"
     threading.Thread(
         target=start_voice_listener,
-        args=(gui_assistant, vosk_model_path, mic_hard_muted_func),
+        args=(output_widget, vosk_model_path, mic_hard_muted_func),
         daemon=True,
     ).start()
     return "Voice listener started"
 
-def start_hotword(gui_assistant, vosk_model_path, mic_hard_muted_func):
+def start_hotword(output_widget, vosk_model_path, mic_hard_muted_func):
     """Start the unified voice listener in its own thread."""
     global _hotword_thread, _hotword_stop
     if _hotword_thread and _hotword_thread.is_alive():
@@ -238,7 +237,7 @@ def start_hotword(gui_assistant, vosk_model_path, mic_hard_muted_func):
     _hotword_stop = threading.Event()
     _hotword_thread = threading.Thread(
         target=start_voice_listener,
-        args=(gui_assistant, vosk_model_path, mic_hard_muted_func, _hotword_stop),
+        args=(output_widget, vosk_model_path, mic_hard_muted_func, _hotword_stop),
         daemon=True,
     )
     _hotword_thread.start()
