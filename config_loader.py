@@ -18,7 +18,7 @@ class ConfigLoader:
         with open(self.path, "r") as f:
             self.config = json.load(f)
         self.last_modified = os.path.getmtime(self.path)
-        apply_emulation(self.config)
+        #apply_emulation(self.config)
         return self.config
 
     def reload_if_changed(self):

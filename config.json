@@ -8,7 +8,7 @@
   "llm_backend": "localai",
   "llm_model": "llama3",
   "google_api_key": "AIzaSyC66JlplV0FpMSjzkAuZy887dLlw2ZrNLo",
-  "google_model": "gemini-pro",
+  "google_model": "gemini",
   "emulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
   "memory_max": 500,
@@ -41,7 +41,6 @@
   },
   "startup_message": "Welcome to your local AI assistant!",
   "tips": [
-    "Try: capture region 100 200 300 300",
     "Say 'go to sleep' to pause listening.",
     "Click the mic icon to fully mute/unmute."
   ],
