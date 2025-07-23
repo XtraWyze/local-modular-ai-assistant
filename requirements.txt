@@ -150,6 +150,7 @@ PyAutoGUI==0.9.54
 pybase64==1.4.1
 pycaw==20240210
 pycparser==2.22
+pytest==8.4.1
 pydantic==2.11.7
 pydantic_core==2.33.2
 pygame==2.6.1
@@ -190,6 +191,7 @@ safetensors==0.5.3
 schedule==1.2.2
 scikit-learn==1.7.0
 scipy==1.11.4
+selenium==4.21.0
 screeninfo==0.8.1
 selenium==4.21.0
 sentence-transformers==5.0.0
