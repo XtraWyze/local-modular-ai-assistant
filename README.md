@@ -337,6 +337,7 @@ We welcome contributions to make the Local Modular AI Assistant even better! Her
 ### 3. **Submitting Code**
 - Make your changes in a new branch.
 - Run `pytest` locally and ensure all tests pass.
+- Run `flake8` to check for style issues.
 - (Optional) Generate a coverage report with `coverage run -m pytest && coverage html`.
 - Update `requirements.txt` and `README.md` if you add new dependencies or features.
 - Ensure the GitHub Actions tests badge is green before merging.
