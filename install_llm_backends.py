@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from error_logger import log_error
+
 REPOS = {
     "localai": "https://github.com/go-skynet/LocalAI.git",
     "webui": "https://github.com/oobabooga/text-generation-webui.git",
@@ -15,7 +17,12 @@ def clone_repo(url: str, dest: Path) -> None:
     if dest.exists():
         print(f"{dest} already exists, skipping clone")
         return
-    subprocess.check_call(["git", "clone", "--depth", "1", url, str(dest)])
+    try:
+        subprocess.check_call(["git", "clone", "--depth", "1", url, str(dest)])
+    except FileNotFoundError as e:
+        log_error("Git executable not found", context=str(e))
+        print("Git not found. Please install Git and ensure it is on your PATH.")
+        sys.exit(1)
 
 
 def main() -> None:
