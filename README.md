@@ -53,6 +53,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
 - `pygetwindow` (or `wmctrl` on Linux) for listing open windows and focusing
   them
 - `pycaw` and `comtypes` for adjusting system volume on Windows
+- [Git](https://git-scm.com/) (required for `install_llm_backends.py` and the Windows batch file)
 
 **Install Python dependencies:**
 ```bash
