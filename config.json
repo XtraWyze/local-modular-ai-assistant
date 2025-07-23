@@ -7,7 +7,7 @@
   "prefer_local_llm": true,
   "llm_backend": "localai",
   "llm_model": "llama3",
-  "google_api_key": "your-gemini-api-key-here",
+  "google_api_key": "AIzaSyC66JlplV0FpMSjzkAuZy887dLlw2ZrNLo",
   "google_model": "gemini-pro",
   "simulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
@@ -17,7 +17,9 @@
   "wake_phrases": [
     "hey assistant",
     "wake up",
-    "hello assistant"
+    "hello assistant",
+    "okay assistant",
+    "assistant wake up"
   ],
   "sleep_phrases": [
     "go to sleep",
