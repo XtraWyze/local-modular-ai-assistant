@@ -53,7 +53,8 @@ config = config_loader.config
 # ========== TKINTER GUI SETUP ==========
 root = tk.Tk()
 root.title("AI Assistant")
-root.geometry("600x400")
+# Default size increased so all controls fit comfortably
+root.geometry("900x650")
 
 # Notebook with main UI and speech training tab
 notebook = ttk.Notebook(root)
@@ -75,22 +76,30 @@ def on_close():
 root.protocol("WM_DELETE_WINDOW", on_close)
 
 frame = ttk.Frame(main_tab)
-frame.pack(padx=10, pady=10)
+frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-output = tk.Text(frame, height=20, width=70, wrap=tk.WORD)
-output.pack()
+# Main output console
+output = tk.Text(frame, height=20, wrap=tk.WORD)
+output.pack(fill="both", expand=True)
 output.insert(tk.END, "Assistant: Assistant is sleeping. Say your wake phrase to activate.\n")
 
+
+# Frame for command entry and action buttons
+entry_frame = ttk.Frame(main_tab)
+entry_frame.pack(fill="x", padx=10, pady=(0, 10))
+
 # Input box for CLI-style commands
-entry = ttk.Entry(main_tab, width=60)
-entry.pack(side=tk.LEFT, padx=(10, 0), pady=(0, 10))
+entry = ttk.Entry(entry_frame)
+entry.pack(side=tk.LEFT, fill="x", expand=True)
 entry.bind("<Return>", lambda event: send())
 
 # New input box for natural language task descriptions
-task_label = ttk.Label(main_tab, text="Describe a Task:")
-task_label.pack(padx=10, anchor="w")
-task_entry = ttk.Entry(main_tab, width=70)
-task_entry.pack(fill="x", padx=10, pady=(0, 10))
+task_frame = ttk.Frame(main_tab)
+task_frame.pack(fill="x", padx=10, pady=(0, 10))
+task_label = ttk.Label(task_frame, text="Describe a Task:")
+task_label.pack(anchor="w")
+task_entry = ttk.Entry(task_frame)
+task_entry.pack(fill="x")
 task_entry.bind("<Return>", lambda event: send_task())
 task_entry.bind("<Up>", lambda event: show_prev_task(event))
 task_entry.bind("<Down>", lambda event: show_next_task(event))
@@ -317,23 +326,29 @@ def reload_config():
         speak("Configuration has been reloaded.")
 
 # ========== BUTTON HANDLER (UI ONLY) ==========
-send_button = ttk.Button(main_tab, text="Send", command=send)
-send_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
-task_button = ttk.Button(main_tab, text="Run Task", command=send_task)
-task_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
-reload_button = ttk.Button(main_tab, text="Reload Config", command=reload_config)
-reload_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
-memory_button = ttk.Button(main_tab, text="Edit Memory", command=open_memory_window)
-memory_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
-screen_button = ttk.Button(main_tab, text="What's on my screen?", command=open_screen_viewer)
+buttons_frame = ttk.Frame(entry_frame)
+buttons_frame.pack(side=tk.LEFT)
 
-screen_button.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+send_button = ttk.Button(buttons_frame, text="Send", command=send)
+send_button.pack(side=tk.LEFT, padx=(5, 5))
+task_button = ttk.Button(buttons_frame, text="Run Task", command=send_task)
+task_button.pack(side=tk.LEFT, padx=(0, 5))
+reload_button = ttk.Button(buttons_frame, text="Reload Config", command=reload_config)
+reload_button.pack(side=tk.LEFT, padx=(0, 5))
+memory_button = ttk.Button(buttons_frame, text="Edit Memory", command=open_memory_window)
+memory_button.pack(side=tk.LEFT, padx=(0, 5))
+screen_button = ttk.Button(buttons_frame, text="What's on my screen?", command=open_screen_viewer)
+
+screen_button.pack(side=tk.LEFT, padx=(0, 5))
 
 
 
 # ========== TTS SPEED SLIDER ==========
+tts_frame = ttk.Frame(main_tab)
+tts_frame.pack(fill="x", padx=10, pady=(0, 10))
+
 speed_scale = tk.Scale(
-    main_tab,
+    tts_frame,
     from_=0.5,
     to=2.0,
     resolution=0.1,
@@ -342,11 +357,11 @@ speed_scale = tk.Scale(
     command=lambda v: tts_module.set_speed(float(v)),
 )
 speed_scale.set(config.get("tts_speed", 1.0))
-speed_scale.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+speed_scale.pack(side=tk.LEFT, padx=(0, 10))
 
 # ========== TTS VOLUME SLIDER ==========
 volume_scale = tk.Scale(
-    main_tab,
+    tts_frame,
     from_=0.0,
     to=1.0,
     resolution=0.05,
@@ -355,16 +370,16 @@ volume_scale = tk.Scale(
     command=lambda v: tts_module.set_volume(float(v)),
 )
 volume_scale.set(config.get("tts_volume", 0.8))
-volume_scale.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+volume_scale.pack(side=tk.LEFT, padx=(0, 10))
 
 # ========== TTS VOICE MENU ==========
 voices = tts_module.list_voices()
 voice_var = tk.StringVar()
 current_voice = config.get("tts_voice") or (voices[0] if voices else "")
 voice_var.set(current_voice)
-voice_menu = ttk.OptionMenu(main_tab, voice_var, current_voice, *voices, command=lambda v: tts_module.set_voice(v))
+voice_menu = ttk.OptionMenu(tts_frame, voice_var, current_voice, *voices, command=lambda v: tts_module.set_voice(v))
 voice_menu.configure(text="TTS Voice")
-voice_menu.pack(side=tk.LEFT, padx=(5, 10), pady=(0, 10))
+voice_menu.pack(side=tk.LEFT)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(speech_tab, text="Click Start and read each sentence aloud:")
