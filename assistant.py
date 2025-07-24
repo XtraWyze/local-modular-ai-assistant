@@ -41,6 +41,7 @@ from llm_interface import generate_response
 from module_manager import ModuleRegistry
 from config_loader import ConfigLoader
 from config_validator import validate_config
+import scan_registry
 
 config_loader = ConfigLoader()
 config = config_loader.config
@@ -62,7 +63,10 @@ if errors:
         print(" -", err)
     import sys
 
+
     sys.exit(1)
+
+scan_registry.initialize()
 
 # Central state of the assistant: "idle" or "processing"
 assistant_state = "idle"
@@ -408,6 +412,71 @@ def process_input(user_input, output_widget):
                 output_widget.see("end")
                 speak(msg)
                 last_ai_response = msg
+                return
+
+            # === Scan registry commands ===
+            lower = text.lower()
+            if lower == "system scan":
+                info = scan_registry.system_data.get("summary", "No data")
+                output_widget.insert("end", f"Assistant: {info}\n")
+                output_widget.see("end")
+                speak(str(info))
+                last_ai_response = str(info)
+                result[0] = str(info)
+                return
+            if lower == "device scan":
+                devices = ", ".join(scan_registry.device_data) or "No devices found"
+                msg = f"Devices: {devices}"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "network scan":
+                hosts = ", ".join(scan_registry.network_data) or "No hosts found"
+                msg = f"Network hosts: {hosts}"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "refresh system scan":
+                scan_registry.refresh_system()
+                msg = "System scan refreshed."
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "refresh device scan":
+                scan_registry.refresh_devices()
+                msg = "Device scan refreshed."
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "refresh network scan":
+                scan_registry.refresh_network()
+                msg = "Network scan refreshed."
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "refresh all scans":
+                scan_registry.refresh_all()
+                msg = "All scans refreshed."
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
                 return
 
             # === Casual conversation ===
