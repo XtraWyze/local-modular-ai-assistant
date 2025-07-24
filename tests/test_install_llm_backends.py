@@ -1,6 +1,7 @@
 import pytest
 import importlib
 from pathlib import Path
+import sys
 
 import install_llm_backends
 
@@ -15,4 +16,19 @@ def test_clone_repo_git_missing(monkeypatch, capsys, tmp_path):
     assert excinfo.value.code != 0
     out = capsys.readouterr().out
     assert "Git not found" in out
+
+
+def test_main_ollama(monkeypatch):
+    calls = []
+
+    def fake_clone(url, dest):
+        calls.append((url, dest))
+
+    monkeypatch.setattr(install_llm_backends, "clone_repo", fake_clone)
+    monkeypatch.setattr(sys, "argv", ["install_llm_backends.py", "--ollama"])
+    install_llm_backends.main()
+    assert calls == [(
+        install_llm_backends.REPOS["ollama"],
+        Path("ollama"),
+    )]
 
