@@ -126,6 +126,21 @@ def _handle_minimize_alias(text: str) -> str | None:
         return f"Error running minimize_window: {e}"
 
 
+def _handle_save_exit_alias(text: str) -> str | None:
+    """Support ``save and exit <window>`` as alias for ``save_and_exit``."""
+    m = re.match(r"\bsave and exit\s+(.+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    target = m.group(1)
+    if "save_and_exit" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["save_and_exit"]
+    try:
+        return func(target)
+    except Exception as e:
+        return f"Error running save_and_exit: {e}"
+
+
 def _execute_tool_call(fn_name: str, args: str, user_text: str) -> str:
     """Validate and execute a tool call returned by the LLM."""
     if fn_name not in ALLOWED_FUNCTIONS:
@@ -180,6 +195,7 @@ def parse_and_execute(user_text: str) -> str:
         _handle_run_skill,
         _handle_terminate_alias,
         _handle_minimize_alias,
+        _handle_save_exit_alias,
     ):
         result = handler(user_text)
         if result is not None:
