@@ -11,6 +11,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Offline/online voice interaction (local, private, or Google Gemini fallback)**
 - **Hotword detection, hard/soft mute, and wake/sleep phrases**
 - **Priority 'Stop Assistant' hotword to cancel speech**
+- **Alt+/ hotkey toggles voice listening on or off**
 - **Unified voice profile for all TTS output**
 - **Live config editing:** Change `config.json` and see it reload instantly (no restart needed)
 - **Powerful memory search and recall**
