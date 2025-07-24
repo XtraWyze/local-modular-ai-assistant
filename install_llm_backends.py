@@ -9,6 +9,7 @@ from error_logger import log_error
 REPOS = {
     "localai": "https://github.com/go-skynet/LocalAI.git",
     "webui": "https://github.com/oobabooga/text-generation-webui.git",
+    "ollama": "https://github.com/ollama/ollama.git",
 }
 
 
@@ -26,14 +27,15 @@ def clone_repo(url: str, dest: Path) -> None:
 
 
 def main() -> None:
-    """Clone LocalAI and/or text-generation-webui repositories."""
+    """Clone LocalAI, text-generation-webui, and/or Ollama repositories."""
     parser = argparse.ArgumentParser(description="Download LLM backend frameworks")
     parser.add_argument("--localai", action="store_true", help="Clone LocalAI")
     parser.add_argument("--webui", action="store_true", help="Clone text-generation-webui")
-    parser.add_argument("--all", action="store_true", help="Clone both frameworks")
+    parser.add_argument("--ollama", action="store_true", help="Clone Ollama")
+    parser.add_argument("--all", action="store_true", help="Clone all frameworks")
     args = parser.parse_args()
 
-    if not any([args.localai, args.webui, args.all]):
+    if not any([args.localai, args.webui, args.ollama, args.all]):
         parser.print_help(sys.stderr)
         return
 
@@ -41,6 +43,8 @@ def main() -> None:
         clone_repo(REPOS["localai"], Path("LocalAI"))
     if args.all or args.webui:
         clone_repo(REPOS["webui"], Path("text-generation-webui"))
+    if args.all or args.ollama:
+        clone_repo(REPOS["ollama"], Path("ollama"))
 
     print("Frameworks downloaded. See each repo's README for build instructions.")
 

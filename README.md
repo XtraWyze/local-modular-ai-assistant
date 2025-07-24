@@ -51,7 +51,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
 **Requirements:**
 - Python 3.10+ (64-bit recommended)
 - [Coqui TTS](https://github.com/coqui-ai/TTS)
-- [LocalAI](https://github.com/go-skynet/LocalAI) or [text-generation-webui](https://github.com/oobabooga/text-generation-webui) for local LLMs
+- [LocalAI](https://github.com/go-skynet/LocalAI), [text-generation-webui](https://github.com/oobabooga/text-generation-webui), or [Ollama](https://github.com/ollama/ollama) for local LLMs
 - [Vosk](https://alphacephei.com/vosk/) speech model (see config for path)
 - `sounddevice` (audio playback and microphone input)
 - `watchdog` (for live config reload, highly recommended)
@@ -70,7 +70,7 @@ python install_requirements.py
 # Windows: run install_requirements.bat for a quick install
 # or run setup_venv.py (Windows: setup_venv.bat) to create the `venv/` folder
 # and install everything automatically
-# Optional: fetch local LLM backends
+# Optional: fetch local LLM backends (LocalAI, text-generation-webui, Ollama)
 python install_llm_backends.py --all
 # Windows users can run install_llm_backends.bat
 # Remove caches and temporary files
@@ -87,10 +87,12 @@ Offline use requires a few additional assets:
    `tts --model tts_models/en/jenny/jenny --download` or download another voice
    from the [Coqui TTS](https://github.com/coqui-ai/TTS) project. Update
    `tts_model` in `config.json` with the chosen voice.
-3. **LLM backends** – clone LocalAI and text-generation-webui by running
+3. **LLM backends** – clone LocalAI, text-generation-webui, and Ollama by running
    `python install_llm_backends.py --all` (or the `.bat` file on Windows).
    Follow each backend’s README to place your LLM weights in its `models/`
-   directory.
+   directory. Ollama provides pre-packaged models via `ollama pull`.
+   Alternatively install the official Ollama binary using
+   `curl -fsSL https://ollama.com/install.sh | sh`.
 4. **LLM weights** – download a compatible GGUF or GPTQ model (for example,
    [Llama 3 on Hugging Face](https://huggingface.co/)). Put the files under the
    selected backend’s `models/` folder and update `llm_model` accordingly.
