@@ -63,10 +63,12 @@ main_tab = ttk.Frame(notebook)
 speech_tab = ttk.Frame(notebook)
 config_tab = ttk.Frame(notebook)
 hotkey_tab = ttk.Frame(notebook)
+module_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
 notebook.add(hotkey_tab, text="Hotkeys")
+notebook.add(module_tab, text="Module Generator")
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -470,6 +472,80 @@ def start_macro_recording() -> None:
 ttk.Button(macro_frame, text="Record Macro", command=start_macro_recording).pack(
     pady=(0, 10)
 )
+
+# ---------- Module Generator Tab ----------
+gen_name_var = tk.StringVar()
+ttk.Label(module_tab, text="Module Name:").pack(anchor="w", padx=10, pady=(10, 0))
+gen_name_entry = ttk.Entry(module_tab, textvariable=gen_name_var)
+gen_name_entry.pack(fill="x", padx=10)
+
+ttk.Label(module_tab, text="Description:").pack(anchor="w", padx=10, pady=(10, 0))
+gen_desc = tk.Text(module_tab, height=4)
+gen_desc.pack(fill="x", padx=10)
+
+ttk.Label(module_tab, text="Preview:").pack(anchor="w", padx=10, pady=(10, 0))
+gen_preview = tk.Text(module_tab, height=15)
+gen_preview.pack(fill="both", expand=True, padx=10)
+gen_status = ttk.Label(module_tab, text="")
+gen_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+def generate_preview() -> None:
+    desc = gen_desc.get("1.0", tk.END).strip()
+    if not desc:
+        gen_status.config(text="Enter a description first.")
+        return
+    try:
+        from modules.module_generator import CodexClient
+
+        client = CodexClient()
+        code = client.generate_code(desc)
+        if not code:
+            gen_status.config(text="No code returned")
+            return
+        gen_preview.delete("1.0", tk.END)
+        gen_preview.insert("1.0", code)
+        save_btn.config(state=tk.NORMAL)
+        cancel_btn.config(state=tk.NORMAL)
+        gen_status.config(text="Preview generated. Click Save to keep it.")
+        generate_preview.current_code = code
+    except Exception as exc:  # pragma: no cover - network failure
+        gen_status.config(text=f"Error: {exc}")
+
+generate_preview.current_code = ""
+
+def save_generated() -> None:
+    code = generate_preview.current_code
+    if not code:
+        gen_status.config(text="Generate code first.")
+        return
+    name = gen_name_var.get().strip() or None
+    try:
+        from modules import module_generator
+
+        path = module_generator.save_module_code(code, name=name)
+        gen_status.config(text=f"Saved to {path}")
+        gen_preview.delete("1.0", tk.END)
+        save_btn.config(state=tk.DISABLED)
+        cancel_btn.config(state=tk.DISABLED)
+        generate_preview.current_code = ""
+    except Exception as exc:
+        gen_status.config(text=f"Error: {exc}")
+
+def cancel_generated() -> None:
+    gen_preview.delete("1.0", tk.END)
+    save_btn.config(state=tk.DISABLED)
+    cancel_btn.config(state=tk.DISABLED)
+    generate_preview.current_code = ""
+    gen_status.config(text="Cancelled")
+
+btn_frame_gen = ttk.Frame(module_tab)
+btn_frame_gen.pack(pady=5)
+gen_btn = ttk.Button(btn_frame_gen, text="Generate Preview", command=generate_preview)
+gen_btn.pack(side=tk.LEFT, padx=5)
+save_btn = ttk.Button(btn_frame_gen, text="Save Module", state=tk.DISABLED, command=save_generated)
+save_btn.pack(side=tk.LEFT, padx=5)
+cancel_btn = ttk.Button(btn_frame_gen, text="Cancel", state=tk.DISABLED, command=cancel_generated)
+cancel_btn.pack(side=tk.LEFT, padx=5)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(speech_tab, text="Click Start and read each sentence aloud:")

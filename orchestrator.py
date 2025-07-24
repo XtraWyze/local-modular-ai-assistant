@@ -53,6 +53,18 @@ def parse_and_execute(user_text: str) -> str:
         desc = user_text[6:].strip()
         return LearningAgent().learn_skill(desc)
 
+    m = re.match(r"(?:create|generate) module (\w+)(?:\s+(.*))?", user_text, re.IGNORECASE)
+    if m:
+        name, desc = m.groups()
+        desc = desc or ""
+        try:
+            from modules import module_generator
+
+            path = module_generator.generate_module_interactive(desc, name=name)
+            return path
+        except Exception as e:
+            return f"Error generating module: {e}"
+
     if user_text.lower().startswith("run "):
         import modules as skills_pkg
 

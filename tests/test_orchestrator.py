@@ -116,3 +116,30 @@ def test_parse_and_execute_high_risk_allowed_by_default(monkeypatch):
     result = orch.parse_and_execute("execute code")
     assert result == "executed"
 
+
+def test_parse_and_execute_create_module(monkeypatch):
+    dummy_mod = types.ModuleType("modules.module_generator")
+    calls = []
+
+    def dummy_interactive(desc, name=None):
+        calls.append((desc, name))
+        return "modules/demo_mod.py"
+
+    dummy_mod.generate_module_interactive = dummy_interactive
+    dummy_mod.__all__ = ["generate_module_interactive"]
+    monkeypatch.setitem(sys.modules, "modules.module_generator", dummy_mod)
+
+    stub_tools = types.ModuleType("modules.tools")
+    stub_tools.__all__ = []
+    monkeypatch.setitem(sys.modules, "modules.tools", stub_tools)
+
+    stub_assistant = types.ModuleType("assistant")
+    stub_assistant.talk_to_llm = lambda prompt: ""
+    monkeypatch.setitem(sys.modules, "assistant", stub_assistant)
+
+    orch = importlib.reload(importlib.import_module("orchestrator"))
+
+    result = orch.parse_and_execute("create module demo_mod does things")
+    assert result == "modules/demo_mod.py"
+    assert calls == [("does things", "demo_mod")]
+

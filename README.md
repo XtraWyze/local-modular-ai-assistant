@@ -23,6 +23,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
+- **Interactive module generator with preview and confirmation**
 - **LLM auto-loads module list for accurate tool usage**
 - **User-friendly GUI with mic overlay and system tray**
 - **Speech learning tab to practice recognition**
@@ -265,6 +266,7 @@ You can also say "how do I use you" or just "tutorial" for a quick walkthrough o
 Add new tools or actions in `modules/tools.py` or `modules/actions.py`, or create additional Python files in the `modules/` directory.
 
 Use the generator script to scaffold new modules quickly.
+You can also open the **Module Generator** tab in the GUI to preview and save new modules interactively.
 
 Enable/disable plugins in config.json (enable_plugins).
 
