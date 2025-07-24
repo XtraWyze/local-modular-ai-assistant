@@ -11,8 +11,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Offline voice interaction (fully local and private)**
 - **Hotword detection, hard/soft mute, and wake/sleep phrases**
 - **Priority 'Stop Assistant' hotword to cancel speech**
-- **Alt+/ hotkey toggles voice listening on or off**
-- **Ctrl+Shift+W wakes the assistant; Ctrl+Shift+S puts it to sleep**
+- **Customizable wake/sleep hotkeys (default Ctrl+Shift+W / Ctrl+Shift+S)**
 - **Unified voice profile for all TTS output**
 - **Live config editing:** Change `config.json` and see it reload instantly (no restart needed)
 - **Powerful memory search and recall**

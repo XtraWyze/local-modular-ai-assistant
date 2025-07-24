@@ -8,7 +8,7 @@ def test_start_hotkey_missing_keyboard(monkeypatch):
     monkeypatch.setattr(hk, 'keyboard', None)
     monkeypatch.setattr(hk, '_IMPORT_ERROR', RuntimeError('missing'))
     out = hk.start_hotkey()
-    assert 'keyboard module missing' in out
+    assert 'disabled' in out
 
 
 def test_start_hotkey(monkeypatch):
@@ -18,8 +18,8 @@ def test_start_hotkey(monkeypatch):
     monkeypatch.setattr(hk, 'keyboard', fake_kb)
     monkeypatch.setattr(hk, '_IMPORT_ERROR', None)
     out = hk.start_hotkey()
-    assert hk.HOTKEY in out
-    assert events == [hk.HOTKEY]
+    assert 'disabled' in out
+    assert events == []
 
 
 def test_trigger_toggle(monkeypatch):

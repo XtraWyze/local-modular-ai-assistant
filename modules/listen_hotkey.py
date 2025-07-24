@@ -11,13 +11,16 @@ else:
 from assistant import is_listening, set_listening, cancel_processing
 from modules.tts_manager import stop_speech
 
-HOTKEY = 'alt+/'
+# Hotkey disabled by default. Previously used Alt+/, now configurable via GUI.
+HOTKEY = ''
 
 __all__ = ["start_hotkey", "trigger"]
 
 
 def start_hotkey():
     """Register the listening toggle hotkey."""
+    if not HOTKEY:
+        return "Hotkey disabled"
     if keyboard is None:
         return f"keyboard module missing: {_IMPORT_ERROR}"
     keyboard.add_hotkey(HOTKEY, trigger)

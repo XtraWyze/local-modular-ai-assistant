@@ -39,6 +39,7 @@ import modules.tts_integration as tts_module
 from modules import speech_learning
 # utils is located within the modules package
 from modules.utils import resource_path
+from modules import wake_sleep_hotkey
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -426,6 +427,33 @@ voice_menu.configure(text="TTS Voice")
 voice_menu.pack(side=tk.LEFT)
 
 # ---------- Hotkeys Tab ----------
+# Hotkey assignment for wake/sleep
+assign_frame = ttk.Frame(hotkey_tab, padding=10)
+assign_frame.pack(fill="x")
+
+ttk.Label(assign_frame, text="Wake Hotkey:").grid(row=0, column=0, sticky="w")
+wake_hotkey_var = tk.StringVar(value=wake_sleep_hotkey.WAKE_HOTKEY)
+wake_entry = ttk.Entry(assign_frame, textvariable=wake_hotkey_var, width=20)
+wake_entry.grid(row=0, column=1, sticky="w")
+
+ttk.Label(assign_frame, text="Sleep Hotkey:").grid(row=1, column=0, sticky="w")
+sleep_hotkey_var = tk.StringVar(value=wake_sleep_hotkey.SLEEP_HOTKEY)
+sleep_entry = ttk.Entry(assign_frame, textvariable=sleep_hotkey_var, width=20)
+sleep_entry.grid(row=1, column=1, sticky="w")
+
+assign_status = ttk.Label(assign_frame, text="")
+assign_status.grid(row=3, column=0, columnspan=2, pady=(5, 0))
+
+def apply_hotkeys() -> None:
+    msg = wake_sleep_hotkey.set_hotkeys(
+        wake_hotkey_var.get().strip(), sleep_hotkey_var.get().strip()
+    )
+    assign_status.config(text=msg)
+
+ttk.Button(assign_frame, text="Apply Hotkeys", command=apply_hotkeys).grid(
+    row=2, column=0, columnspan=2, pady=(5, 5)
+)
+
 macro_name_var = tk.StringVar()
 macro_frame = ttk.Frame(hotkey_tab, padding=10)
 macro_frame.pack(fill="both", expand=True)
@@ -489,6 +517,7 @@ start_train_btn = ttk.Button(speech_tab, text="Start Training", command=run_spee
 start_train_btn.pack(pady=5)
 
 # ========== START VOICE LISTENERS & SCHEDULE THREADS ==========
+wake_sleep_hotkey.start_hotkeys()
 threading.Thread(
     target=start_voice_listener,
     args=(output, VOSK_MODEL_PATH, lambda: mic_hard_muted),  # UI output, model path, mic state
