@@ -260,6 +260,19 @@ def process_input(user_input, output_widget):
     set_listening(False)
     speak("Give me a moment...", speed=1.0)
 
+    try:
+        from modules import system_load  # optional module
+    except Exception:  # pragma: no cover - module may be missing
+        system_load = None
+    else:
+        if system_load.is_overloaded():
+            output_widget.insert(
+                "end", "Assistant: System overloaded, waiting...\n"
+            )
+            output_widget.see("end")
+            speak("System is busy, waiting for resources.")
+            system_load.wait_for_load()
+
     result = [None]
     exception_caught = [None]
 
