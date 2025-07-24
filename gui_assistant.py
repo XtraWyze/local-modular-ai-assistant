@@ -61,9 +61,50 @@ notebook = ttk.Notebook(root)
 notebook.pack(expand=True, fill="both")
 main_tab = ttk.Frame(notebook)
 speech_tab = ttk.Frame(notebook)
+config_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
+notebook.add(config_tab, text="Config Editor")
 
+# ---------- Config Editor Tab ----------
+config_text = tk.Text(config_tab, wrap=tk.WORD)
+config_text.pack(fill="both", expand=True, padx=10, pady=10)
+
+def load_config_text() -> None:
+    """Load ``config.json`` into the editor widget."""
+    try:
+        with open("config.json", "r", encoding="utf-8") as f:
+            data = f.read()
+    except Exception as exc:  # pragma: no cover - unexpected I/O issues
+        data = f"Error loading config: {exc}\n"
+    config_text.delete("1.0", tk.END)
+    config_text.insert(tk.END, data)
+
+def save_config_text() -> None:
+    """Validate and save the config editor contents."""
+    raw = config_text.get("1.0", tk.END)
+    try:
+        cfg = json.loads(raw)
+    except Exception as exc:
+        output.insert(tk.END, f"[CONFIG ERROR] {exc}\n")
+        return
+    errors = validate_config(cfg)
+    if errors:
+        output.insert(tk.END, "[CONFIG VALIDATION ERROR]\n" + "\n".join(errors) + "\n")
+        return
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    config_loader.config = cfg
+    output.insert(tk.END, "[SYSTEM] Config saved.\n")
+    reload_config()
+
+btn_frame = ttk.Frame(config_tab)
+btn_frame.pack(pady=(0, 10))
+ttk.Button(btn_frame, text="Reload", command=load_config_text).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_frame, text="Save", command=save_config_text).pack(side=tk.LEFT)
+ttk.Button(btn_frame, text="Edit Memory", command=open_memory_window).pack(side=tk.LEFT, padx=5)
+
+load_config_text()
 # Apply a modern ttk theme if available
 style = ttk.Style()
 if "clam" in style.theme_names():
