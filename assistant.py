@@ -255,6 +255,19 @@ def process_input(user_input, output_widget):
         output_widget.see("end")
         queue_command(text, output_widget)
         return
+
+    # --- Multi-task handling without explicit "plan" ---
+    plan = planning_agent.create_plan(text)
+    if len(plan) > 1 and not text.lower().startswith("plan "):
+        pending_commands.clear()
+        for sub in plan:
+            queue_command(sub, output_widget)
+        msg = "Queued tasks: " + ", ".join(plan)
+        output_widget.insert("end", f"Assistant: {msg}\n")
+        output_widget.see("end")
+        speak(msg)
+        _run_next_in_queue()
+        return
     set_state("processing")
     global listening_before_processing
     # Save the current listening state before processing
