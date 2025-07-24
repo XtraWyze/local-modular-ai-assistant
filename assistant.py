@@ -479,6 +479,34 @@ def process_input(user_input, output_widget):
                 result[0] = msg
                 return
 
+            # === Direct typing & mouse move ===
+            if text.lower().startswith("type "):
+                typed_text = text[5:].strip()
+                if keyboard:
+                    keyboard.write(typed_text)
+                elif pyautogui:
+                    pyautogui.write(typed_text, interval=0.05)
+                msg = f"Typed: {typed_text}"
+                output_widget.insert("end", f"[Action] {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            m = re.match(r"move mouse to (\d+)[, ]+(\d+)", text.lower())
+            if m:
+                x, y = int(m.group(1)), int(m.group(2))
+                if pyautogui:
+                    pyautogui.moveTo(x, y, duration=1)
+                    msg = f"Moved mouse to ({x},{y})"
+                else:
+                    msg = "pyautogui module not available"
+                output_widget.insert("end", f"[Action] {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
             # === Casual conversation ===
             if is_chitchat(text):
                 result[0] = talk_to_llm(text)
@@ -680,6 +708,8 @@ def process_input(user_input, output_widget):
 
             output_widget.insert("end", f"You: {text}\n")
             output_widget.see("end")
+
+
 
             # === Synonym action logic ===
             if cancel_event.is_set():
