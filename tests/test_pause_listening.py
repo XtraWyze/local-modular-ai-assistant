@@ -1,4 +1,5 @@
 import importlib
+import json
 import sys
 import types
 from tests.test_assistant_utils import import_assistant
@@ -47,8 +48,14 @@ def test_learn_resume_phrase(monkeypatch, tmp_path):
     assistant, _ = import_assistant(monkeypatch)
     phrase = 'continue please'
     path = tmp_path / 'state.json'
+    cfg_path = tmp_path / 'config.json'
+    cfg_path.write_text('{}')
     sm = importlib.import_module('state_manager')
-    monkeypatch.setattr(sm, 'STATE_FILE', str(path), raising=False)
     importlib.reload(sm)
+    monkeypatch.setattr(sm, 'STATE_FILE', str(path), raising=False)
+    sm._config_loader = sm.ConfigLoader(str(cfg_path))
+    sm.load_state()
     sm.add_resume_phrase(phrase)
     assert phrase in sm.get_resume_phrases()
+    saved = json.loads(cfg_path.read_text())
+    assert phrase in saved['resume_phrases']

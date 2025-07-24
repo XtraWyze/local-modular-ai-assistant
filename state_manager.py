@@ -1,5 +1,7 @@
 import json
 import os
+from config_loader import ConfigLoader
+from error_logger import log_error
 
 STATE_FILE = "assistant_state.json"
 ACTIONS_FILE = "learned_actions.json"
@@ -9,6 +11,9 @@ _default_actions = {}
 
 state = _DEFAULT_STATE.copy()
 actions = _default_actions.copy()
+
+# Load configuration for phrase persistence
+_config_loader = ConfigLoader()
 
 def load_state():
     global state
@@ -56,6 +61,21 @@ def get_action(name):
     return actions.get(name)
 
 
+def _update_config_phrase(key: str, phrase: str) -> None:
+    """Ensure ``phrase`` is stored under ``key`` in the config file."""
+    cfg = _config_loader.config
+    phrases = cfg.setdefault(key, [])
+    phrase = phrase.lower().strip()
+    if phrase and phrase not in phrases:
+        phrases.append(phrase)
+        try:
+            with open(_config_loader.path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+            _config_loader.last_modified = os.path.getmtime(_config_loader.path)
+        except Exception as e:  # pragma: no cover - file I/O error
+            log_error(f"[state_manager] Could not update config: {e}")
+
+
 def get_resume_phrases() -> list:
     """Return learned resume trigger phrases."""
     return state.setdefault("resume_phrases", [])
@@ -68,6 +88,7 @@ def add_resume_phrase(phrase: str) -> str:
     if phrase and phrase not in phrases:
         phrases.append(phrase)
         save_state()
+        _update_config_phrase("resume_phrases", phrase)
         return f"Learned resume phrase: {phrase}"
     return "Phrase already known"
 
