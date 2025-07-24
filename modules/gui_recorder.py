@@ -4,9 +4,12 @@ try:
     import tkinter as tk
     from tkinter import messagebox
     import pyautogui
+    from .automation_learning import record_events, play_events
 except Exception as e:  # pragma: no cover - optional deps
     tk = None
     pyautogui = None
+    record_events = None
+    play_events = None
     _IMPORT_ERROR = e
 else:
     _IMPORT_ERROR = None
@@ -21,7 +24,9 @@ def record_gui(name: str) -> str:
     """Record actions until ESC is pressed and save to a JSON file."""
     if _IMPORT_ERROR:
         return f"pyautogui not available: {_IMPORT_ERROR}"
-    events = pyautogui.record()
+    if record_events is None:
+        return "Recording functions unavailable"
+    events = record_events()
     import json
     import os
     os.makedirs(MACRO_DIR, exist_ok=True)
@@ -35,6 +40,8 @@ def play_gui(name: str) -> str:
     """Play back a recorded macro by name."""
     if _IMPORT_ERROR:
         return f"pyautogui not available: {_IMPORT_ERROR}"
+    if play_events is None:
+        return "Playback functions unavailable"
     import json
     import os
     path = os.path.join(MACRO_DIR, f"{name}.json")
@@ -42,7 +49,7 @@ def play_gui(name: str) -> str:
         return f"Macro '{name}' not found"
     with open(path, "r", encoding="utf-8") as f:
         events = json.load(f)
-    pyautogui.play(events)
+    play_events(events)
     return f"Played {name}"
 
 
@@ -65,4 +72,4 @@ def open_recorder_window():
 
 
 def get_description() -> str:
-    return "GUI to record pyautogui actions and save them as macros."
+    return "GUI to record desktop actions and save them as macros."
