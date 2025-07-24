@@ -350,6 +350,38 @@ def process_input(user_input, output_widget):
                 last_ai_response = msg
                 return
 
+            # === Media control commands ===
+            txt_l = text.lower()
+            if txt_l in ["pause music", "pause the music", "pause song", "pause playback"]:
+                from modules import media_controls
+
+                msg = media_controls.play_pause()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if txt_l in ["play music", "resume music", "play song", "start music"]:
+                from modules import media_controls
+
+                msg = media_controls.play_pause()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if txt_l in ["skip song", "skip track", "next song", "next track"]:
+                from modules import media_controls
+
+                msg = media_controls.next_track()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
             # === Voice selection ===
             m = re.search(r"(?:use|set|change) ([\w-]+) voice", text.lower())
             if m:
