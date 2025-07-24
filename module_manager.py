@@ -43,6 +43,19 @@ class ModuleRegistry:
         self.modules[module_name] = mod
         print(f"[Registry] Loaded module: {module_name}")
 
+    def _register_public_functions(self, module_name):
+        """Store public functions from ``module_name`` for quick access."""
+        mod = self.modules.get(module_name)
+        if not mod:
+            return
+        funcs = {
+            name: getattr(mod, name)
+            for name in dir(mod)
+            if not name.startswith("_") and callable(getattr(mod, name))
+        }
+        if funcs:
+            self.modules[module_name] = mod
+
     def get_module(self, module_name):
         return self.modules.get(module_name, None)
 
@@ -87,6 +100,10 @@ class ModuleRegistry:
                 config = config_map.get(module_name) if config_map else None
                 try:
                     self.load_module(full_module_path, config)
+                    if module_name.startswith("codex_"):
+                        self._register_public_functions(full_module_path)
+                except SyntaxError as e:
+                    print(f"Syntax error in module '{module_name}': {e}")
                 except Exception as e:
                     print(f"Error auto-loading module '{module_name}': {e}")
 
