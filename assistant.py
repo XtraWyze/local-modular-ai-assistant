@@ -42,6 +42,7 @@ from module_manager import ModuleRegistry
 from config_loader import ConfigLoader
 from config_validator import validate_config
 import scan_registry
+from crash_handler import setup_crash_handler
 
 config_loader = ConfigLoader()
 config = config_loader.config
@@ -106,6 +107,10 @@ def set_state(state: str) -> None:
 def get_state() -> str:
     """Return the current assistant state."""
     return assistant_state
+
+
+# Install global crash handler so unhandled exceptions do not terminate the app
+setup_crash_handler(speak, lambda: set_state("idle"))
 
 
 def queue_command(text: str, widget) -> None:
