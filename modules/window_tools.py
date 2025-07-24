@@ -17,12 +17,14 @@ import platform
 import subprocess
 import ctypes
 from ctypes import wintypes
+from modules import vision_tools
 
 __all__ = [
     "focus_window",
     "minimize_window",
     "list_windows",
     "move_window",
+    "move_window_to_monitor",
     "list_open_windows",
     "list_taskbar_windows",
     "close_taskbar_item",
@@ -153,6 +155,26 @@ def move_window(title, x, y):
     win.moveTo(x, y)
     return True, f"Moved '{title}' to ({x}, {y})"
 
+
+def move_window_to_monitor(title: str, monitor: int) -> tuple[bool, str]:
+    """Move ``title`` window to the top-left corner of ``monitor``."""
+    if _IMPORT_ERROR:
+        return False, f"pygetwindow not available: {_IMPORT_ERROR}"
+    monitors = vision_tools.get_monitors()
+    if monitor < 0 or monitor >= len(monitors):
+        return False, f"Monitor {monitor} not found"
+    matches = gw.getWindowsWithTitle(title)
+    if not matches:
+        return False, f"Window '{title}' not found"
+    win = matches[0]
+    x = monitors[monitor].x
+    y = monitors[monitor].y
+    try:
+        win.moveTo(x, y)
+        return True, f"Moved '{title}' to monitor {monitor}"
+    except Exception as e:  # pragma: no cover - OS specific
+        return False, f"Failed to move '{title}' to monitor {monitor}: {e}"
+
 def minimize_window(partial_title: str):
     """Minimize the first window containing ``partial_title`` in its title."""
     if _IMPORT_ERROR:
@@ -207,6 +229,7 @@ def get_info():
             "minimize_window",
             "list_windows",
             "move_window",
+            "move_window_to_monitor",
             "list_taskbar_windows",
             "close_taskbar_item",
         ]
@@ -217,5 +240,6 @@ def get_description() -> str:
     """Return a short summary of this module."""
     return (
         "Utilities for listing taskbar windows, focusing them, moving or "
-        "minimizing windows, and closing by index."
+        "minimizing windows, relocating them between monitors, and closing "
+        "by index."
     )
