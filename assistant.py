@@ -526,6 +526,17 @@ def process_input(user_input, output_widget):
                 last_ai_response = msg
                 return
 
+            m = re.match(r"move (.+?) to (?:monitor|screen) (\d+)", text, re.IGNORECASE)
+            if m:
+                title, mon = m.group(1).strip(), int(m.group(2))
+                success, msg = window_tools.move_window_to_monitor(title, mon)
+                output_widget.insert("end", f"[Action] {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+
             # === Casual conversation ===
             if is_chitchat(text):
                 result[0] = talk_to_llm(text)

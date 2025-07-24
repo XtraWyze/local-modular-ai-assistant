@@ -64,3 +64,14 @@ def test_process_input_move_mouse(monkeypatch):
     assistant.set_listening(True)
     assistant.process_input('move mouse to 10 20', DummyWidget())
     assert moved == [(10, 20)]
+
+
+def test_process_input_move_window(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    wt = importlib.import_module('modules.window_tools')
+    calls = []
+    monkeypatch.setattr(wt, 'move_window_to_monitor', lambda t, m: calls.append((t, m)) or (True, 'ok'))
+    assistant.set_listening(True)
+    assistant.process_input('move chrome to monitor 2', DummyWidget())
+    assert calls == [('chrome', 2)]

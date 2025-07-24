@@ -126,6 +126,22 @@ def _handle_minimize_alias(text: str) -> str | None:
         return f"Error running minimize_window: {e}"
 
 
+def _handle_move_window_alias(text: str) -> str | None:
+    """Support ``move <title> to monitor N`` commands."""
+    m = re.match(r"move\s+(.+?)\s+(?:to|onto)\s+(?:monitor|screen)\s+(\d+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    title, idx = m.groups()
+    if "move_window_to_monitor" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["move_window_to_monitor"]
+    try:
+        success, msg = func(title, int(idx))
+        return msg
+    except Exception as e:
+        return f"Error running move_window_to_monitor: {e}"
+
+
 def _execute_tool_call(fn_name: str, args: str, user_text: str) -> str:
     """Validate and execute a tool call returned by the LLM."""
     if fn_name not in ALLOWED_FUNCTIONS:
@@ -180,6 +196,7 @@ def parse_and_execute(user_text: str) -> str:
         _handle_run_skill,
         _handle_terminate_alias,
         _handle_minimize_alias,
+        _handle_move_window_alias,
     ):
         result = handler(user_text)
         if result is not None:
