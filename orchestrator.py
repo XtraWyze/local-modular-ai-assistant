@@ -54,7 +54,7 @@ def parse_and_execute(user_text: str) -> str:
         return LearningAgent().learn_skill(desc)
 
     if user_text.lower().startswith("run "):
-        import modules.skills as skills_pkg
+        import modules as skills_pkg
 
         skill_name = user_text[4:].strip()
         mod = getattr(skills_pkg, skill_name, None)

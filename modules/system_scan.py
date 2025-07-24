@@ -86,3 +86,8 @@ def run(params: dict) -> str:
         summary_lines.append(f"USB devices detected: {len(usb_devices)}")
 
     return "\n".join(summary_lines)
+
+
+def get_description() -> str:
+    """Return a short summary of this module."""
+    return "Summarize windows, browser tabs, clipboard, and device info."

@@ -21,7 +21,7 @@ except Exception:  # pragma: no cover - wrapper missing
         OpenAI = None  # type: ignore
 
 
-SKILLS_DIR = Path(__file__).parent / "skills"
+SKILLS_DIR = Path(__file__).parent
 
 
 class LearningAgent:
@@ -39,14 +39,14 @@ class LearningAgent:
         test_path = tests_dir / f"test_{name}.py"
         if not test_path.exists():
             test_path.write_text(
-                f"from modules.skills import {name}\n\n\n"
+                f"from modules import {name}\n\n\n"
                 f"def test_run():\n"
                 f"    assert isinstance({name}.run({{}}), str)\n",
                 encoding="utf-8",
             )
 
     def _dynamic_import(self, name: str, path: Path) -> ModuleType | None:
-        spec = importlib.util.spec_from_file_location(f"modules.skills.{name}", path)
+        spec = importlib.util.spec_from_file_location(f"modules.{name}", path)
         if not spec or not spec.loader:
             return None
         mod = importlib.util.module_from_spec(spec)
@@ -55,8 +55,8 @@ class LearningAgent:
         except Exception as e:  # pragma: no cover - import error
             log_error(f"[learning] Failed to import {name}: {e}")
             return None
-        sys.modules[f"modules.skills.{name}"] = mod
-        import modules.skills as pkg
+        sys.modules[f"modules.{name}"] = mod
+        import modules as pkg
         setattr(pkg, name, mod)
         return mod
 
