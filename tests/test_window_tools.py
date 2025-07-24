@@ -1,4 +1,5 @@
 import importlib
+import types
 from modules.window_tools import close_taskbar_item, minimize_window
 
 def test_invalid_index():
@@ -79,3 +80,29 @@ def test_move_window_to_monitor_invalid(monkeypatch):
     ok, msg = wt.move_window_to_monitor('missing', 2)
     assert not ok
     assert 'not found' in msg.lower()
+
+
+def test_type_in_window(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+
+    class FakeWin:
+        def __init__(self, title):
+            self.title = title
+        def activate(self):
+            pass
+
+    fake_gw = types.SimpleNamespace(
+        getAllTitles=lambda: ['Notepad'],
+        getWindowsWithTitle=lambda t: [FakeWin(t)]
+    )
+    typed = []
+    fake_pg = types.SimpleNamespace(write=lambda text, interval=0.05: typed.append(text))
+    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, 'pyautogui', fake_pg)
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
+
+    ok, msg = wt.type_in_window('notepad', 'hello')
+    assert ok
+    assert typed == ['hello']
+    assert 'notepad' in msg.lower()
