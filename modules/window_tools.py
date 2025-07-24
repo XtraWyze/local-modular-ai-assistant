@@ -28,6 +28,7 @@ __all__ = [
     "close_taskbar_item",
     "click_ui_element",
     "learn_new_button",
+    "type_in_window",
 ]
 
 def _windows_fallback() -> list[str]:
@@ -198,6 +199,32 @@ def learn_new_button(app, action, speak):
     print(f"Saved as {filename}")
     return filename
 
+def type_in_window(title: str, text: str, offset_x: int = 100, offset_y: int = 100):
+    """Focus the first window matching ``title`` and type ``text`` inside.
+
+    The function attempts to click at ``offset_x``/``offset_y`` relative to the
+    window's top-left corner to ensure a text field is active before typing.
+    """
+    if _IMPORT_ERROR:
+        return False, f"pygetwindow not available: {_IMPORT_ERROR}"
+    if _PYAUTOGUI_ERROR:
+        return False, f"pyautogui not available: {_PYAUTOGUI_ERROR}"
+    matches = [w for w in gw.getAllTitles() if title.lower() in w.lower()]
+    if not matches:
+        return False, f"No window found containing '{title}'"
+    win = gw.getWindowsWithTitle(matches[0])[0]
+    try:
+        win.activate()
+    except Exception:
+        pass
+    time.sleep(0.5)
+    try:
+        pyautogui.click(win.left + offset_x, win.top + offset_y)
+        pyautogui.write(text, interval=0.05)
+        return True, f"Typed into '{matches[0]}'"
+    except Exception as e:  # pragma: no cover - GUI interaction failure
+        return False, f"Failed to type into '{matches[0]}': {e}"
+
 def get_info():
     return {
         "name": "window_tools",
@@ -209,6 +236,7 @@ def get_info():
             "move_window",
             "list_taskbar_windows",
             "close_taskbar_item",
+            "type_in_window",
         ]
     }
 
@@ -216,6 +244,6 @@ def get_info():
 def get_description() -> str:
     """Return a short summary of this module."""
     return (
-        "Utilities for listing taskbar windows, focusing them, moving or "
-        "minimizing windows, and closing by index."
+        "Utilities for listing taskbar windows, focusing or typing into them, "
+        "moving or minimizing windows, and closing by index."
     )
