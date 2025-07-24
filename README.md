@@ -20,6 +20,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Record and play macros on the fly for custom workflows**
 - **Hotkeys tab with a macro recorder and 3-second countdown**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
+- **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
 - **LLM auto-loads module list for accurate tool usage**
 - **User-friendly GUI with mic overlay and system tray**
