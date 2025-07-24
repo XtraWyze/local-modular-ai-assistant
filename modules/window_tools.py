@@ -30,6 +30,7 @@ __all__ = [
     "close_taskbar_item",
     "click_ui_element",
     "learn_new_button",
+    "type_in_window",
 ]
 
 def _windows_fallback() -> list[str]:
@@ -189,6 +190,25 @@ def minimize_window(partial_title: str):
     except Exception as e:  # pragma: no cover - OS specific
         return False, f"Failed to minimize '{matches[0]}': {e}"
 
+def type_in_window(partial_title: str, text: str) -> tuple[bool, str]:
+    """Focus ``partial_title`` window and type ``text`` into it."""
+    if _IMPORT_ERROR or _PYAUTOGUI_ERROR:
+        return False, "pygetwindow or pyautogui not available"
+    matches = [w for w in gw.getAllTitles() if partial_title.lower() in w.lower()]
+    if not matches:
+        return False, f"No window found containing '{partial_title}'"
+    win = gw.getWindowsWithTitle(matches[0])[0]
+    try:
+        win.activate()
+        time.sleep(0.5)
+    except Exception:
+        pass
+    try:
+        pyautogui.write(text, interval=0.05)
+        return True, f"Typed text into '{matches[0]}'"
+    except Exception as e:  # pragma: no cover - pyautogui failures
+        return False, f"Failed to type in '{matches[0]}': {e}"
+
 def list_windows():
     """Alias for list_open_windows for API consistency."""
     return list_open_windows()
@@ -232,6 +252,7 @@ def get_info():
             "move_window_to_monitor",
             "list_taskbar_windows",
             "close_taskbar_item",
+            "type_in_window",
         ]
     }
 
@@ -240,6 +261,6 @@ def get_description() -> str:
     """Return a short summary of this module."""
     return (
         "Utilities for listing taskbar windows, focusing them, moving or "
-        "minimizing windows, relocating them between monitors, and closing "
-        "by index."
+        "minimizing windows, relocating them between monitors, typing into "
+        "a window, and closing by index."
     )
