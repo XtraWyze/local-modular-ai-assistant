@@ -23,6 +23,7 @@ def test_generate_response(monkeypatch):
         return Resp()
 
     monkeypatch.setattr(llm_interface.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(llm_interface, "get_module_overview", lambda: {})
     llm_interface.config["llm_backend"] = "localai"
     result = llm_interface.generate_response("hi", history=[])
     assert result == "ok"
@@ -43,6 +44,7 @@ def test_generate_response_missing_fields(monkeypatch):
         return Resp()
 
     monkeypatch.setattr(llm_interface.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(llm_interface, "get_module_overview", lambda: {})
     llm_interface.config["llm_backend"] = "localai"
     result = llm_interface.generate_response("hi", history=[])
     assert result.startswith("[LLM Error]")

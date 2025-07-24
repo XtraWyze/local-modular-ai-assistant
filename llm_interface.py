@@ -3,6 +3,7 @@ from urllib import request
 from config_loader import ConfigLoader
 from memory_manager import search_memory
 from error_logger import log_error
+from module_manager import get_module_overview
 
 # Load config once at import
 _config_loader = ConfigLoader()
@@ -16,6 +17,17 @@ SYSTEM_PROMPT = (
 
 # Friendly reply used if the LLM response is malformed
 DEFAULT_FALLBACK = "I'm doing well, thanks for asking!"
+
+
+def _module_prompt() -> str:
+    """Return a short description of available modules for the system prompt."""
+    overview = get_module_overview()
+    if not overview:
+        return ""
+    parts = [f"{name}: {', '.join(funcs)}" for name, funcs in sorted(overview.items()) if funcs]
+    if not parts:
+        return ""
+    return "Available modules -> " + "; ".join(parts)
 
 
 def _get_url():
@@ -39,6 +51,10 @@ def generate_response(prompt: str, history=None, system_prompt: str | None = Non
     if memory_hits:
         mem_text = "\n".join(memory_hits)
         system_prompt = f"{system_prompt}\nRelevant past events:\n{mem_text}"
+
+    mod_text = _module_prompt()
+    if mod_text:
+        system_prompt = f"{system_prompt}\n{mod_text}"
 
     messages = [{"role": "system", "content": system_prompt}] + history
     messages.append({"role": "user", "content": prompt})

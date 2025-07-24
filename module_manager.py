@@ -2,6 +2,7 @@ import os
 import importlib
 import ast
 import importlib.util
+from pathlib import Path
 
 class ModuleRegistry:
     def __init__(self, banned_imports=None):
@@ -108,3 +109,32 @@ class ModuleRegistry:
                     print(f"Error auto-loading module '{module_name}': {e}")
 
         return self
+
+
+def get_module_overview(modules_dir: str = "modules") -> dict[str, list[str]]:
+    """Return a mapping of module names to their exported functions.
+
+    ``modules_dir`` may be a package name or filesystem path. Modules that fail
+    to import are skipped silently.
+    """
+    overview: dict[str, list[str]] = {}
+    dir_path = Path(modules_dir)
+    pkg_name = dir_path.name
+    for path in dir_path.glob("*.py"):
+        if path.name == "__init__.py":
+            continue
+        module_name = f"{pkg_name}.{path.stem}"
+        try:
+            mod = importlib.import_module(module_name)
+        except Exception:
+            continue
+        if hasattr(mod, "get_info"):
+            try:
+                info = mod.get_info()
+                name = info.get("name", path.stem)
+                funcs = info.get("functions", [])
+                overview[name] = list(funcs)
+            except Exception:
+                overview[path.stem] = []
+    return overview
+
