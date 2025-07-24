@@ -20,6 +20,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Record and play macros on the fly for custom workflows**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Plugin system:** Easy extension with your own Python modules
+- **LLM auto-loads module list for accurate tool usage**
 - **User-friendly GUI with mic overlay and system tray**
 - **Speech learning tab to practice recognition**
 - **Lightweight CLI mode for keyboard power-users**
