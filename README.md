@@ -27,6 +27,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Fast onboarding: all config, shortcuts, and memory are editable text**
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Automatic .exe scanning builds a registry of installed applications**
+- **Startup system/device/network scans populate registries and can be refreshed by voice**
 - **Close or terminate apps by window title or process name (e.g. "terminate Rocket League")**
 - **List open windows via the taskbar (e.g. "what windows are open?")**
 - **Control music playback with Windows media keys (play, pause, skip)**
