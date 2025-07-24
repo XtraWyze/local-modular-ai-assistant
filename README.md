@@ -169,6 +169,22 @@ Key options:
 - `min_good_response_words` / `min_good_response_chars`: treat a local
   response as poor quality if shorter than these thresholds.
 
+### Remote Ollama Server
+You can run the LLM on another machine and point the assistant to it over
+your local network:
+1. Start Ollama on the host PC:
+   ```bash
+   ollama serve
+   ```
+   (Assuming the host IP is `192.168.1.50`.)
+2. On the assistant PC, edit `config.json` and set:
+   ```json
+   "llm_url": "http://192.168.1.50:11434/v1/chat/completions"
+   ```
+   This overrides the default local endpoint.
+3. Launch the assistant normally and it will send all LLM requests to the
+   remote Ollama server.
+
 3. Running the Assistant
 GUI Mode:
 python gui_assistant.py
