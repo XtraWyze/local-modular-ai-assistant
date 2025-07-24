@@ -6,12 +6,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from module_manager import ModuleRegistry
 
-MODULE_CONFIGS = {
-    "hello_module": {"greeting": "Hi!"}
-}
+MODULE_CONFIGS = {}
 
 TESTS = [
-    ("modules.hello_module", "say_hello", {"name": "Levi"}),
+    ("modules.example_skill", "run", {"params": {}}),
     ("modules.llm_module", "chat", {"prompt": "Say hello!"}),
     ("modules.pyautogui_tools", "get_mouse_position", {}),
     ("modules.desktop_shortcuts", "get_desktop_path", {}),
