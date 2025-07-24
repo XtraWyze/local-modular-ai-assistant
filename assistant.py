@@ -332,19 +332,40 @@ def process_input(user_input, output_widget):
                 return
 
             # === Volume commands ===
-            m = re.search(
-                r"set (?:speech |voice )?volume to ([0-9]*\.?[0-9]+)", text.lower()
-            )
+            m = re.search(r"set (?:system )?volume(?: to)? ([0-9]*\.?[0-9]+)", text.lower())
             if m:
                 val = float(m.group(1))
-                from modules import tts_integration
+                if val > 1:
+                    from modules import system_volume
 
-                ok = tts_integration.set_volume(val)
-                msg = (
-                    f"Volume set to {val}"
-                    if ok is True
-                    else "Invalid volume. Use 0.0 to 1.0"
-                )
+                    msg = system_volume.set_volume(int(val))
+                else:
+                    from modules import tts_integration
+
+                    ok = tts_integration.set_volume(val)
+                    msg = (
+                        f"Volume set to {val}"
+                        if ok is True
+                        else "Invalid volume. Use 0.0 to 1.0"
+                    )
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+            if "increase system volume" in text.lower():
+                from modules import media_controls
+
+                msg = media_controls.volume_up()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+            if "decrease system volume" in text.lower() or "lower system volume" in text.lower():
+                from modules import media_controls
+
+                msg = media_controls.volume_down()
                 output_widget.insert("end", f"Assistant: {msg}\n")
                 output_widget.see("end")
                 speak(msg)

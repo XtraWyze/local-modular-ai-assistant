@@ -14,11 +14,42 @@ import pyautogui
 import time
 import os
 
+
+def process_command(user_input: str):
+    """Return a response for basic CLI commands or ``None``."""
+    cmd = user_input.strip().lower()
+    if cmd.startswith("set volume "):
+        try:
+            value = int(cmd.split("set volume ", 1)[1])
+        except ValueError:
+            return "[Error] Invalid volume"
+        from modules import system_volume
+
+        return system_volume.set_volume(value)
+
+    if cmd in {"volume up", "increase volume"}:
+        from modules import media_controls
+
+        return media_controls.volume_up()
+
+    if cmd in {"volume down", "decrease volume"}:
+        from modules import media_controls
+
+        return media_controls.volume_down()
+
+    return None
+
 def cli_loop():
     print("Local AI Assistant with Memory\nType 'exit' to quit, 'recall <keyword>' to search memory.")
     while True:
         user_input = input("You: ").strip()
         if not user_input:
+            continue
+
+        # Simple commands like volume control
+        resp = process_command(user_input)
+        if resp is not None:
+            print("Assistant:", resp)
             continue
 
         # --- Centralized sleep/wake logic ---
