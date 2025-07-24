@@ -38,6 +38,7 @@ from memory_manager import save_memory, load_memory, store_memory, search_memory
 from modules.long_term_storage import save_entry
 import llm_interface
 from llm_interface import generate_response
+from phrase_manager import add_wake_phrase, add_sleep_phrase, add_cancel_phrase
 from module_manager import ModuleRegistry
 from config_loader import ConfigLoader
 from config_validator import validate_config
@@ -632,10 +633,19 @@ def process_input(user_input, output_widget):
                 last_ai_response = play_macro(name)
                 return
 
-            m = re.match(r"(?:learn|add) (?:resume|trigger) phrase (.+)", text, re.IGNORECASE)
+            m = re.match(r"(?:learn|add) (wake|sleep|cancel|resume|trigger) phrase (.+)", text, re.IGNORECASE)
             if m:
-                phrase = m.group(1).strip().strip("\"'")
-                msg = add_resume_phrase(phrase)
+                kind, phrase = m.groups()
+                phrase = phrase.strip().strip("\"'")
+                kind = kind.lower()
+                if kind in ("resume", "trigger"):
+                    msg = add_resume_phrase(phrase)
+                elif kind == "wake":
+                    msg = add_wake_phrase(phrase)
+                elif kind == "sleep":
+                    msg = add_sleep_phrase(phrase)
+                else:
+                    msg = add_cancel_phrase(phrase)
                 output_widget.insert("end", f"Assistant: {msg}\n")
                 output_widget.see("end")
                 speak(msg)
@@ -986,10 +996,19 @@ def process_input(user_input, output_widget):
 
 # --- Sleep/Wake phrases from config ---
 
-WAKE_PHRASES = config.get("wake_phrases", ["hey assistant"])
-SLEEP_PHRASES = config.get("sleep_phrases", ["ok that's all"])
-RESUME_PHRASES = config.get("resume_phrases", ["next question", "next answer"])
+
 _listening = False
+
+def _wake_phrases() -> list:
+    return config_loader.config.get("wake_phrases", ["hey assistant"])
+
+
+def _sleep_phrases() -> list:
+    return config_loader.config.get("sleep_phrases", ["ok that's all"])
+
+
+def _resume_phrases() -> list:
+    return config_loader.config.get("resume_phrases", ["next question", "next answer"])
 
 
 def check_wake(text):
@@ -1000,11 +1019,11 @@ def check_wake(text):
 
     text_l = text.lower()
     user_phrases = get_resume_phrases()
-    all_phrases = WAKE_PHRASES + RESUME_PHRASES + user_phrases
+    all_phrases = _wake_phrases() + _resume_phrases() + user_phrases
     for phrase in all_phrases:
         if phrase in text_l:
             _listening = True
-            if phrase not in WAKE_PHRASES + RESUME_PHRASES:
+            if phrase not in _wake_phrases() + _resume_phrases():
                 add_resume_phrase(phrase)
             return True
 
@@ -1019,7 +1038,7 @@ def check_wake(text):
 def check_sleep(text):
     """Return True if a sleep phrase is detected and assistant was awake; also puts assistant to sleep."""
     global _listening
-    if _listening and any(sleep in text.lower() for sleep in SLEEP_PHRASES):
+    if _listening and any(sleep in text.lower() for sleep in _sleep_phrases()):
         _listening = False
         return True
     return False
