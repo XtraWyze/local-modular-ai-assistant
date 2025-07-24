@@ -18,6 +18,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Conversation history for more contextual responses**
 - **Safe automation: tools, actions, and GUI scripting**
 - **Record and play macros on the fly for custom workflows**
+- **Hotkeys tab with a macro recorder and 3-second countdown**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Plugin system:** Easy extension with your own Python modules
 - **User-friendly GUI with mic overlay and system tray**
@@ -251,7 +252,7 @@ modules at runtime. Launch `python config_gui.py` for a quick settings editor.
 Use the **Edit Memory** button there or in the main GUI to view conversation
 history and adjust the `memory_max` limit.
 
-Place custom macro scripts in the `macros/` folder. Load them at runtime with `modules.macro_loader` or record new ones with the GUI recorder.
+Place custom macro scripts in the `macros/` folder. Load them at runtime with `modules.macro_loader` or record new ones from the **Hotkeys** tab in the GUI.
 You can now record a macro and automatically generate a runnable Python script using `modules.automation_learning.record_macro_script`.
 An example macro `sample_open_notepad.json` is included. Run it with `play macro sample_open_notepad`.
 Use `modules.voice_annotations.record_annotation` to add voice notes to a macro.

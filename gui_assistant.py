@@ -62,9 +62,11 @@ notebook.pack(expand=True, fill="both")
 main_tab = ttk.Frame(notebook)
 speech_tab = ttk.Frame(notebook)
 config_tab = ttk.Frame(notebook)
+hotkey_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
+notebook.add(hotkey_tab, text="Hotkeys")
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -421,6 +423,53 @@ voice_var.set(current_voice)
 voice_menu = ttk.OptionMenu(tts_frame, voice_var, current_voice, *voices, command=lambda v: tts_module.set_voice(v))
 voice_menu.configure(text="TTS Voice")
 voice_menu.pack(side=tk.LEFT)
+
+# ---------- Hotkeys Tab ----------
+macro_name_var = tk.StringVar()
+macro_frame = ttk.Frame(hotkey_tab, padding=10)
+macro_frame.pack(fill="both", expand=True)
+
+ttk.Label(macro_frame, text="Macro Name:").pack(anchor="w")
+macro_entry = ttk.Entry(macro_frame, textvariable=macro_name_var)
+macro_entry.pack(fill="x", pady=(0, 5))
+
+macro_status = ttk.Label(macro_frame, text="")
+macro_status.pack(pady=(0, 10))
+
+
+def start_macro_recording() -> None:
+    """Start recording a macro after a short countdown."""
+    name = macro_name_var.get().strip()
+    if not name:
+        macro_status.config(text="Enter a macro name first.")
+        return
+
+    count = 3
+
+    def record_macro_thread() -> None:
+        from modules import automation_learning
+
+        path = automation_learning.record_macro(name)
+        macro_status.after(
+            0, lambda: macro_status.config(text=f"Saved to {path}")
+        )
+
+    def countdown_step() -> None:
+        nonlocal count
+        if count > 0:
+            macro_status.config(text=f"Recording in {count}...")
+            macro_status.after(1000, countdown_step)
+            count -= 1
+        else:
+            macro_status.config(text="Recording... Press ESC to stop.")
+            threading.Thread(target=record_macro_thread, daemon=True).start()
+
+    countdown_step()
+
+
+ttk.Button(macro_frame, text="Record Macro", command=start_macro_recording).pack(
+    pady=(0, 10)
+)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(speech_tab, text="Click Start and read each sentence aloud:")
