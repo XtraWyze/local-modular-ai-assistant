@@ -22,8 +22,6 @@ CONFIG_SCHEMA = {
         },
         "llm_backend": {"type": "string"},
         "llm_model": {"type": "string"},
-        "google_api_key": {"type": "string"},
-        "google_model": {"type": "string"},
         "vosk_model_path": {"type": "string"},
         "memory_max": {"type": "number"},
         "auto_memory_increase": {"type": "boolean"},
