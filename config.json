@@ -50,5 +50,8 @@
   "voice_beep": false,
   "log_level": "info",
   "enable_advanced_logging": false,
-  "busy_timeout": 60
+  "busy_timeout": 60,
+  "home_assistant_url": "",
+  "home_assistant_token": "",
+  "enable_home_assistant": false
 }
