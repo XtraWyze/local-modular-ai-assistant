@@ -3,7 +3,12 @@
 import sys
 from ctypes import POINTER, cast
 from comtypes import CLSCTX_ALL
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+from pycaw.pycaw import (
+    IAudioEndpointVolume,
+    MMDeviceEnumerator,
+    EDataFlow,
+    ERole,
+)
 
 from error_logger import log_error
 
@@ -13,11 +18,12 @@ __all__ = ["set_volume", "get_volume"]
 
 
 def _get_endpoint():
-    """Return the IAudioEndpointVolume interface."""
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(
-        IAudioEndpointVolume._iid_, CLSCTX_ALL, None
+    """Return the IAudioEndpointVolume interface for the default device."""
+    enumerator = MMDeviceEnumerator()
+    device = enumerator.GetDefaultAudioEndpoint(
+        EDataFlow.eRender, ERole.eMultimedia
     )
+    interface = device.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
     return cast(interface, POINTER(IAudioEndpointVolume))
 
 
