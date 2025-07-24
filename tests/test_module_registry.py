@@ -59,3 +59,31 @@ def test_list_descriptions(tmp_path, monkeypatch):
     descs = registry.list_descriptions()
     assert descs == {"mods.m3": "demo module"}
 
+
+def test_call_logs_errors_on_exception(monkeypatch):
+    """Ensure call() logs errors and returns None on failure."""
+    import types
+
+    faulty_mod = types.ModuleType("mods.err")
+
+    def boom():
+        raise RuntimeError("boom")
+
+    faulty_mod.boom = boom
+    sys.modules["mods.err"] = faulty_mod
+
+    registry = ModuleRegistry()
+    registry.modules["mods.err"] = faulty_mod
+
+    logged = []
+
+    monkeypatch.setattr(
+        "module_manager.log_error",
+        lambda msg, context=None, level="ERROR": logged.append((msg, context)),
+    )
+
+    result = registry.call("mods.err", "boom")
+
+    assert result is None
+    assert any("boom" in msg for msg, _ in logged)
+

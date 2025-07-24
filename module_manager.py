@@ -4,6 +4,8 @@ import ast
 import importlib.util
 from pathlib import Path
 
+from error_logger import log_error
+
 class ModuleRegistry:
     def __init__(self, banned_imports=None):
         self.modules = {}
@@ -61,13 +63,19 @@ class ModuleRegistry:
         return self.modules.get(module_name, None)
 
     def call(self, module_name, func_name, *args, **kwargs):
+        """Call ``func_name`` from ``module_name`` with error handling."""
         mod = self.get_module(module_name)
         if not mod:
             raise Exception(f"Module '{module_name}' not loaded.")
         func = getattr(mod, func_name, None)
         if not func:
             raise Exception(f"Function '{func_name}' not found in '{module_name}'.")
-        return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            context = f"args={args}, kwargs={kwargs}"
+            log_error(f"[{module_name}.{func_name}] {e}", context=context)
+            return None
 
     def shutdown_all(self):
         for mod in self.modules.values():
