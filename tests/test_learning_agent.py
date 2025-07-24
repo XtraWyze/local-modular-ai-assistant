@@ -21,10 +21,10 @@ def test_learn_skill_creates_module(tmp_path, monkeypatch):
 
     monkeypatch.setitem(sys.modules, 'tools', types.SimpleNamespace(OpenAI=StubClient))
     learning = importlib.reload(importlib.import_module('modules.learning'))
-    monkeypatch.setattr(learning, 'SKILLS_DIR', tmp_path / 'skills')
+    monkeypatch.setattr(learning, 'SKILLS_DIR', tmp_path)
     agent = learning.LearningAgent()
     msg = agent.learn_skill('say ok')
     assert 'run say_ok' in msg
-    skills_pkg = importlib.import_module('modules.skills')
+    skills_pkg = importlib.import_module('modules')
     mod = getattr(skills_pkg, 'say_ok')
     assert mod.run({}) == 'ok'

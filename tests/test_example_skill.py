@@ -1,4 +1,4 @@
-from modules.skills import example_skill
+from modules import example_skill
 
 
 def test_run():

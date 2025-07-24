@@ -1,7 +1,7 @@
 import sys
 import types
 
-from modules.skills import system_scan
+from modules import system_scan
 
 
 def test_run(monkeypatch):
