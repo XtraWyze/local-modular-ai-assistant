@@ -3,6 +3,7 @@
 import time
 import threading
 import json
+import os
 from error_logger import log_error
 try:
     import speech_recognition as sr
@@ -30,6 +31,7 @@ MAX_SPEECH_LENGTH = _CFG.get("max_speech_length", 30)
 AUTO_SLEEP_TIMEOUT = _CFG.get("auto_sleep_timeout", 15)
 ENABLE_BEEP = _CFG.get("voice_beep", False)
 CANCEL_PHRASES = [p.lower() for p in _CFG.get("cancel_phrases", ["stop assistant"])]
+EXIT_PHRASES = [p.lower() for p in _CFG.get("exit_phrases", ["exit environment"])]
 SOFT_MUTE_SECS = 3
 STT_BACKEND = _CFG.get("stt_backend", "google")  # "google" or "vosk"
 
@@ -40,6 +42,7 @@ __all__ = [
     "stop_hotword",
     "mute_hotword",
     "unmute_hotword",
+    "is_exit_command",
 ]
 
 from assistant import (
@@ -84,6 +87,11 @@ def _beep():
     except Exception:
         # Fallback to console bell
         print("\a", end="", flush=True)
+
+
+def is_exit_command(text: str) -> bool:
+    """Return ``True`` if ``text`` equals the exit command."""
+    return text.strip().lower() in EXIT_PHRASES
 
 def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, stop_event=None):
     """Unified loop for wake-word detection and speech recognition."""
@@ -203,6 +211,10 @@ def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, st
                     output_widget.insert("end", "Assistant: ⛔ Cancelled.\n")
                     output_widget.see("end")
                     continue
+
+                if is_exit_command(text):
+                    speak("Shutting down.")
+                    os._exit(0)
 
                 output_widget.insert("end", f"You (voice): {text}\n")
                 output_widget.see("end")
