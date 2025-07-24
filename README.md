@@ -74,6 +74,27 @@ python install_llm_backends.py --all
 python cleanup.py
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
+### Required Downloads
+Offline use requires a few additional assets:
+
+1. **Vosk speech model** – grab `vosk-model-small-en-us-0.15` from
+   <https://alphacephei.com/vosk/models> and extract it to the path specified by
+   `vosk_model_path` in `config.json`.
+2. **Coqui TTS voice** – run
+   `tts --model tts_models/en/jenny/jenny --download` or download another voice
+   from the [Coqui TTS](https://github.com/coqui-ai/TTS) project. Update
+   `tts_model` in `config.json` with the chosen voice.
+3. **LLM backends** – clone LocalAI and text-generation-webui by running
+   `python install_llm_backends.py --all` (or the `.bat` file on Windows).
+   Follow each backend’s README to place your LLM weights in its `models/`
+   directory.
+4. **LLM weights** – download a compatible GGUF or GPTQ model (for example,
+   [Llama 3 on Hugging Face](https://huggingface.co/)). Put the files under the
+   selected backend’s `models/` folder and update `llm_model` accordingly.
+5. **Tesseract OCR** – install from
+   <https://github.com/tesseract-ocr/tesseract>. On Windows, set the
+   `TESSERACT_CMD` environment variable if it’s not in your PATH.
+
 2. Configuration
 Edit config.json to customize:
 
