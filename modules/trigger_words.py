@@ -9,6 +9,7 @@ TRIGGERS = {
     "device_scanner": ["scan devices", "list usb"],
     "voice_input": ["listen", "mute", "unmute"],
     "tts_integration": ["volume", "speed", "voice"],
+    "media_controls": ["play", "pause", "skip"],
 }
 
 

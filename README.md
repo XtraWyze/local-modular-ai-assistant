@@ -29,7 +29,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Close or terminate apps by window title or process name (e.g. "terminate Rocket League")**
 - **List open windows via the taskbar (e.g. "what windows are open?")**
-- **Control music playback with Windows media keys (play, pause, skip)**
+- **Control music playback with media keys (play/pause, skip) using keyboard, Windows API, or pyautogui fallbacks**
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
 
