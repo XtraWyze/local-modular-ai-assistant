@@ -3,7 +3,7 @@ SQLite-based long-term storage for text entries.
 """
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, UTC
 from error_logger import log_error
 
 DB_FILE = "assistant_memory.db"
@@ -26,7 +26,7 @@ def initialize(config=None):
 def save_entry(text: str) -> bool:
     """Persist a text entry with timestamp."""
     try:
-        ts = datetime.utcnow().isoformat()
+        ts = datetime.now(UTC).isoformat()
         with sqlite3.connect(DB_FILE) as conn:
             conn.execute(
                 f"INSERT INTO {TABLE} (text, timestamp) VALUES (?, ?)",
