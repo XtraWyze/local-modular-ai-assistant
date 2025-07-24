@@ -383,8 +383,8 @@ We welcome contributions to make the Local Modular AI Assistant even better! Her
 - If you have questions about the codebase, open an issue or email the maintainer.
 - For major changes or proposals, start a discussion first!
 
-### 6. **Contact**
-- Project maintainer: [your.email@example.com]
+-### 6. **Contact**
+- Project maintainer: [xtrawyxe@gmail.com]
 - Or open an issue on GitHub
 
 ---
