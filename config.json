@@ -7,8 +7,6 @@
   "prefer_local_llm": true,
   "llm_backend": "localai",
   "llm_model": "llama3",
-  "google_api_key": "AIzaSyC66JlplV0FpMSjzkAuZy887dLlw2ZrNLo",
-  "google_model": "gemini",
   "emulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
   "memory_max": 9999999,

@@ -32,9 +32,9 @@ def is_chitchat(text: str) -> bool:
 
 
 def talk_to_llm(prompt: str) -> str:
-    """Send ``prompt`` to the LLM with local/cloud heuristics."""
+    """Send ``prompt`` to the local LLM."""
 
-    from assistant import _call_local_llm, _call_cloud_llm, _is_complex_prompt, _is_bad_response
+    from assistant import _call_local_llm, _is_complex_prompt
     from memory_manager import save_memory, load_memory, store_memory
     from state_manager import update_state, save_state, state as state_dict
 
@@ -68,16 +68,9 @@ def talk_to_llm(prompt: str) -> str:
             return resp
 
         if prefer == "auto":
-            prefer = not _is_complex_prompt(prompt)
+            prefer = True
 
-        if prefer is True:
-            response = _call_local_llm(prompt, history)
-            if _is_bad_response(response):
-                response = _call_cloud_llm(prompt)
-        else:
-            response = _call_cloud_llm(prompt)
-            if _is_bad_response(response):
-                response = _call_local_llm(prompt, history)
+        response = _call_local_llm(prompt, history)
 
         return record(response)
     except Exception as e:  # pragma: no cover - unexpected failures

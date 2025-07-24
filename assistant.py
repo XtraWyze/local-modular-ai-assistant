@@ -1099,31 +1099,13 @@ def _call_local_llm(prompt: str, history):
 
 
 def _call_google_llm(prompt: str) -> str:
-    """Query the Google Gemini API."""
-    try:
-        import requests
-
-        key = config.get("google_api_key")
-        model = config.get("google_model", "gemini-pro")
-        url = (
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{model}:generateContent?key={key}"
-        )
-        data = {"contents": [{"parts": [{"text": prompt}]}]}
-        response = requests.post(url, json=data, timeout=60)
-        response.raise_for_status()
-        data = response.json()
-        try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception:
-            return "[Cloud Error] Invalid response"
-    except Exception as exc:  # pragma: no cover - network failure
-        return f"[Cloud Error] {exc}"
+    """Cloud access has been removed."""
+    return "[Cloud Disabled]"
 
 
 def _call_cloud_llm(prompt: str) -> str:
-    """Return a response from the configured cloud provider (Google)."""
-    return _call_google_llm(prompt)
+    """Return a response from the configured cloud provider."""
+    return "[Cloud Disabled]"
 
 
 def _is_complex_prompt(prompt: str) -> bool:
@@ -1150,12 +1132,9 @@ def _is_bad_response(resp: str) -> bool:
 
 
 def online_fallback(prompt):
-    """Query the cloud model and fall back to the local LLM on failure."""
-    result = _call_cloud_llm(prompt)
-    if result.startswith("[Cloud Error]"):
-        history = conversation_history[-config.get("conversation_history_limit", 6) :]
-        return _call_local_llm(prompt, history)
-    return result
+    """Return a local LLM response. Cloud fallback removed."""
+    history = conversation_history[-config.get("conversation_history_limit", 6) :]
+    return _call_local_llm(prompt, history)
 
 
 def handle_recall(query):

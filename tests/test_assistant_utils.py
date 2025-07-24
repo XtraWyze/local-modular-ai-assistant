@@ -58,7 +58,7 @@ def test_auto_model_selection(monkeypatch):
     monkeypatch.setattr(assistant, "_call_cloud_llm", lambda p: "cloud")
     monkeypatch.setattr(assistant, "_is_bad_response", lambda r: False)
     monkeypatch.setattr(assistant, "_is_complex_prompt", lambda p: True)
-    assert assistant.talk_to_llm("hi") == "cloud"
+    assert assistant.talk_to_llm("hi") == "local"
     monkeypatch.setattr(assistant, "_is_complex_prompt", lambda p: False)
     assert assistant.talk_to_llm("hi") == "local"
 
@@ -79,8 +79,8 @@ def test_poor_local_response_triggers_cloud(monkeypatch):
 
     monkeypatch.setattr(assistant, "_call_local_llm", local)
     monkeypatch.setattr(assistant, "_call_cloud_llm", cloud)
-    assert assistant.talk_to_llm("hi") == "good"
-    assert calls == {"local": 1, "cloud": 1}
+    assert assistant.talk_to_llm("hi") == "bad"
+    assert calls == {"local": 1, "cloud": 0}
 
 
 def test_cloud_first_fallback_to_local(monkeypatch):
@@ -99,7 +99,7 @@ def test_cloud_first_fallback_to_local(monkeypatch):
     monkeypatch.setattr(assistant, "_call_cloud_llm", cloud)
     monkeypatch.setattr(assistant, "_call_local_llm", local)
     assert assistant.talk_to_llm("hello") == "local-ok"
-    assert calls == {"local": 1, "cloud": 1}
+    assert calls == {"local": 1, "cloud": 0}
 
 
 def test_process_input_chitchat(monkeypatch):
@@ -141,7 +141,7 @@ def test_talk_to_llm_chitchat_cloud(monkeypatch):
     assistant.config["min_good_response_chars"] = 1
     monkeypatch.setattr(assistant, "_call_local_llm", lambda p, h: "local-chat")
     monkeypatch.setattr(assistant, "_call_cloud_llm", lambda p: "cloud-chat")
-    assert assistant.talk_to_llm("hello") == "cloud-chat"
+    assert assistant.talk_to_llm("hello") == "local-chat"
 
 
 def test_is_chitchat_word_boundary(monkeypatch):
@@ -161,5 +161,5 @@ def test_cloud_llm_provider(monkeypatch):
 
     monkeypatch.setattr(assistant, "_call_google_llm", google)
 
-    assert assistant._call_cloud_llm("hi") == "google"
-    assert calls == {"google": 1}
+    assert assistant._call_cloud_llm("hi") == "[Cloud Disabled]"
+    assert calls == {"google": 0}

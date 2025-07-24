@@ -5,7 +5,7 @@ For the current project roadmap and PR checklist, see the end of README.md.
 
 ## 🧠 Overview
 
-This AI assistant is designed as a **modular, local-first system** that supports natural interaction, automation, learning, and multi-agent cooperation. It runs locally with optional cloud support, supports live screen interaction, voice input/output, and persistent memory.
+This AI assistant is designed as a **modular, local-first system** that supports natural interaction, automation, learning, and multi-agent cooperation. It runs entirely offline, supports live screen interaction, voice input/output, and persistent memory.
 
 Agents communicate using a shared memory structure (JSON) and follow a synchronized protocol where each module is aware of system state and user context.
 
@@ -34,12 +34,11 @@ Agents communicate using a shared memory structure (JSON) and follow a synchroni
 - **Role:** Processes user intent, generates responses, writes/reads memory.
 - **Technologies:** 
   - Local: `llama.cpp`, `gguf` LLM models
-  - Cloud: Google Gemini (optional)
 - **Capabilities:**
   - Responds to queries
   - Summarizes, codes, explains
   - Talks to other agents via shared state
-- **Fallback:** Switches to cloud if local fails or if user says "use API".
+- **Fallback:** Cloud access removed; all prompts run locally.
 
 ---
 

@@ -8,7 +8,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 
 ## ✨ Features
 
-- **Offline/online voice interaction (local, private, or Google Gemini fallback)**
+- **Offline voice interaction (fully local and private)**
 - **Hotword detection, hard/soft mute, and wake/sleep phrases**
 - **Priority 'Stop Assistant' hotword to cancel speech**
 - **Alt+/ hotkey toggles voice listening on or off**
@@ -23,7 +23,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **User-friendly GUI with mic overlay and system tray**
 - **Speech learning tab to practice recognition**
 - **Lightweight CLI mode for keyboard power-users**
-- **Full local/offline LLM via LocalAI or text-generation-webui, with optional Google Gemini support**
+- **Full local/offline LLM via LocalAI or text-generation-webui**
 - **Ask "What can you do?" to hear all available modules**
 - **TTS speed, volume, and voice adjustable via config or voice command**
 - **Fast onboarding: all config, shortcuts, and memory are editable text**
@@ -122,8 +122,6 @@ Sample config.json:
   "prefer_local_llm": "auto",
   "llm_backend": "localai",
   "llm_model": "llama3",
-  "google_api_key": "your-gemini-api-key-here",
-  "google_model": "gemini-pro",
   "emulate_actions": false,
 
   "vosk_model_path": "vosk-model-small-en-us-0.15",
@@ -162,11 +160,9 @@ Sample config.json:
 }
 
 Key options:
-- `prefer_local_llm`: `true` for local-first, `false` for cloud-first,
-  or `"auto"` to pick automatically based on question complexity.
+- `prefer_local_llm`: always `true` (cloud access removed).
 - `min_good_response_words` / `min_good_response_chars`: treat a local
-  response as poor quality if shorter than these thresholds and retry with
-  the cloud model.
+  response as poor quality if shorter than these thresholds.
 
 3. Running the Assistant
 GUI Mode:
