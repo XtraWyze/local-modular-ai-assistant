@@ -40,6 +40,7 @@ from modules import speech_learning
 # utils is located within the modules package
 from modules.utils import resource_path
 from modules import wake_sleep_hotkey
+from modules import api_keys
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -49,6 +50,7 @@ except Exception:  # pystray is optional
 VOSK_MODEL_PATH = resource_path("vosk-model-small-en-us-0.15")
 config_loader = ConfigLoader()
 config = config_loader.config
+api_keys.apply_keys_from_config()
 
 
 # ========== TKINTER GUI SETUP ==========
@@ -364,6 +366,7 @@ def show_next_task(event):
 def reload_config():
     global config
     config = config_loader.reload()
+    api_keys.apply_keys_from_config()
     errors = validate_config(config)
     if errors:
         output.insert(tk.END, "[CONFIG VALIDATION ERROR]\n" + "\n".join(errors) + "\n")
@@ -512,6 +515,36 @@ ttk.Label(module_tab, text="Description:").pack(anchor="w", padx=10, pady=(10, 0
 gen_desc = tk.Text(module_tab, height=4)
 gen_desc.pack(fill="x", padx=10)
 
+# -- API Keys Section --
+api_frame = ttk.LabelFrame(module_tab, text="API Keys")
+api_frame.pack(fill="x", padx=10, pady=(10, 5))
+openai_var = tk.StringVar(value=config.get("api_keys", {}).get("openai", ""))
+anthropic_var = tk.StringVar(value=config.get("api_keys", {}).get("anthropic", ""))
+google_var = tk.StringVar(value=config.get("api_keys", {}).get("google", ""))
+ttk.Label(api_frame, text="OpenAI:").grid(row=0, column=0, sticky="w")
+ttk.Entry(api_frame, textvariable=openai_var, width=40).grid(row=0, column=1, sticky="ew")
+ttk.Label(api_frame, text="Anthropic:").grid(row=1, column=0, sticky="w")
+ttk.Entry(api_frame, textvariable=anthropic_var, width=40).grid(row=1, column=1, sticky="ew")
+ttk.Label(api_frame, text="Google:").grid(row=2, column=0, sticky="w")
+ttk.Entry(api_frame, textvariable=google_var, width=40).grid(row=2, column=1, sticky="ew")
+api_frame.columnconfigure(1, weight=1)
+
+def save_api_keys() -> None:
+    keys = {
+        "openai": openai_var.get().strip(),
+        "anthropic": anthropic_var.get().strip(),
+        "google": google_var.get().strip(),
+    }
+    api_keys.save_api_keys(keys)
+    gen_status.config(text="API keys saved.")
+
+ttk.Button(api_frame, text="Save Keys", command=save_api_keys).grid(row=3, column=0, columnspan=2, pady=5)
+
+# Provider selection
+provider_var = tk.StringVar(value="openai")
+ttk.Label(module_tab, text="Provider:").pack(anchor="w", padx=10)
+ttk.OptionMenu(module_tab, provider_var, "openai", "openai", "anthropic", "google").pack(anchor="w", padx=10)
+
 ttk.Label(module_tab, text="Preview:").pack(anchor="w", padx=10, pady=(10, 0))
 gen_preview = tk.Text(module_tab, height=15)
 gen_preview.pack(fill="both", expand=True, padx=10)
@@ -526,7 +559,7 @@ def generate_preview() -> None:
     try:
         from modules.module_generator import CodexClient
 
-        client = CodexClient()
+        client = CodexClient(provider=provider_var.get())
         code = client.generate_code(desc)
         if not code:
             gen_status.config(text="No code returned")

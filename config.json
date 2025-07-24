@@ -53,5 +53,10 @@
   "busy_timeout": 60,
   "home_assistant_url": "",
   "home_assistant_token": "",
-  "enable_home_assistant": false
+  "enable_home_assistant": false,
+  "api_keys": {
+    "openai": "",
+    "anthropic": "",
+    "google": ""
+  }
 }
