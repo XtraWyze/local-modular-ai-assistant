@@ -37,6 +37,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Startup system/device/network scans populate registries and can be refreshed by voice**
 - **Close or terminate apps by window title or process name (e.g. "terminate Rocket League")**
 - **List open windows via the taskbar (e.g. "what windows are open?")**
+- **Minimize windows by title (e.g. "minimize YouTube Music")**
 - **Control music playback with media keys (play/pause, skip) using keyboard, Windows API, or pyautogui fallbacks**
 - **Automatic multi-command parsing:** say "play music and open Rocket League" to run tasks one after another
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation

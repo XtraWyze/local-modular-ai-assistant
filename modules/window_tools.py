@@ -20,6 +20,7 @@ from ctypes import wintypes
 
 __all__ = [
     "focus_window",
+    "minimize_window",
     "list_windows",
     "move_window",
     "list_open_windows",
@@ -152,6 +153,20 @@ def move_window(title, x, y):
     win.moveTo(x, y)
     return True, f"Moved '{title}' to ({x}, {y})"
 
+def minimize_window(partial_title: str):
+    """Minimize the first window containing ``partial_title`` in its title."""
+    if _IMPORT_ERROR:
+        return False, f"pygetwindow not available: {_IMPORT_ERROR}"
+    matches = [w for w in gw.getAllTitles() if partial_title.lower() in w.lower()]
+    if not matches:
+        return False, f"No window found containing '{partial_title}'"
+    win = gw.getWindowsWithTitle(matches[0])[0]
+    try:
+        win.minimize()
+        return True, f"Minimized window: {matches[0]}"
+    except Exception as e:  # pragma: no cover - OS specific
+        return False, f"Failed to minimize '{matches[0]}': {e}"
+
 def list_windows():
     """Alias for list_open_windows for API consistency."""
     return list_open_windows()
@@ -189,6 +204,7 @@ def get_info():
         "description": "Tools for interacting with and automating OS windows.",
         "functions": [
             "focus_window",
+            "minimize_window",
             "list_windows",
             "move_window",
             "list_taskbar_windows",
@@ -200,6 +216,6 @@ def get_info():
 def get_description() -> str:
     """Return a short summary of this module."""
     return (
-        "Utilities for listing taskbar windows, focusing them, moving them, and "
-        "closing by index."
+        "Utilities for listing taskbar windows, focusing them, moving or "
+        "minimizing windows, and closing by index."
     )
