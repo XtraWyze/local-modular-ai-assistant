@@ -966,12 +966,13 @@ def process_input(user_input, output_widget):
         if result[0]:
             output_widget.insert("end", f"Assistant: {result[0]}\n\n")
             output_widget.see("end")
-            speak(result[0], on_complete=lambda: print("*>"))
+            speak(result[0], on_complete=lambda: print("*>") )
         else:
-            msg = "Sorry, I could not process that."
-            output_widget.insert("end", f"Assistant: {msg}\n\n")
-            output_widget.see("end")
-            last_ai_response = msg
+            if not last_ai_response:
+                msg = "Sorry, I could not process that."
+                output_widget.insert("end", f"Assistant: {msg}\n\n")
+                output_widget.see("end")
+                last_ai_response = msg
             print("*>")
 
     update_state(last_command=last_user_command, last_response=last_ai_response)
