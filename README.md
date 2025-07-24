@@ -33,6 +33,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Control music playback with media keys (play/pause, skip) using keyboard, Windows API, or pyautogui fallbacks**
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
+- **Crash prevention:** unexpected errors are logged and the assistant says "Crash prevented" before resuming
 
 Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase volume", or "use jenny voice." The GUI sliders and menu mirror these settings.
 
