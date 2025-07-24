@@ -495,6 +495,31 @@ def process_input(user_input, output_widget):
                 last_ai_response = msg
                 return
 
+            # === Codex module scaffolding ===
+            m = re.match(r"(?:codex create module|scaffold code) (\w+)\s+(.*)", text, re.IGNORECASE)
+            if m:
+                mod_name, desc = m.groups()
+                try:
+                    from modules.codex_integration import CodexClient
+
+                    client = CodexClient(engine=config.get("codex_engine", "code-davinci-002"))
+                    code = client.generate_code(desc)
+                    if code:
+                        path = os.path.join("modules", f"{mod_name}.py")
+                        with open(path, "w", encoding="utf-8") as f:
+                            f.write(code)
+                        ModuleRegistry().auto_discover("modules")
+                        msg = f"Module '{mod_name}' created"
+                    else:
+                        msg = "Codex returned no code"
+                except Exception as e:
+                    msg = f"Codex error: {e}"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
             # === Planning & Remote commands ===
             if text.lower().startswith("plan "):
                 task = text[5:].strip()
