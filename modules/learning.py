@@ -77,7 +77,7 @@ class LearningAgent:
             "def run(params: dict) -> str:\n"
             f"    \"\"\"{description}\"\"\"\n"
             "    # implementation\n"
-            "Return only the function body indented."\
+            "Return only the function body indented."
         )
 
         try:
