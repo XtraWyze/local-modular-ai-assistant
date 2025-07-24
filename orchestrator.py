@@ -1,12 +1,17 @@
-import importlib
-import pkgutil
-import types
-import re
+"""LLM orchestration and safe tool execution."""
+
+from __future__ import annotations
+
 import ast
+import importlib
 import inspect
 import os
+import pkgutil
+import re
 import socket
+import types
 from pathlib import Path
+
 from assistant import talk_to_llm
 
 # Dynamically load all modules under the "modules" package and collect
@@ -37,6 +42,8 @@ HIGH_RISK_FUNCS = {"run_python", "open_app", "close_app", "copy_file", "move_fil
 # Allow high-risk functions by default unless explicitly disabled
 ALLOW_HIGH_RISK = os.environ.get("ALLOW_HIGH_RISK", "1") == "1"
 
+__all__ = ["parse_and_execute", "handle_system_scan"]
+
 PROMPT_HEADER = (
     "Translate the user's request into exactly one Python function call "
     f"using these tools: {TOOL_LIST}. "
@@ -44,97 +51,124 @@ PROMPT_HEADER = (
     "\nOnly use a function if the user is very explicit. For questions, just return an empty string."
 )
 
-def parse_and_execute(user_text: str) -> str:
-    """Parse the LLM response and safely execute a whitelisted function."""
-
-    if user_text.lower().startswith("learn "):
+def _handle_learning(text: str) -> str | None:
+    """Handle ``learn <desc>`` commands."""
+    if text.lower().startswith("learn "):
         from modules.learning import LearningAgent
 
-        desc = user_text[6:].strip()
+        desc = text[6:].strip()
         return LearningAgent().learn_skill(desc)
+    return None
 
-    m = re.match(r"(?:create|generate) module (\w+)(?:\s+(.*))?", user_text, re.IGNORECASE)
-    if m:
-        name, desc = m.groups()
-        desc = desc or ""
-        try:
-            from modules import module_generator
 
-            path = module_generator.generate_module_interactive(desc, name=name)
-            return path
-        except Exception as e:
-            return f"Error generating module: {e}"
-
-    if user_text.lower().startswith("run "):
-        import modules as skills_pkg
-
-        skill_name = user_text[4:].strip()
-        mod = getattr(skills_pkg, skill_name, None)
-        if mod:
-            try:
-                return mod.run({})
-            except Exception as e:
-                return f"Error running skill '{skill_name}': {e}"
-        return f"I don\u2019t know a skill called '{skill_name}'."
-
-    # Quick manual handling for common phrases like "terminate <app>"
-    term = re.match(r"\b(?:terminate|kill)\s+(.+)", user_text, re.IGNORECASE)
-    if term:
-        app = term.group(1)
-        if "close_app" not in ALLOWED_FUNCTIONS:
-            return talk_to_llm(user_text)
-        if "close_app" in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
-            return "Error: close_app requires elevated privileges."
-        func = ALLOWED_FUNCTIONS["close_app"]
-        try:
-            return func(app)
-        except Exception as e:
-            return f"Error running close_app: {e}"
-
-    call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {user_text}\nAssistant:")
-    m = re.match(r"(\w+)\((.*)\)", call.strip())
+def _handle_module_generation(text: str) -> str | None:
+    """Handle ``create module <name> <desc>`` commands."""
+    m = re.match(r"(?:create|generate) module (\w+)(?:\s+(.*))?", text, re.IGNORECASE)
     if not m:
+        return None
+    name, desc = m.groups()
+    desc = desc or ""
+    try:
+        from modules import module_generator
+
+        path = module_generator.generate_module_interactive(desc, name=name)
+        return path
+    except Exception as e:  # pragma: no cover - generation errors
+        return f"Error generating module: {e}"
+
+
+def _handle_run_skill(text: str) -> str | None:
+    """Run a module's ``run`` function via ``run <name>``."""
+    if not text.lower().startswith("run "):
+        return None
+    import modules as skills_pkg
+
+    skill_name = text[4:].strip()
+    mod = getattr(skills_pkg, skill_name, None)
+    if mod:
+        try:
+            return mod.run({})
+        except Exception as e:
+            return f"Error running skill '{skill_name}': {e}"
+    return f"I don\u2019t know a skill called '{skill_name}'."
+
+
+def _handle_terminate_alias(text: str) -> str | None:
+    """Support ``terminate <app>`` as alias for ``close_app``."""
+    term = re.match(r"\b(?:terminate|kill)\s+(.+)", text, re.IGNORECASE)
+    if not term:
+        return None
+    app = term.group(1)
+    if "close_app" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    if "close_app" in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
+        return "Error: close_app requires elevated privileges."
+    func = ALLOWED_FUNCTIONS["close_app"]
+    try:
+        return func(app)
+    except Exception as e:
+        return f"Error running close_app: {e}"
+
+
+def _execute_tool_call(fn_name: str, args: str, user_text: str) -> str:
+    """Validate and execute a tool call returned by the LLM."""
+    if fn_name not in ALLOWED_FUNCTIONS:
         return talk_to_llm(user_text)
+    if fn_name in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
+        return f"Error: {fn_name} requires elevated privileges."
 
-    fn, args = m.groups()
-    if fn not in ALLOWED_FUNCTIONS:
-        return talk_to_llm(user_text)
-
-    if fn in HIGH_RISK_FUNCS and not ALLOW_HIGH_RISK:
-        return f"Error: {fn} requires elevated privileges."
-
-    func = ALLOWED_FUNCTIONS[fn]
+    func = ALLOWED_FUNCTIONS[fn_name]
 
     sig = inspect.signature(func)
     params = sig.parameters
     if len(params) > 0 and args.strip() in ["", "None"]:
-        # Missing required arguments - fall back to natural language response
         return talk_to_llm(user_text)
 
     try:
         parsed_args = ast.literal_eval(f"[{args}]") if args.strip() else []
     except Exception:
-        # LLM produced bad arguments - fall back to natural language
         return talk_to_llm(user_text)
 
-    # Type and basic range validation
     for arg_val, param in zip(parsed_args, params.values()):
         ann = param.annotation
         if ann is not inspect._empty and not isinstance(arg_val, ann):
-            # Invalid type supplied
             return talk_to_llm(user_text)
         if isinstance(arg_val, (int, float)) and not -10000 <= arg_val <= 10000:
-            # Out-of-range numeric value
             return talk_to_llm(user_text)
         if isinstance(arg_val, str) and len(arg_val) > 1000:
-            # Excessively long string
             return talk_to_llm(user_text)
 
     try:
-        result = func(*parsed_args)
-        return result
-    except Exception as e:
-        return f"Error running {fn}: {e}"
+        return func(*parsed_args)
+    except Exception as e:  # pragma: no cover - tool runtime errors
+        return f"Error running {fn_name}: {e}"
+
+
+def _handle_llm_call(text: str) -> str:
+    """Ask the LLM for a tool call and execute it."""
+    call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {text}\nAssistant:")
+    m = re.match(r"(\w+)\((.*)\)", call.strip())
+    if not m:
+        return talk_to_llm(text)
+
+    fn, args = m.groups()
+    return _execute_tool_call(fn, args, text)
+
+
+def parse_and_execute(user_text: str) -> str:
+    """Parse ``user_text`` and execute an appropriate tool or fallback."""
+
+    for handler in (
+        _handle_learning,
+        _handle_module_generation,
+        _handle_run_skill,
+        _handle_terminate_alias,
+    ):
+        result = handler(user_text)
+        if result is not None:
+            return result
+
+    return _handle_llm_call(user_text)
 
 
 def handle_system_scan() -> dict:
