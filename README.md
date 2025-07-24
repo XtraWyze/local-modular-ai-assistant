@@ -20,6 +20,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Plugin system:** Easy extension with your own Python modules
 - **User-friendly GUI with mic overlay and system tray**
+- **Speech learning tab to practice recognition**
 - **Lightweight CLI mode for keyboard power-users**
 - **Full local/offline LLM via LocalAI or text-generation-webui, with optional Google Gemini support**
 - **Ask "What can you do?" to hear all available modules**
