@@ -653,7 +653,12 @@ def process_input(user_input, output_widget):
                 return
 
             # === Codex module scaffolding ===
-            m = re.match(r"(?:codex create module|scaffold code|create module|generate module) (\w+)(?:\s+(.*))?", text, re.IGNORECASE)
+            m = re.match(
+                r"(?:codex create module|scaffold code|create module|generate module)"
+                r" (\w+)(?:\s+(.*))?",
+                text,
+                re.IGNORECASE,
+            )
             if m:
                 mod_name, desc = m.groups()
                 desc = desc or ""
