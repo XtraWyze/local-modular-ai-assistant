@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-def generate_module(description: str, name: Optional[str] = None) -> str:
+def generate_module(description: str, name: Optional[str] = None, provider: str = "openai") -> str:
     """Generate a Python module via Codex.
 
     Parameters
@@ -42,7 +42,7 @@ def generate_module(description: str, name: Optional[str] = None) -> str:
         f"{description}. Provide only code."
     )
     try:
-        client = CodexClient()
+        client = CodexClient(provider=provider)
         code = client.generate_code(prompt)
         if not code:
             return "No code returned"
@@ -60,7 +60,7 @@ def generate_module(description: str, name: Optional[str] = None) -> str:
         return f"Error: {exc}"
 
 
-def generate_module_interactive(description: str, name: Optional[str] = None) -> str:
+def generate_module_interactive(description: str, name: Optional[str] = None, provider: str = "openai") -> str:
     """Generate a module with preview and confirmation.
 
     This helper prints the generated code to the console and prompts the
@@ -85,7 +85,7 @@ def generate_module_interactive(description: str, name: Optional[str] = None) ->
         f"{description}. Provide only code."
     )
     try:
-        client = CodexClient()
+        client = CodexClient(provider=provider)
         code = client.generate_code(prompt)
         if not code:
             return "No code returned"

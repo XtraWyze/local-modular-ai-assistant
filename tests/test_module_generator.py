@@ -37,7 +37,7 @@ class DummyClient:
 @pytest.fixture(autouse=True)
 def _patch_codex_client(monkeypatch):
     mg = importlib.import_module("modules.module_generator")
-    monkeypatch.setattr(mg, "CodexClient", lambda: DummyClient())
+    monkeypatch.setattr(mg, "CodexClient", lambda *a, **k: DummyClient())
     yield
 
 

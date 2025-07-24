@@ -56,6 +56,14 @@ CONFIG_SCHEMA = {
         "enable_home_assistant": {"type": "boolean"},
         "min_good_response_words": {"type": "number"},
         "min_good_response_chars": {"type": "number"},
+        "api_keys": {
+            "type": "object",
+            "properties": {
+                "openai": {"type": "string"},
+                "anthropic": {"type": "string"},
+                "google": {"type": "string"},
+            },
+        },
     },
     "required": ["tts_model", "vosk_model_path"],
 }
