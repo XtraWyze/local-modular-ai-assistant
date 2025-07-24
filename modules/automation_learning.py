@@ -1,9 +1,14 @@
-"""automation_learning.py
-Module for recording and playing back desktop automation macros.
+"""Automation learning module.
+
+This module provides utilities to record and play back desktop automation
+macros. Recording uses ``pyautogui`` if available. If the installed
+``pyautogui`` library does not provide ``record``/``play`` helpers, it falls
+back to a lightweight implementation powered by ``pynput``.
 """
 
 import os
 import json
+import time
 
 try:
     import pyautogui
@@ -20,11 +25,93 @@ MACRO_DIR = "macros"
 MODULE_NAME = "automation_learning"
 
 __all__ = [
+    "record_events",
+    "play_events",
     "record_macro",
     "play_macro",
     "list_macros",
     "record_macro_script",
 ]
+
+
+def record_events() -> list:
+    """Capture keyboard and mouse input until ESC is pressed."""
+    if pyautogui and hasattr(pyautogui, "record"):
+        return pyautogui.record()
+    try:
+        from pynput import mouse, keyboard
+    except Exception as e:  # pragma: no cover - optional dependency
+        raise RuntimeError(f"pynput not available: {e}") from e
+
+    events: list[dict] = []
+    stop = keyboard.Events()
+
+    def on_move(x, y):
+        events.append({"type": "move", "x": x, "y": y, "t": time.time()})
+
+    def on_click(x, y, button, pressed):
+        events.append({
+            "type": "click",
+            "x": x,
+            "y": y,
+            "button": str(button),
+            "pressed": pressed,
+            "t": time.time(),
+        })
+
+    def on_scroll(x, y, dx, dy):
+        events.append({
+            "type": "scroll",
+            "x": x,
+            "y": y,
+            "dx": dx,
+            "dy": dy,
+            "t": time.time(),
+        })
+
+    def on_press(key):
+        if key == keyboard.Key.esc:
+            return False
+        events.append({"type": "key", "key": str(key), "down": True, "t": time.time()})
+
+    def on_release(key):
+        events.append({"type": "key", "key": str(key), "down": False, "t": time.time()})
+
+    with mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll) as ml, \
+            keyboard.Listener(on_press=on_press, on_release=on_release) as kl:
+        kl.join()
+        ml.stop()
+    return events
+
+
+def play_events(events: list) -> None:
+    """Replay recorded events using pyautogui."""
+    if pyautogui is None:
+        raise RuntimeError(f"pyautogui not available: {_IMPORT_ERROR}")
+    if hasattr(pyautogui, "play"):
+        pyautogui.play(events)
+        return
+    for ev in events:
+        et = ev.get("type")
+        if et == "move":
+            pyautogui.moveTo(ev["x"], ev["y"])
+        elif et == "click":
+            button = ev.get("button", "left").replace("Button.", "")
+            if ev.get("pressed", ev.get("down", True)):
+                pyautogui.mouseDown(x=ev["x"], y=ev["y"], button=button)
+            else:
+                pyautogui.mouseUp(x=ev["x"], y=ev["y"], button=button)
+        elif et == "scroll":
+            pyautogui.scroll(ev.get("dy", 0), x=ev.get("x"), y=ev.get("y"))
+        elif et == "write":
+            pyautogui.write(ev.get("text", ""))
+        elif et == "press" or et == "key":
+            key = ev.get("key")
+            if ev.get("pressed", ev.get("down", True)):
+                pyautogui.keyDown(key)
+            else:
+                pyautogui.keyUp(key)
+
 
 
 def record_macro(name: str) -> str:
@@ -33,7 +120,7 @@ def record_macro(name: str) -> str:
         return f"pyautogui not available: {_IMPORT_ERROR}"
     os.makedirs(MACRO_DIR, exist_ok=True)
     try:
-        events = pyautogui.record()
+        events = record_events()
         path = os.path.join(MACRO_DIR, f"{name}.json")
         with open(path, "w", encoding="utf-8") as f:
             json.dump(events, f)
@@ -50,7 +137,7 @@ def record_macro_script(name: str) -> str:
         return f"pyautogui not available: {_IMPORT_ERROR}"
     os.makedirs(MACRO_DIR, exist_ok=True)
     try:
-        events = pyautogui.record()
+        events = record_events()
         json_path = os.path.join(MACRO_DIR, f"{name}.json")
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(events, f)
@@ -79,7 +166,7 @@ def play_macro(name: str) -> str:
     try:
         with open(path, "r", encoding="utf-8") as f:
             events = json.load(f)
-        pyautogui.play(events)
+        play_events(events)
         return f"Played macro {name}"
     except Exception as e:
         log_error(f"[{MODULE_NAME}] play_macro error: {e}")
@@ -98,6 +185,8 @@ def get_info():
         "name": MODULE_NAME,
         "description": "Record and play back user-taught automation macros.",
         "functions": [
+            "record_events",
+            "play_events",
             "record_macro",
             "play_macro",
             "list_macros",
@@ -117,6 +206,8 @@ def register():  # pragma: no cover - simple registration
     ModuleRegistry.register(
         MODULE_NAME,
         {
+            "record_events": record_events,
+            "play_events": play_events,
             "record_macro": record_macro,
             "play_macro": play_macro,
             "list_macros": list_macros,

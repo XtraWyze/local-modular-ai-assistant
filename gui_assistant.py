@@ -270,10 +270,11 @@ class ScreenViewer(tk.Toplevel):
         if self._after_id:
             self.after_cancel(self._after_id)
 
+        from modules.automation_learning import record_events
+
         def _rec():
             try:
-                import pyautogui
-                self.recorded_events = pyautogui.record()
+                self.recorded_events = record_events()
             except Exception:
                 self.recorded_events = []
             finally:
@@ -295,8 +296,8 @@ class ScreenViewer(tk.Toplevel):
         if self.recording or not self.recorded_events:
             return
         try:
-            import pyautogui
-            pyautogui.play(self.recorded_events)
+            from modules.automation_learning import play_events
+            play_events(self.recorded_events)
         except Exception:
             pass
 
