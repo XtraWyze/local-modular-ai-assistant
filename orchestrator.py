@@ -126,6 +126,22 @@ def _handle_minimize_alias(text: str) -> str | None:
         return f"Error running minimize_window: {e}"
 
 
+def _handle_focus_alias(text: str) -> str | None:
+    """Support ``focus <window>`` as alias for ``focus_window``."""
+    m = re.match(r"\bfocus\s+(.+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    target = m.group(1)
+    if "focus_window" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["focus_window"]
+    try:
+        success, msg = func(target)
+        return msg
+    except Exception as e:
+        return f"Error running focus_window: {e}"
+
+
 def _handle_move_window_alias(text: str) -> str | None:
     """Support ``move <title> to monitor N`` commands."""
     m = re.match(r"move\s+(.+?)\s+(?:to|onto)\s+(?:monitor|screen)\s+(\d+)", text, re.IGNORECASE)
@@ -211,6 +227,7 @@ def parse_and_execute(user_text: str) -> str:
         _handle_run_skill,
         _handle_terminate_alias,
         _handle_minimize_alias,
+        _handle_focus_alias,
         _handle_move_window_alias,
         _handle_save_exit_alias,
     ):

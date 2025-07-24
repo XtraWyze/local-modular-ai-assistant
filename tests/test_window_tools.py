@@ -1,6 +1,6 @@
 import importlib
 import types
-from modules.window_tools import close_taskbar_item, minimize_window
+from modules.window_tools import close_taskbar_item, minimize_window, focus_window
 
 def test_invalid_index():
     ok, msg = close_taskbar_item(-1)
@@ -106,3 +106,39 @@ def test_type_in_window(monkeypatch):
     assert ok
     assert typed == ['hello']
     assert 'notepad' in msg.lower()
+
+
+def test_focus_window_not_found(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+    fake_gw = types.SimpleNamespace(getAllTitles=lambda: [])
+    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+
+    ok, msg = wt.focus_window('missing')
+    assert not ok
+    assert 'no window found' in msg.lower()
+
+
+def test_focus_window_success(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+
+    class FakeWin:
+        def __init__(self, title):
+            self.title = title
+            self.activated = False
+
+        def activate(self):
+            self.activated = True
+
+    fake_win = FakeWin('Test App')
+    fake_gw = types.SimpleNamespace(
+        getAllTitles=lambda: ['Test App'],
+        getWindowsWithTitle=lambda t: [fake_win]
+    )
+    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+
+    ok, msg = wt.focus_window('test app')
+    assert ok
+    assert fake_win.activated
+    assert 'activated' in msg.lower()
