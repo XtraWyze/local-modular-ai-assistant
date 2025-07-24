@@ -11,6 +11,7 @@ else:
     _IMPORT_ERROR = None
 
 from typing import Iterable, List, Callable, Optional
+import time
 from error_logger import log_error
 
 DEFAULT_SENTENCES = [
@@ -25,6 +26,8 @@ def read_sentences(
     recognizer: Optional[object] = None,
     microphone: Optional[object] = None,
     speak_func: Optional[Callable[[str], None]] = None,
+    pause_secs: float = 1.0,
+    cancel_after: float = 25.0,
 ) -> List[str]:
     """Prompt the user to read each sentence and return transcriptions.
 
@@ -39,6 +42,10 @@ def read_sentences(
         ``speech_recognition.Microphone`` or compatible context manager.
     speak_func : Callable[[str], None], optional
         Optional TTS function to announce each sentence.
+    pause_secs : float, optional
+        Seconds to pause between prompts. Defaults to ``1.0``.
+    cancel_after : float, optional
+        Abort if no speech is detected for this many seconds. Defaults to ``25``.
 
     Returns
     -------
@@ -64,13 +71,27 @@ def read_sentences(
                         speak_func(f"Please read: {text}")
                     except Exception:
                         pass
-                try:
-                    audio = recognizer.listen(mic, phrase_time_limit=6)
-                    recognized = recognizer.recognize_google(audio)
-                except Exception as exc:  # pragma: no cover - microphone/STT errors
-                    log_error(f"[{MODULE_NAME}] recognition error: {exc}")
-                    recognized = ""
+
+                recognized = ""
+                start = time.time()
+
+                while not recognized and time.time() - start < cancel_after:
+                    try:
+                        audio = recognizer.listen(mic, timeout=1, phrase_time_limit=6)
+                        recognized = recognizer.recognize_google(audio)
+                    except Exception as exc:  # pragma: no cover - microphone/STT errors
+                        log_error(f"[{MODULE_NAME}] recognition error: {exc}")
+                        recognized = ""
+
+                if not recognized:
+                    log_error(f"[{MODULE_NAME}] cancelled after inactivity")
+                    results.append("")
+                    break
+
                 results.append(recognized)
+
+                if pause_secs:
+                    time.sleep(pause_secs)
     except Exception as exc:  # pragma: no cover - mic open error
         log_error(f"[{MODULE_NAME}] microphone error: {exc}")
         results.extend(["" for _ in range(len(sents) - len(results))])
