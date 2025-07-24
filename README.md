@@ -172,6 +172,10 @@ capture region 100 200 300 300
 
 press enter
 
+type hello world
+
+move mouse to 100 200
+
 recall wifi password
 record my_demo, play macro my_demo
 
