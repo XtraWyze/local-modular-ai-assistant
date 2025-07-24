@@ -653,24 +653,13 @@ def process_input(user_input, output_widget):
                 return
 
             # === Codex module scaffolding ===
-            m = re.match(r"(?:codex create module|scaffold code) (\w+)\s+(.*)", text, re.IGNORECASE)
+            m = re.match(r"(?:codex create module|scaffold code|create module|generate module) (\w+)(?:\s+(.*))?", text, re.IGNORECASE)
             if m:
                 mod_name, desc = m.groups()
-                try:
-                    from modules.codex_integration import CodexClient
+                desc = desc or ""
+                from orchestrator import parse_and_execute
 
-                    client = CodexClient(engine=config.get("codex_engine", "code-davinci-002"))
-                    code = client.generate_code(desc)
-                    if code:
-                        path = os.path.join("modules", f"{mod_name}.py")
-                        with open(path, "w", encoding="utf-8") as f:
-                            f.write(code)
-                        ModuleRegistry().auto_discover("modules")
-                        msg = f"Module '{mod_name}' created"
-                    else:
-                        msg = "Codex returned no code"
-                except Exception as e:
-                    msg = f"Codex error: {e}"
+                msg = parse_and_execute(f"create module {mod_name} {desc}")
                 output_widget.insert("end", f"Assistant: {msg}\n")
                 output_widget.see("end")
                 speak(msg)
