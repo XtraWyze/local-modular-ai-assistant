@@ -58,6 +58,7 @@ from modules.utils import resource_path
 from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import image_generator
+from modules import stable_diffusion_generator as sd_generator
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -632,9 +633,41 @@ cancel_btn.pack(side=tk.LEFT, padx=5)
 img_prompt = tk.Text(image_tab, height=4)
 img_prompt.pack(fill="x", padx=10, pady=(10, 0))
 
+# Source toggle
+source_var = tk.StringVar(value="cloud")
+ttk.Label(image_tab, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
+source_menu = ttk.OptionMenu(
+    image_tab,
+    source_var,
+    "cloud",
+    "cloud",
+    "local",
+    command=lambda _v: toggle_source(),
+)
+source_menu.pack(anchor="w", padx=10)
+
+# Stable Diffusion settings
+sd_model_var = tk.StringVar(value="")
+ttk.Label(image_tab, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+sd_model_entry = ttk.Entry(image_tab, textvariable=sd_model_var, width=50)
+sd_model_entry.pack(fill="x", padx=10)
+
+sd_device_var = tk.StringVar(value="cpu")
+ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+sd_device_entry = ttk.Entry(image_tab, textvariable=sd_device_var, width=20)
+sd_device_entry.pack(anchor="w", padx=10)
+
 size_var = tk.StringVar(value="512x512")
 ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
 ttk.OptionMenu(image_tab, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
+
+def toggle_source(*_args) -> None:
+    """Enable or disable local model fields based on ``source_var``."""
+    state = tk.NORMAL if source_var.get() == "local" else tk.DISABLED
+    sd_model_entry.config(state=state)
+    sd_device_entry.config(state=state)
+
+toggle_source()
 
 img_preview = ttk.Label(image_tab)
 img_preview.pack(pady=10)
@@ -649,7 +682,14 @@ def generate_image_btn() -> None:
     img_status.config(text="Generating...")
 
     def _run() -> None:
-        path = image_generator.generate_image(prompt, size=size_var.get())
+        if source_var.get() == "local":
+            path = sd_generator.generate_image(
+                prompt,
+                sd_model_var.get(),
+                device=sd_device_var.get(),
+            )
+        else:
+            path = image_generator.generate_image(prompt, size=size_var.get())
 
         def _update() -> None:
             if path.endswith(".png") and os.path.exists(path):
