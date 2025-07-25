@@ -10,6 +10,7 @@ STATE_FILES = [
     "assistant_memory.json",
     "assistant_state.json",
     "learned_actions.json",
+    "learned_macros.yaml",
     "learned_launchers.json",
 ]
 

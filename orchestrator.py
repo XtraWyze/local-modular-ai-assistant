@@ -61,6 +61,17 @@ def _handle_learning(text: str) -> str | None:
     return None
 
 
+def _handle_learn_macro(text: str) -> str | None:
+    """Handle ``learn macro <cmd> -> <action>`` commands."""
+    m = re.match(r"learn macro (.+?)\s+(?:->|as)\s+(\w+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    cmd, action = m.groups()
+    from state_manager import register_macro_command
+
+    return register_macro_command(cmd.strip(), action.strip())
+
+
 def _handle_module_generation(text: str) -> str | None:
     """Handle ``create module <name> <desc>`` commands."""
     m = re.match(r"(?:create|generate) module (\w+)(?:\s+(.*))?", text, re.IGNORECASE)
@@ -232,6 +243,7 @@ def parse_and_execute(user_text: str) -> str:
 
     for handler in (
         _handle_learning,
+        _handle_learn_macro,
         _handle_module_generation,
         _handle_run_skill,
         _handle_terminate_alias,

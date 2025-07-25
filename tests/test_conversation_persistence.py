@@ -30,6 +30,8 @@ def import_assistant(monkeypatch, state):
     sm.update_state = lambda **kw: None
     sm.register_action = lambda name, path: None
     sm.get_action = lambda name: None
+    sm.register_macro_command = lambda *a, **kw: ""
+    sm.get_macro_action = lambda text=None: None
     sm.add_resume_phrase = lambda p: None
     sm.get_resume_phrases = lambda: []
     sm.load_actions = lambda: {}

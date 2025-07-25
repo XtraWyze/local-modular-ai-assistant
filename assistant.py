@@ -27,6 +27,8 @@ from state_manager import (
     update_state,
     register_action,
     get_action,
+    register_macro_command,
+    get_macro_action,
     state as state_dict,
     save_state,
     add_resume_phrase,
@@ -850,7 +852,24 @@ def process_input(user_input, output_widget):
             output_widget.insert("end", f"You: {text}\n")
             output_widget.see("end")
 
+            m = re.match(r"learn macro (.+?)\s+(?:->|as)\s+(\w+)", text, re.IGNORECASE)
+            if m:
+                cmd, action = m.groups()
+                msg = register_macro_command(cmd, action)
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
 
+            mapped = get_macro_action(text)
+            if mapped:
+                msg = play_macro(mapped)
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
 
             # === Synonym action logic ===
             if cancel_event.is_set():

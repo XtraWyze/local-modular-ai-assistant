@@ -62,6 +62,7 @@ Agents communicate using a shared memory structure (JSON) and follow a synchroni
 - **Files:**
   - `assistant_state.json` – session state, active mode, last command
   - `learned_actions.json` – user-defined workflows/macros
+  - `learned_macros.yaml` – voice command to macro mappings
 - **Responsibilities:**
   - Profile saving/loading
   - Multi-agent memory sync
@@ -72,7 +73,7 @@ Agents communicate using a shared memory structure (JSON) and follow a synchroni
 ## 🧠 Learned Actions Agent
 
 - **Role:** Manages user-taught workflows or macros.
-- **File:** `learned_actions.json`
+- **Files:** `learned_actions.json`, `learned_macros.yaml`
 - **Structure:** Name, triggers, steps, description
 - **Example:**
 

@@ -9,9 +9,15 @@ from assistant import (
 )
 from orchestrator import parse_and_execute
 from modules.actions import detect_action
+from state_manager import (
+    register_macro_command,
+    get_macro_action,
+)
+from modules.automation_learning import play_macro
 import planning_agent
 import keyboard
 import pyautogui
+import re
 import time
 import os
 
@@ -107,10 +113,19 @@ def handle_cli_input(user_input: str) -> str | None:
     if not user_input:
         return ""
 
+    m = re.match(r"learn macro (.+?)\s+(?:->|as)\s+(\w+)", user_input, re.IGNORECASE)
+    if m:
+        cmd, action = m.groups()
+        return register_macro_command(cmd, action)
+
     # Basic volume and media commands
     resp = process_command(user_input)
     if resp is not None:
         return resp
+
+    macro_name = get_macro_action(user_input)
+    if macro_name:
+        return play_macro(macro_name)
 
     # Sleep/Wake management
     if not is_listening():
