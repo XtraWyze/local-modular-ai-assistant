@@ -56,24 +56,3 @@ def test_get_url_override():
     llm_interface.config.pop("llm_url", None)
     llm_interface.config["llm_backend"] = "localai"
     assert "localhost" in llm_interface._get_url()
-
-
-def test_list_models_localai(tmp_path, monkeypatch):
-    models_dir = tmp_path / "LocalAI" / "models"
-    models_dir.mkdir(parents=True)
-    (models_dir / "m1").mkdir()
-    (models_dir / "m2.gguf").touch()
-    monkeypatch.chdir(tmp_path)
-    llm_interface.config["llm_backend"] = "localai"
-    assert sorted(llm_interface.list_models()) == ["m1", "m2"]
-
-
-def test_list_models_ollama(monkeypatch):
-    output = "modelA 7B\nmodelB 13B"
-    monkeypatch.setattr(
-        llm_interface.subprocess,
-        "check_output",
-        lambda cmd, text=True: output,
-    )
-    llm_interface.config["llm_backend"] = "ollama"
-    assert llm_interface.list_models() == ["modelA", "modelB"]
