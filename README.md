@@ -306,6 +306,7 @@ You can say `plan <task>` in the assistant to queue the generated subtasks autom
 Run a **remote agent** server to send commands between machines:
 ```python
 from remote_agent import RemoteServer, send_command
+# Binds to 127.0.0.1 by default for local-only access
 srv = RemoteServer(callback=print)
 srv.start()
 send_command("localhost", srv.port, "hello")
@@ -318,7 +319,8 @@ Or start the lightweight Flask REST API:
 ```bash
 python -m modules.web_api
 ```
-Then POST JSON `{"command": "your text"}` to `/command`.
+By default the server listens on `127.0.0.1:5000`; pass `--host 0.0.0.0` if you
+need external access. Then POST JSON `{"command": "your text"}` to `/command`.
 
 ### Allowed Plugin APIs
 The `ModuleRegistry` can optionally verify imports when loading modules. If this

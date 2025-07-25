@@ -24,7 +24,18 @@ def command_route():
     return jsonify({'status': 'queued'})
 
 
-def run(host: str = '0.0.0.0', port: int = 5000):
+def run(host: str = '127.0.0.1', port: int = 5000):
+    """Start the web API server.
+
+    Parameters
+    ----------
+    host : str, optional
+        Host interface to bind to. Defaults to ``"127.0.0.1"`` so the service
+        is only accessible locally. Use ``"0.0.0.0"`` to expose on all
+        interfaces if desired.
+    port : int, optional
+        Port to listen on, by default ``5000``.
+    """
     if not Flask:
         raise ImportError(_IMPORT_ERROR)
     app.run(host=host, port=port)
@@ -32,3 +43,7 @@ def run(host: str = '0.0.0.0', port: int = 5000):
 
 def get_description() -> str:
     return "Simple Flask REST API exposing a /command endpoint."
+
+
+if __name__ == "__main__":  # pragma: no cover - manual launch
+    run()
