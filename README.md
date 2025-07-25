@@ -104,10 +104,12 @@ Offline use requires a few additional assets:
 1. **Vosk speech model** – grab `vosk-model-small-en-us-0.15` from
    <https://alphacephei.com/vosk/models> and extract it to the path specified by
    `vosk_model_path` in `config.json`.
-2. **Coqui TTS voice** – run
-   `tts --model tts_models/en/jenny/jenny --download` or download another voice
-   from the [Coqui TTS](https://github.com/coqui-ai/TTS) project. Update
-   `tts_model` in `config.json` with the chosen voice.
+2. **Coqui TTS voice** – run a command like
+   `tts --model tts_models/en/jenny/jenny --download` or download another
+   voice from the [Coqui TTS](https://github.com/coqui-ai/TTS) project.
+   Popular models include `tts_models/en/vctk/vits` and
+   `tts_models/en/ljspeech/tacotron2-DDC`. Update `tts_model` in
+   `config.json` with the chosen voice.
 3. **LLM backends** – clone LocalAI, text-generation-webui, and Ollama by running
    `python install_llm_backends.py --all` (or the `.bat` file on Windows).
    Follow each backend’s README to place your LLM weights in its `models/`

@@ -23,12 +23,22 @@ DEFAULTS = {
     "tts_volume": 0.8,
     "tts_speed": 1.0,
 }
+
+# A curated list of working Coqui models for quick switching. Users may add
+# their own model names to ``config.json`` if desired.
+AVAILABLE_MODELS = [
+    "tts_models/en/jenny/jenny",
+    "tts_models/en/vctk/vits",
+    "tts_models/en/ljspeech/tacotron2-DDC",
+]
 MODULE_NAME = "tts_integration"
 
 __all__ = [
     "speak",
     "list_voices",
+    "list_models",
     "set_voice",
+    "set_model",
     "set_volume",
     "set_speed",
     "is_speaking",
@@ -160,6 +170,10 @@ def list_voices():
         return model.speakers
     return ["default"]
 
+def list_models():
+    """Return a list of recommended model names."""
+    return AVAILABLE_MODELS
+
 def set_voice(new_voice):
     """Set and save the preferred voice."""
     config["tts_voice"] = new_voice
@@ -170,6 +184,24 @@ def set_voice(new_voice):
         with open(CONFIG_PATH, "w") as f:
             json.dump(all_cfg, f, indent=2)
         print(f"[TTS] Voice switched to: {new_voice}")
+        return True
+    except Exception as e:
+        log_error(f"[{MODULE_NAME}] Could not update config.json: {e}")
+        return False
+
+def set_model(new_model):
+    """Set and save the TTS model name."""
+    config["tts_model"] = new_model
+    try:
+        with open(CONFIG_PATH, "r") as f:
+            all_cfg = json.load(f)
+        all_cfg["tts_model"] = new_model
+        with open(CONFIG_PATH, "w") as f:
+            json.dump(all_cfg, f, indent=2)
+        # Force model reload on next speak()
+        global _model
+        _model = None
+        print(f"[TTS] Model switched to: {new_model}")
         return True
     except Exception as e:
         log_error(f"[{MODULE_NAME}] Could not update config.json: {e}")
@@ -224,7 +256,17 @@ def get_info():
     return {
         "name": MODULE_NAME,
         "description": "Offline text-to-speech using Coqui TTS and sounddevice.",
-        "functions": ["speak", "list_voices", "set_voice", "set_volume", "set_speed", "is_speaking", "stop_speech"]
+        "functions": [
+            "speak",
+            "list_voices",
+            "list_models",
+            "set_voice",
+            "set_model",
+            "set_volume",
+            "set_speed",
+            "is_speaking",
+            "stop_speech",
+        ]
     }
 
 
@@ -238,7 +280,9 @@ def register():
     ModuleRegistry.register(MODULE_NAME, {
         "speak": speak,
         "list_voices": list_voices,
+        "list_models": list_models,
         "set_voice": set_voice,
+        "set_model": set_model,
         "set_volume": set_volume,
         "set_speed": set_speed,
         "is_speaking": is_speaking,
@@ -250,6 +294,7 @@ def register():
 # register()
 
 if __name__ == "__main__":
+    print("[TTS] Available models:", list_models())
     print("[TTS] Available voices:", list_voices())
     print("[TTS] Speaking test message offline with Coqui.")
     speak("Hello! This is your assistant speaking using Coqui TTS.", async_play=False)
