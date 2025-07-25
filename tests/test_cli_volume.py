@@ -36,6 +36,15 @@ def test_cli_volume_up(monkeypatch):
     assert out == 'ok'
 
 
+def test_cli_increase_volume(monkeypatch):
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_up', lambda: calls.append('up') or 'ok')
+    out = process_command('increase volume')
+    assert calls == ['up']
+    assert out == 'ok'
+
+
 def test_cli_set_speech_volume(monkeypatch):
     tts = importlib.import_module('modules.tts_integration')
     calls = []
@@ -63,3 +72,12 @@ def test_cli_speech_volume_down(monkeypatch):
     out = process_command('speech volume down')
     assert calls == [0.4]
     assert out == 'Speech volume set to 0.4'
+
+
+def test_cli_volume_down(monkeypatch):
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_down', lambda: calls.append('down') or 'ok')
+    out = process_command('volume down')
+    assert calls == ['down']
+    assert out == 'ok'

@@ -111,6 +111,28 @@ def test_process_input_increase_system_volume(monkeypatch):
     assert calls == ['up']
 
 
+def test_process_input_volume_up(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_up', lambda: calls.append('up') or 'ok')
+    assistant.set_listening(True)
+    assistant.process_input('volume up', DummyWidget())
+    assert calls == ['up']
+
+
+def test_process_input_volume_down(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_down', lambda: calls.append('down') or 'ok')
+    assistant.set_listening(True)
+    assistant.process_input('volume down', DummyWidget())
+    assert calls == ['down']
+
+
 def test_process_input_set_speech_volume(monkeypatch):
     assistant, _ = import_assistant(monkeypatch)
     monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
