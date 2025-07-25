@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from typing import Optional
 
+from . import gpu
+
 try:
     from diffusers import StableDiffusionPipeline
 except Exception as e:  # pragma: no cover - optional dependency
@@ -33,11 +35,18 @@ _pipeline: Optional[StableDiffusionPipeline] = None
 _model_path: str | None = None
 
 
-def load_model(model_path: str, device: str = "cpu") -> str:
-    """Load a Stable Diffusion pipeline from ``model_path``."""
+def load_model(model_path: str, device: str | None = None) -> str:
+    """Load a Stable Diffusion pipeline from ``model_path``.
+
+    If ``device`` is ``None`` this will automatically select ``"cuda"`` when
+    available using :func:`modules.gpu.get_device`.
+    """
     global _pipeline, _model_path
     if StableDiffusionPipeline is None or torch is None:
         return f"Missing dependencies: {_IMPORT_ERROR or _TORCH_ERROR}"
+
+    if device is None:
+        device = gpu.get_device()
 
     if _pipeline is not None and _model_path == model_path:
         return "loaded"
@@ -58,7 +67,7 @@ def generate_image(
     prompt: str,
     model_path: str,
     *,
-    device: str = "cpu",
+    device: str | None = None,
     save_dir: str = "generated_images",
 ) -> str:
     """Generate an image using a local Stable Diffusion model.
@@ -70,7 +79,8 @@ def generate_image(
     model_path:
         Filesystem path to the Stable Diffusion weights.
     device:
-        PyTorch device string, e.g. ``"cpu"`` or ``"cuda"``.
+        PyTorch device string (``"cpu"`` or ``"cuda"``). ``None`` selects the
+        best device via :func:`modules.gpu.get_device`.
     save_dir:
         Directory to store generated images.
 
@@ -82,6 +92,9 @@ def generate_image(
     if StableDiffusionPipeline is None or torch is None:
         return f"Missing dependencies: {_IMPORT_ERROR or _TORCH_ERROR}"
 
+    if device is None:
+        device = gpu.get_device()
+
     if load_model(model_path, device) != "loaded":
         return f"Failed to load model from {model_path}"
 
@@ -89,15 +102,7 @@ def generate_image(
     pipe = _pipeline
 
     try:
-        if device.startswith("cuda"):
-            ctx = torch.autocast(device)
-        else:
-            class _NullCtx:
-                def __enter__(self):
-                    return None
-                def __exit__(self, exc_type, exc, tb):
-                    return False
-            ctx = _NullCtx()
+        ctx = gpu.autocast(device)
 
         with ctx:
             result = pipe(prompt)

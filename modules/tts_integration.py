@@ -14,6 +14,7 @@ else:
 
 from error_logger import log_error
 from .utils import chunk_text
+from . import gpu
 
 CONFIG_PATH = "config.json"
 DEFAULTS = {
@@ -55,7 +56,11 @@ def get_tts_model():
     global _model
     if _model is None:
         print(f"[TTS] Loading Coqui model: {config['tts_model']}")
-        _model = TTS(model_name=config["tts_model"], progress_bar=False, gpu=False)
+        _model = TTS(
+            model_name=config["tts_model"],
+            progress_bar=False,
+            gpu=gpu.is_available(),
+        )
     return _model
 
 def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complete=None):
