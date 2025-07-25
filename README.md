@@ -27,6 +27,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **LLM auto-loads module list for accurate tool usage**
 - **User-friendly GUI with mic overlay and system tray**
 - **Speech learning tab to practice recognition**
+- **Web Activity tab with embedded browser (via `tkinterweb`)**
 - **Lightweight CLI mode for keyboard power-users**
 - **Full local/offline LLM via LocalAI or text-generation-webui**
 - **Ask "What can you do?" to hear all available modules**
@@ -64,6 +65,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
 - [Vosk](https://alphacephei.com/vosk/) speech model (see config for path)
 - `sounddevice` (audio playback and microphone input)
 - `watchdog` (for live config reload, highly recommended)
+- `tkinterweb` for the built-in browser tab (optional)
 - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for vision tools
   (on Windows set `TESSERACT_CMD` if not installed in the default location)
 - `pygetwindow` (or `wmctrl` on Linux) for listing open windows and focusing

@@ -60,12 +60,11 @@ from modules import api_keys
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
 from modules.browser_automation import set_webview_callback
+from modules import web_activity
 try:
     from tkinterweb import HtmlFrame  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
     HtmlFrame = None  # type: ignore
-import webbrowser
-from urllib.parse import quote_plus
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -79,10 +78,22 @@ api_keys.apply_keys_from_config()
 
 
 # ========== TKINTER GUI SETUP ==========
-root = tk.Tk()
-root.title("AI Assistant")
-# Default size increased so all controls fit comfortably
-root.geometry("900x650")
+if os.environ.get("PYTEST_CURRENT_TEST"):
+    class DummyTk:
+        def __init__(self):
+            self.tk = self
+            self._last_child_ids = {}
+            self._w = "."
+            self.children = {}
+
+        def __getattr__(self, _name):
+            return lambda *a, **k: None
+    root = DummyTk()
+else:
+    root = tk.Tk()
+    root.title("AI Assistant")
+    # Default size increased so all controls fit comfortably
+    root.geometry("900x650")
 
 # Notebook with main UI and speech training tab
 notebook = ttk.Notebook(root)
@@ -727,8 +738,6 @@ ttk.Label(web_tab, text="Search or URL:").pack(anchor="w", padx=10, pady=(10, 0)
 web_entry = ttk.Entry(web_tab, textvariable=web_search_var)
 web_entry.pack(fill="x", padx=10)
 
-web_activity = []
-
 if HtmlFrame:
     web_view = HtmlFrame(web_tab)
     web_view.pack(fill="both", expand=True, padx=10, pady=10)
@@ -742,12 +751,17 @@ else:
     web_view.config(state=tk.DISABLED)
     web_view.pack(fill="both", expand=True, padx=10, pady=10)
 
+# Listbox showing visited URLs
+history_box = tk.Listbox(web_tab, height=5)
+history_box.pack(fill="x", padx=10, pady=(0, 10))
+
 
 def _load_url(url: str) -> None:
-    if HtmlFrame:
-        web_view.load_website(url)
-    else:
-        webbrowser.open(url)
+    view = web_view if HtmlFrame else None
+    web_activity.load_url(url, view)
+    history_box.delete(0, tk.END)
+    for item in web_activity.get_history()[-50:]:
+        history_box.insert(tk.END, item)
 
 
 def run_web_search(_event=None) -> None:
@@ -755,12 +769,18 @@ def run_web_search(_event=None) -> None:
     web_search_var.set("")
     if not query:
         return
-    if not query.startswith("http"):
-        query = f"https://www.google.com/search?q={quote_plus(query)}"
-    _load_url(query)
-    web_activity.append(query)
+    url = web_activity.create_search_url(query)
+    _load_url(url)
 
 
+def open_selected(_event=None):
+    if not history_box.curselection():
+        return
+    url = history_box.get(history_box.curselection()[0])
+    _load_url(url)
+
+
+history_box.bind("<Double-Button-1>", open_selected)
 web_entry.bind("<Return>", run_web_search)
 ttk.Button(web_tab, text="Go", command=run_web_search).pack(pady=(0, 10))
 set_webview_callback(_load_url)
