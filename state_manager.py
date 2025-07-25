@@ -61,6 +61,29 @@ def get_action(name):
     return actions.get(name)
 
 
+def remove_action(name: str) -> bool:
+    """Remove ``name`` from stored actions if present.
+
+    Returns ``True`` if removed, ``False`` otherwise."""
+    try:
+        if name in actions:
+            del actions[name]
+            save_actions()
+            return True
+    except Exception as e:  # pragma: no cover - unexpected error
+        log_error(f"[state_manager] remove_action error: {e}")
+    return False
+
+
+def clear_actions() -> None:
+    """Delete all registered actions and persist the empty list."""
+    actions.clear()
+    try:
+        save_actions()
+    except Exception as e:  # pragma: no cover - file I/O error
+        log_error(f"[state_manager] clear_actions error: {e}")
+
+
 def _update_config_phrase(key: str, phrase: str) -> None:
     """Ensure ``phrase`` is stored under ``key`` in the config file."""
     cfg = _config_loader.config
