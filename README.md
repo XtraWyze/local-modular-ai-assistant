@@ -20,7 +20,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Record and play macros on the fly for custom workflows**
 - **Hotkeys tab with a macro recorder and 3-second countdown**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
-- **Local image generation via Stable Diffusion (no cloud required)**
+- **Local image generation via Stable Diffusion (no cloud required; requires `diffusers` and `torch`)**
 - **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
 - **Interactive module generator with preview and confirmation**
@@ -69,6 +69,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
   them
 - `pycaw` and `comtypes` for adjusting system volume on Windows
 - [Git](https://git-scm.com/) (required for `install_llm_backends.py` and the Windows batch file)
+- `diffusers` and `torch` for the optional `modules.stable_diffusion_generator`
 
 **Install Python dependencies:**
 ```bash
@@ -83,6 +84,8 @@ python install_llm_backends.py --all
 # Windows users can run install_llm_backends.bat
 # Remove caches and temporary files
 python cleanup.py
+# Optional: install Stable Diffusion requirements
+pip install diffusers torch
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
 ### Required Downloads
