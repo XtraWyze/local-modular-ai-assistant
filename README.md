@@ -21,6 +21,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Hotkeys tab with a macro recorder and 3-second countdown**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Local image generation via Stable Diffusion (no cloud required; requires `diffusers` and `torch`)**
+- **GPU auto-detection with CUDA support for image generation and TTS**
 - **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
 - **Interactive module generator with preview and confirmation**

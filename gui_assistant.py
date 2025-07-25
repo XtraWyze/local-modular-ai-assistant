@@ -793,12 +793,12 @@ sd_model_entry.pack(fill="x", padx=10)
 
 sd_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+sd_options = ["cpu"] + (gpu.get_devices() or ["cuda"] if gpu.is_available() else [])
 sd_device_menu = ttk.OptionMenu(
     image_tab,
     sd_device_var,
-    "cpu",
-    "cpu",
-    "cuda",
+    sd_device_var.get(),
+    *sd_options,
 )
 sd_device_menu.pack(anchor="w", padx=10)
 
