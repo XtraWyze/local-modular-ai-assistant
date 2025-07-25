@@ -3,8 +3,9 @@
 import os
 import sys
 import re
+from pathlib import Path
 
-__all__ = ["resource_path", "chunk_text", "clean_for_tts"]
+__all__ = ["resource_path", "project_path", "chunk_text", "clean_for_tts"]
 
 def resource_path(relative_path: str) -> str:
     """Return absolute path for ``relative_path`` inside packaged app."""
@@ -13,6 +14,17 @@ def resource_path(relative_path: str) -> str:
     except AttributeError:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+
+def project_path(*parts: str) -> str:
+    """Return an absolute path within the project directory.
+
+    This resolves paths relative to the repository root so modules can
+    reliably access bundled data regardless of the current working
+    directory.
+    """
+    root = Path(__file__).resolve().parents[1]
+    return str(root.joinpath(*parts))
 
 def chunk_text(text: str, max_length: int = 220) -> list[str]:
     """Split ``text`` into sentence chunks no longer than ``max_length``."""
@@ -41,7 +53,12 @@ def get_info():
         "name": "utils",
         "description": "General utility functions used across the assistant.",
         # List the functions actually provided by this module
-        "functions": ["resource_path", "chunk_text", "clean_for_tts"]
+        "functions": [
+            "resource_path",
+            "project_path",
+            "chunk_text",
+            "clean_for_tts",
+        ]
     }
 
 

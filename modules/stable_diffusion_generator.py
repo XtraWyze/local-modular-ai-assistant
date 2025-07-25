@@ -25,6 +25,7 @@ else:
 
 
 from error_logger import log_error
+from modules.utils import project_path
 
 MODULE_NAME = "stable_diffusion_generator"
 
@@ -82,7 +83,8 @@ def generate_image(
         PyTorch device string (``"cpu"`` or ``"cuda"``). ``None`` selects the
         best device via :func:`modules.gpu.get_device`.
     save_dir:
-        Directory to store generated images.
+        Directory within the project where images will be saved. Relative paths
+        are resolved against the project root.
 
     Returns
     -------
@@ -110,6 +112,8 @@ def generate_image(
         if not hasattr(image, "save"):
             return "Pipeline did not return an image"
 
+        if not os.path.isabs(save_dir):
+            save_dir = project_path(save_dir)
         os.makedirs(save_dir, exist_ok=True)
         filename = os.path.join(save_dir, f"sd_image_{len(os.listdir(save_dir))+1}.png")
         image.save(filename)

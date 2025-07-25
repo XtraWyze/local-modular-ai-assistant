@@ -2,6 +2,7 @@ import base64
 import importlib
 import os
 import types
+from pathlib import Path
 
 import pytest
 
@@ -37,4 +38,17 @@ def test_generate_image(monkeypatch, tmp_path):
     assert result.endswith(".png")
     assert os.path.exists(result)
     assert mock_post.last_payload["model"] == "dall-e-3"
+
+
+def test_default_save_dir(monkeypatch):
+    os.environ["OPENAI_API_KEY"] = "test"
+    ig = importlib.import_module("modules.image_generator")
+    project_root = Path(__file__).resolve().parents[1]
+
+    monkeypatch.chdir(project_root / "examples")
+    result = ig.generate_image("a tree")
+    path = Path(result)
+    assert path.parent == project_root / "generated_images"
+    assert path.exists()
+    path.unlink()
 

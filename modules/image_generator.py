@@ -10,6 +10,7 @@ import importlib
 
 from error_logger import log_error
 from modules.api_keys import get_api_key
+from modules.utils import project_path
 
 MODULE_NAME = "image_generator"
 
@@ -37,7 +38,8 @@ def generate_image(
     size:
         Image resolution string (for providers that support it), e.g. ``"512x512"``.
     save_dir:
-        Folder to store generated images.
+        Folder within the project directory to store generated images. If an
+        absolute path is provided it will be used as-is.
 
     Returns
     -------
@@ -77,6 +79,8 @@ def generate_image(
         if not b64:
             return "No image data returned"
         image_bytes = base64.b64decode(b64)
+        if not os.path.isabs(save_dir):
+            save_dir = project_path(save_dir)
         os.makedirs(save_dir, exist_ok=True)
         filename = os.path.join(save_dir, f"image_{len(os.listdir(save_dir)) + 1}.png")
         with open(filename, "wb") as f:
