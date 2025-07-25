@@ -2,7 +2,7 @@
 
 import os
 import time
-import requests
+import importlib
 
 from error_logger import log_error
 from module_manager import ModuleRegistry
@@ -63,6 +63,7 @@ class CodexClient:
                 "Content-Type": "application/json",
             }
         try:
+            requests = importlib.import_module("requests")
             resp = requests.post(self.url, json=payload, headers=headers, timeout=60)
             resp.raise_for_status()
             data = resp.json()
