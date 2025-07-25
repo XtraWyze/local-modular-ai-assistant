@@ -50,6 +50,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
 - **Crash prevention:** unexpected errors are logged and the assistant says "Crash prevented" before resuming. Module calls are wrapped so exceptions never terminate the app. TTS model load failures are now caught.
+- **Watchdog restart decorator:** critical loops like voice and CLI are wrapped with a watchdog that automatically restarts them if they crash.
 
 Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase volume", or "use jenny voice." The GUI sliders and menu mirror these settings. In CLI mode you can also run `set speech volume 80` to change the TTS volume.
 

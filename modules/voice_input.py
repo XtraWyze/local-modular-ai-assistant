@@ -1,6 +1,7 @@
 # voice_input.py
 
 import time
+from watchdog import watchdog
 import threading
 import json
 import os
@@ -93,6 +94,7 @@ def is_exit_command(text: str) -> bool:
     """Return ``True`` if ``text`` equals the exit command."""
     return text.strip().lower() in EXIT_PHRASES
 
+@watchdog(max_restarts=5, delay=2.0)
 def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, stop_event=None):
     """Unified loop for wake-word detection and speech recognition."""
     if _IMPORT_ERROR:

@@ -8,6 +8,7 @@ from assistant import (
     get_capabilities_summary,
 )
 from orchestrator import parse_and_execute
+from watchdog import watchdog
 from modules.actions import detect_action
 import planning_agent
 import keyboard
@@ -205,6 +206,7 @@ def handle_cli_input(user_input: str) -> str | None:
     # Fallback to orchestrator/LLM
     return parse_and_execute(user_input)
 
+@watchdog(max_restarts=5, delay=1.0)
 def cli_loop():
     print(
         "Local AI Assistant with Memory\nType 'exit' to quit, 'recall <keyword>' to search memory."
