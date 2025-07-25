@@ -19,6 +19,7 @@ from modules.actions import detect_action
 from modules.tts_manager import speak, is_speaking, stop_speech
 from modules import window_tools, vision_tools
 from modules.automation_learning import record_macro, play_macro
+from modules import command_macros
 from modules.desktop_shortcuts import build_shortcut_map, open_shortcut
 from modules.chitchat import is_chitchat, talk_to_llm
 import planning_agent
@@ -247,6 +248,26 @@ def process_input(user_input, output_widget):
 
     text = user_input.strip()
     last_user_command = text
+
+    if command_macros.is_recording() and text.lower() not in {"stop macro"}:
+        command_macros.record_command(text)
+
+    m = re.match(r"learn this macro (\w+)", text, re.IGNORECASE)
+    if m:
+        msg = command_macros.start_recording(m.group(1))
+        output_widget.insert("end", f"Assistant: {msg}\n")
+        output_widget.see("end")
+        speak(msg)
+        last_ai_response = msg
+        return
+
+    if text.lower() == "stop macro":
+        msg = command_macros.stop_recording()
+        output_widget.insert("end", f"Assistant: {msg}\n")
+        output_widget.see("end")
+        speak(msg)
+        last_ai_response = msg
+        return
 
     if assistant_state == "processing":
         speak(
@@ -750,6 +771,34 @@ def process_input(user_input, output_widget):
             if text.lower().startswith("play macro "):
                 name = text[11:].strip()
                 last_ai_response = play_macro(name)
+                return
+
+            if text.lower() == "list macros":
+                names = command_macros.list_macros()
+                msg = ", ".join(names) if names else "No macros saved"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            m = re.match(r"run macro (\w+)", text, re.IGNORECASE)
+            if m:
+                msg = command_macros.run_macro(m.group(1), parse_and_execute)
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            m = re.match(r"edit macro (\w+) (.+)", text, re.IGNORECASE)
+            if m:
+                cmds = [c.strip() for c in m.group(2).split(';') if c.strip()]
+                msg = command_macros.edit_macro(m.group(1), cmds)
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
                 return
 
             m = re.match(r"(?:learn|add) (wake|sleep|cancel|resume|trigger) phrase (.+)", text, re.IGNORECASE)
