@@ -65,15 +65,3 @@ def test_set_speed(monkeypatch, tmp_path):
     assert tts.config["tts_speed"] == 1.2
 
     assert tts.set_speed(2.5) is False
-
-
-def test_set_model_and_list(monkeypatch, tmp_path):
-    tts, cfg_file = setup_tts(monkeypatch, tmp_path)
-
-    models = tts.list_models()
-    assert isinstance(models, list)
-
-    assert tts.set_model("new_model") is True
-    saved = json.loads(cfg_file.read_text())
-    assert saved["tts_model"] == "new_model"
-    assert tts.config["tts_model"] == "new_model"

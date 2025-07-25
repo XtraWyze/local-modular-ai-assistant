@@ -424,8 +424,6 @@ def reload_config():
     volume_scale.set(config.get("tts_volume", 0.8))
     speed_scale.set(config.get("tts_speed", 1.0))
     tts_module.config.update(config)
-    current_model = config.get("tts_model") or model_var.get()
-    model_var.set(current_model)
     current_voice = config.get("tts_voice") or voice_var.get()
     voice_var.set(current_voice)
 
@@ -475,21 +473,6 @@ volume_scale = tk.Scale(
 )
 volume_scale.set(config.get("tts_volume", 0.8))
 volume_scale.pack(side=tk.LEFT, padx=(0, 10))
-
-# ========== TTS MODEL MENU ==========
-models = tts_module.list_models()
-model_var = tk.StringVar()
-current_model = config.get("tts_model") or (models[0] if models else "")
-model_var.set(current_model)
-model_menu = ttk.OptionMenu(
-    tts_frame,
-    model_var,
-    current_model,
-    *models,
-    command=lambda m: tts_module.set_model(m),
-)
-model_menu.configure(text="TTS Model")
-model_menu.pack(side=tk.LEFT, padx=(0, 10))
 
 # ========== TTS VOICE MENU ==========
 voices = tts_module.list_voices()
