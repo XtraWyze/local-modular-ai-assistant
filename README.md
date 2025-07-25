@@ -539,3 +539,8 @@ Enjoy your private, modular, and truly local AI assistant!
 * As a developer, I want all modules to have self-description strings and help methods, so adding new features is seamless and discoverable.
 * As a developer, I want the docs and README to auto-update or prompt for updates when modules change, so docs never go stale.
 * As a developer, I want logs if hardware is missing or an error occurs.
+
+## License
+
+This project is released under the [MIT License](LICENSE).
+
