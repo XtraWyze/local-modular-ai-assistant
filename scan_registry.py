@@ -12,6 +12,8 @@ NETWORK_FILE = "network_registry.json"
 
 system_data: dict[str, Any] = {}
 device_data: list[str] = []
+system_history: list[list[str]] = []  # store past system scan summaries
+device_history: list[list[str]] = []  # store past device lists
 network_data: list[str] = []
 
 
@@ -35,9 +37,19 @@ def _save(path: str, data: Any) -> None:
 
 def load() -> None:
     """Load registries from disk if available."""
-    global system_data, device_data, network_data
-    system_data = _load(SYSTEM_FILE) or {}
-    device_data = _load(DEVICE_FILE) or []
+    global system_data, device_data, network_data, system_history, device_history
+    data = _load(SYSTEM_FILE) or {}
+    system_data = data if isinstance(data, dict) else {}
+    system_history = system_data.get("history", [])
+
+    dev = _load(DEVICE_FILE)
+    if isinstance(dev, dict):
+        device_data = dev.get("devices", [])
+        device_history = dev.get("history", [])
+    else:
+        device_data = dev or []
+        device_history = []
+
     network_data = _load(NETWORK_FILE) or []
 
 
@@ -90,7 +102,12 @@ def refresh_system() -> dict[str, Any]:
             }
         except Exception:
             metrics = {}
-    system_data.update({"summary": summary, "metrics": metrics})
+    lines = summary.splitlines() if isinstance(summary, str) else []
+    system_history.append(lines)
+    if len(system_history) > 10:
+        system_history.pop(0)
+
+    system_data.update({"summary": summary, "metrics": metrics, "history": system_history})
     _save(SYSTEM_FILE, system_data)
     return system_data
 
@@ -105,7 +122,10 @@ def refresh_devices() -> list[str]:
         devices = []
     device_data.clear()
     device_data.extend(devices)
-    _save(DEVICE_FILE, device_data)
+    device_history.append(list(devices))
+    if len(device_history) > 10:
+        device_history.pop(0)
+    _save(DEVICE_FILE, {"devices": device_data, "history": device_history})
     return device_data
 
 
@@ -133,5 +153,15 @@ def refresh_all() -> None:
 def initialize() -> None:
     """Load registries from disk without scanning."""
     load()
+
+
+def get_system_history() -> list[list[str]]:
+    """Return past system scan results as lists of lines."""
+    return system_history
+
+
+def get_device_history() -> list[list[str]]:
+    """Return history of device scans."""
+    return device_history
 
 

@@ -457,16 +457,38 @@ def process_input(user_input, output_widget):
             # === Scan registry commands ===
             lower = text.lower()
             if lower == "system scan":
-                info = scan_registry.system_data.get("summary", "No data")
+                if scan_registry.system_history:
+                    lines = scan_registry.system_history[-1]
+                    info = "\n".join(lines)
+                else:
+                    info = scan_registry.system_data.get("summary", "No data")
                 output_widget.insert("end", f"Assistant: {info}\n")
                 output_widget.see("end")
                 speak(str(info))
                 last_ai_response = str(info)
                 result[0] = str(info)
                 return
+            if lower == "system scan history":
+                hist = ["; ".join(h) for h in scan_registry.system_history]
+                info = " | ".join(hist) if hist else "No history"
+                output_widget.insert("end", f"Assistant: {info}\n")
+                output_widget.see("end")
+                speak(info)
+                last_ai_response = info
+                result[0] = info
+                return
             if lower == "device scan":
                 devices = ", ".join(scan_registry.device_data) or "No devices found"
                 msg = f"Devices: {devices}"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                result[0] = msg
+                return
+            if lower == "device scan history":
+                hist = [", ".join(d) for d in scan_registry.device_history]
+                msg = " | ".join(hist) if hist else "No history"
                 output_widget.insert("end", f"Assistant: {msg}\n")
                 output_widget.see("end")
                 speak(msg)

@@ -21,6 +21,8 @@ def test_refresh_functions(tmp_path, monkeypatch):
     assert sr.system_data['summary'] == 'summary'
     assert sr.device_data == ['usb']
     assert sr.network_data == ['1.2.3.4']
+    assert sr.system_history[-1] == ['summary']
+    assert sr.device_history[-1] == ['usb']
 
     # Files should be created
     assert (tmp_path / 'sys.json').exists()
