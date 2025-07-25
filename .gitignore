@@ -13,6 +13,7 @@ __pycache__/
 assistant_memory.json
 assistant_state.json
 learned_actions.json
+learned_launchers.json
 
 # VS Code or other editor settings
 .vscode/
