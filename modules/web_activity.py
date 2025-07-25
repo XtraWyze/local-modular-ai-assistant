@@ -42,7 +42,6 @@ def load_url(url: str, html_view: Optional[object] = None) -> None:
         Optional :class:`tkinterweb.HtmlFrame` instance. If ``None`` or loading
         fails, the URL is opened in the user's default browser.
     """
-    global _HISTORY
     if html_view and hasattr(html_view, "load_website"):
         try:
             html_view.load_website(url)
