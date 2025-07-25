@@ -48,3 +48,11 @@ def test_generate_response_missing_fields(monkeypatch):
     llm_interface.config["llm_backend"] = "localai"
     result = llm_interface.generate_response("hi", history=[])
     assert result.startswith("[LLM Error]")
+
+
+def test_get_url_override():
+    llm_interface.config["llm_url"] = "http://remote:11434/v1/chat/completions"
+    assert llm_interface._get_url() == "http://remote:11434/v1/chat/completions"
+    llm_interface.config.pop("llm_url", None)
+    llm_interface.config["llm_backend"] = "localai"
+    assert "localhost" in llm_interface._get_url()

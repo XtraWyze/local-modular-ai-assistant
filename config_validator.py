@@ -20,6 +20,7 @@ CONFIG_SCHEMA = {
                 {"type": "string", "enum": ["auto"]},
             ]
         },
+        "llm_url": {"type": "string"},
         "llm_backend": {"type": "string"},
         "llm_model": {"type": "string"},
         "vosk_model_path": {"type": "string"},

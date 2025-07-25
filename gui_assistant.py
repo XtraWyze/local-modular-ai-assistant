@@ -94,6 +94,7 @@ hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
 image_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
+settings_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
@@ -101,6 +102,7 @@ notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
 notebook.add(web_tab, text="Web Activity")
+notebook.add(settings_tab, text="Settings")
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -764,6 +766,40 @@ def run_web_search(_event=None) -> None:
 web_entry.bind("<Return>", run_web_search)
 ttk.Button(web_tab, text="Go", command=run_web_search).pack(pady=(0, 10))
 set_webview_callback(_load_url)
+
+# ---------- Settings Tab ----------
+use_remote_var = tk.BooleanVar(value=bool(config.get("llm_url")))
+url_var = tk.StringVar(value=config.get("llm_url", "http://localhost:11434/v1/chat/completions"))
+
+def _toggle_remote() -> None:
+    state = tk.NORMAL if use_remote_var.get() else tk.DISABLED
+    url_entry.config(state=state)
+
+ttk.Checkbutton(
+    settings_tab,
+    text="Use remote Ollama server",
+    variable=use_remote_var,
+    command=_toggle_remote,
+).pack(anchor="w", padx=10, pady=(10, 5))
+
+ttk.Label(settings_tab, text="LLM URL:").pack(anchor="w", padx=10)
+url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
+url_entry.pack(fill="x", padx=10)
+
+def save_settings() -> None:
+    cfg = config_loader.config
+    if use_remote_var.get():
+        cfg["llm_url"] = url_var.get().strip()
+    else:
+        cfg.pop("llm_url", None)
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    config_loader.config = cfg
+    output.insert(tk.END, "[SYSTEM] Settings saved.\n")
+    reload_config()
+
+ttk.Button(settings_tab, text="Save Settings", command=save_settings).pack(pady=10)
+_toggle_remote()
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(
