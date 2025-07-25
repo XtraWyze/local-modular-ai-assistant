@@ -27,9 +27,20 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 class RemoteServer:
-    """Simple HTTP server for receiving commands."""
+    """Simple HTTP server for receiving commands.
 
-    def __init__(self, host: str = "0.0.0.0", port: int = 0, callback: Callable[[str], None] | None = None):
+    Parameters
+    ----------
+    host : str, optional
+        Host interface to bind to. Defaults to ``"127.0.0.1"`` to restrict
+        connections to the local machine.
+    port : int, optional
+        TCP port to listen on. ``0`` chooses a random free port.
+    callback : Callable[[str], None] | None, optional
+        Function invoked with each received command.
+    """
+
+    def __init__(self, host: str = "127.0.0.1", port: int = 0, callback: Callable[[str], None] | None = None):
         self.server = HTTPServer((host, port), _Handler)
         self.server.callback = callback
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
