@@ -768,45 +768,79 @@ set_webview_callback(_load_url)
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(
     speech_tab,
-    text="Practice speaking or teach new wake/sleep phrases. Click a button below:",
+    text="Practice speaking or teach new wake/sleep phrases. Read the prompts and review the results.",
 )
 speech_label.pack(pady=(10, 5))
 
-speech_results = tk.Text(speech_tab, height=10, width=60, wrap=tk.WORD)
-speech_results.pack(padx=10, pady=5)
+
+def _set_ro_text(widget: tk.Text, text: str) -> None:
+    """Replace ``widget`` contents while keeping it read-only."""
+
+    widget.config(state=tk.NORMAL)
+    widget.delete("1.0", tk.END)
+    widget.insert("1.0", text)
+    widget.config(state=tk.DISABLED)
 
 
-def _run_learning(prompts, update_phrases=False):
-    speech_results.delete("1.0", tk.END)
+def _run_learning(prompts, widget, update_phrases=False):
+    """Run speech learning for ``prompts`` and display results."""
+
+    _set_ro_text(widget, "")
     results = speech_learning.read_sentences(prompts, speak_func=tts_module.speak)
-    for prompt, heard in zip(prompts, results):
-        speech_results.insert(tk.END, f"Prompt: {prompt}\nHeard: {heard}\n\n")
+    for heard in results:
+        widget.insert(tk.END, heard + "\n")
     if update_phrases and len(results) >= 2:
         from phrase_manager import add_wake_phrase, add_sleep_phrase
 
-        speech_results.insert(tk.END, add_wake_phrase(results[0]) + "\n")
-        speech_results.insert(tk.END, add_sleep_phrase(results[1]) + "\n")
+        widget.insert(tk.END, add_wake_phrase(results[0]) + "\n")
+        widget.insert(tk.END, add_sleep_phrase(results[1]) + "\n")
 
 
 def run_wake_sleep():
-    _run_learning(speech_learning.WAKE_SLEEP_PROMPTS, update_phrases=True)
+    _run_learning(
+        speech_learning.WAKE_SLEEP_PROMPTS,
+        wake_result,
+        update_phrases=True,
+    )
 
 
 def run_sentence():
-    _run_learning(speech_learning.SENTENCE_PROMPTS)
+    _run_learning(speech_learning.SENTENCE_PROMPTS, sentence_result)
 
 
 def run_paragraph():
-    _run_learning(speech_learning.PARAGRAPH_PROMPTS)
+    _run_learning(speech_learning.PARAGRAPH_PROMPTS, paragraph_result)
 
+wake_frame = ttk.Frame(speech_tab)
+wake_frame.pack(fill="x", padx=10, pady=5)
+wake_btn = ttk.Button(wake_frame, text="Learn Wake/Sleep", command=run_wake_sleep)
+wake_btn.pack(side=tk.LEFT, padx=(0, 5))
+wake_col = ttk.Frame(wake_frame)
+wake_col.pack(side=tk.LEFT, fill="both", expand=True)
+ttk.Label(wake_col, text="\n".join(speech_learning.WAKE_SLEEP_PROMPTS)).pack(anchor="w")
+wake_result = ReadOnlyText(wake_col, height=len(speech_learning.WAKE_SLEEP_PROMPTS), width=60, wrap=tk.WORD)
+wake_result.pack(fill="x")
 
-btn_frame = ttk.Frame(speech_tab)
-btn_frame.pack(pady=5)
-ttk.Button(btn_frame, text="Learn Wake/Sleep", command=run_wake_sleep).pack(
-    side=tk.LEFT, padx=5
-)
-ttk.Button(btn_frame, text="Sentence", command=run_sentence).pack(side=tk.LEFT, padx=5)
-ttk.Button(btn_frame, text="Paragraph", command=run_paragraph).pack(side=tk.LEFT, padx=5)
+sentence_frame = ttk.Frame(speech_tab)
+sentence_frame.pack(fill="x", padx=10, pady=5)
+sentence_btn = ttk.Button(sentence_frame, text="Sentence", command=run_sentence)
+sentence_btn.pack(side=tk.LEFT, padx=(0, 5))
+sentence_col = ttk.Frame(sentence_frame)
+sentence_col.pack(side=tk.LEFT, fill="both", expand=True)
+ttk.Label(sentence_col, text="\n".join(speech_learning.SENTENCE_PROMPTS)).pack(anchor="w")
+sentence_result = ReadOnlyText(sentence_col, height=len(speech_learning.SENTENCE_PROMPTS), width=60, wrap=tk.WORD)
+sentence_result.pack(fill="x")
+
+paragraph_frame = ttk.Frame(speech_tab)
+paragraph_frame.pack(fill="x", padx=10, pady=5)
+paragraph_btn = ttk.Button(paragraph_frame, text="Paragraph", command=run_paragraph)
+paragraph_btn.pack(side=tk.LEFT, padx=(0, 5))
+paragraph_col = ttk.Frame(paragraph_frame)
+paragraph_col.pack(side=tk.LEFT, fill="both", expand=True)
+ttk.Label(paragraph_col, text="\n".join(speech_learning.PARAGRAPH_PROMPTS)).pack(anchor="w")
+paragraph_result = ReadOnlyText(paragraph_col, height=3, width=60, wrap=tk.WORD)
+paragraph_result.pack(fill="x")
+
 
 # ========== START VOICE LISTENERS & SCHEDULE THREADS ==========
 wake_sleep_hotkey.start_hotkeys()
