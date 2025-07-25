@@ -289,6 +289,9 @@ Enable/disable plugins in config.json (enable_plugins).
 
 Load plugin packages with `modules.plugin_loader` to dynamically add new
 modules at runtime. Launch `python config_gui.py` for a quick settings editor.
+Python files placed in a `skills/` folder are automatically loaded as
+hot-swappable plugins. Any public functions they define become callable by
+name through the orchestrator.
 Use the **Edit Memory** button there or in the main GUI to view conversation
 history and adjust the `memory_max` limit.
 
