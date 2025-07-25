@@ -73,7 +73,10 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
   them
 - `pycaw` and `comtypes` for adjusting system volume on Windows
 - [Git](https://git-scm.com/) (required for `install_llm_backends.py` and the Windows batch file)
-- `diffusers` and `torch` for the optional `modules.stable_diffusion_generator`
+- `diffusers` (>=0.26) and `huggingface-hub` (>=0.24) plus `torch` for the
+  optional `modules.stable_diffusion_generator`. Mixing older versions may
+  cause the `cached_download` ImportError. See `requirements.txt` for the
+  pinned versions (`diffusers==0.34.0`, `huggingface-hub==0.33.5`).
 
 **Install Python dependencies:**
 ```bash
@@ -89,7 +92,9 @@ python install_llm_backends.py --all
 # Remove caches and temporary files
 python cleanup.py
 # Optional: install Stable Diffusion requirements
-pip install diffusers torch
+pip install diffusers huggingface-hub torch
+# Troubleshooting: upgrade if you see a "cached_download" ImportError
+pip install -U diffusers huggingface-hub  # pinned in requirements.txt as diffusers==0.34.0, huggingface-hub==0.33.5
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
 ### Required Downloads
