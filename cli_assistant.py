@@ -9,10 +9,26 @@ from assistant import (
 )
 from orchestrator import parse_and_execute
 from modules.actions import detect_action
+import planning_agent
 import keyboard
 import pyautogui
 import time
 import os
+
+
+# Queue of pending CLI commands processed sequentially
+pending_commands: list[str] = []
+
+def queue_command(text: str) -> None:
+    """Add a command to the pending queue."""
+    pending_commands.append(text)
+
+def _run_next_in_queue() -> None:
+    """Process queued commands in FIFO order."""
+    while pending_commands:
+        cmd = pending_commands.pop(0)
+        result = parse_and_execute(cmd)
+        print("Assistant:", result)
 
 
 def process_command(user_input: str):
@@ -39,110 +55,122 @@ def process_command(user_input: str):
 
     return None
 
+
+def handle_cli_input(user_input: str) -> str | None:
+    """Process ``user_input`` and return a response string."""
+    user_input = user_input.strip()
+    if not user_input:
+        return ""
+
+    # Basic volume and media commands
+    resp = process_command(user_input)
+    if resp is not None:
+        return resp
+
+    # Sleep/Wake management
+    if not is_listening():
+        if check_wake(user_input):
+            return "I'm awake!"
+        return None
+    if check_sleep(user_input):
+        return "Going to sleep. Say a wake phrase to wake me up."
+
+    if user_input.lower() == "exit":
+        return None
+
+    # Queue multi-step instructions
+    if user_input.lower().startswith("plan "):
+        task = user_input[5:].strip()
+        tasks = planning_agent.create_plan(task)
+        for t in tasks:
+            queue_command(t)
+        queued = ", ".join(tasks)
+        _run_next_in_queue()
+        return f"Queued plan: {queued}"
+
+    plan = planning_agent.create_plan(user_input)
+    if len(plan) > 1:
+        for t in plan:
+            queue_command(t)
+        queued = ", ".join(plan)
+        _run_next_in_queue()
+        return f"Queued tasks: {queued}"
+
+    # Generic actions
+    action = detect_action(user_input)
+    if action == "ENTER":
+        keyboard.press_and_release("enter")
+        return "[Action] Pressed Enter"
+    elif action == "TAB":
+        keyboard.press_and_release("tab")
+        return "[Action] Pressed Tab"
+    elif action == "CLICK":
+        pyautogui.click()
+        return "[Action] Clicked Mouse"
+
+    if user_input.startswith("recall "):
+        query = user_input.replace("recall ", "", 1).strip()
+        return handle_recall(query)
+
+    if user_input.lower().startswith("open "):
+        path = user_input[5:].strip()
+        os.system(f"start {path}")
+        return ""
+
+    if user_input.lower().startswith("type "):
+        text = user_input[5:].strip()
+        time.sleep(1)
+        keyboard.write(text)
+        return ""
+
+    if user_input.lower() in ["how do i use you", "how do i use this", "how to use", "tutorial"]:
+        from assistant import get_usage_tutorial
+        return get_usage_tutorial()
+
+    target = detect_tutorial_target(user_input)
+    if target:
+        doc = explain_object(target)
+        if doc:
+            return doc
+
+    if user_input.lower() in [
+        "what can you do",
+        "what can you do?",
+        "what can i do",
+        "what can i do?",
+        "help",
+        "capabilities",
+    ]:
+        return get_capabilities_summary()
+
+    if user_input.lower().startswith("move mouse to "):
+        coords = user_input.replace("move mouse to ", "", 1).split(",")
+        if len(coords) == 2:
+            try:
+                x, y = int(coords[0]), int(coords[1])
+                pyautogui.moveTo(x, y, duration=1)
+            except ValueError:
+                return "[Error] Invalid coordinates"
+        return ""
+
+    if user_input.lower() == "click":
+        pyautogui.click()
+        return ""
+
+    # Fallback to orchestrator/LLM
+    return parse_and_execute(user_input)
+
 def cli_loop():
-    print("Local AI Assistant with Memory\nType 'exit' to quit, 'recall <keyword>' to search memory.")
+    print(
+        "Local AI Assistant with Memory\nType 'exit' to quit, 'recall <keyword>' to search memory."
+    )
     while True:
-        user_input = input("You: ").strip()
-        if not user_input:
-            continue
-
-        # Simple commands like volume control
-        resp = process_command(user_input)
-        if resp is not None:
-            print("Assistant:", resp)
-            continue
-
-        # --- Centralized sleep/wake logic ---
-        if not is_listening():
-            if check_wake(user_input):
-                print("Assistant: I'm awake!")
-            continue
-        if check_sleep(user_input):
-            print("Assistant: Going to sleep. Say a wake phrase to wake me up.")
-            continue
-
-        if user_input.lower() == "exit":
+        user_input = input("You: ")
+        result = handle_cli_input(user_input)
+        if user_input.strip().lower() == "exit":
             break
-
-        # 1) Detect generic actions (ENTER, TAB, CLICK)
-        action = detect_action(user_input)
-        if action == "ENTER":
-            keyboard.press_and_release("enter")
-            print("[Action] Pressed Enter")
-            continue
-        elif action == "TAB":
-            keyboard.press_and_release("tab")
-            print("[Action] Pressed Tab")
-            continue
-        elif action == "CLICK":
-            pyautogui.click()
-            print("[Action] Clicked Mouse")
-            continue
-
-        # 2) Recall from memory
-        if user_input.startswith("recall "):
-            query = user_input.replace("recall ", "", 1).strip()
-            print("Assistant:", handle_recall(query))
-            continue
-
-        # 3) Open files or URLs
-        if user_input.lower().startswith("open "):
-            path = user_input[5:].strip()
-            os.system(f'start {path}')
-            continue
-
-        # 4) Typing arbitrary text
-        if user_input.lower().startswith("type "):
-            text = user_input[5:].strip()
-            print(f"[Typing]: {text}")
-            time.sleep(1)
-            keyboard.write(text)
-            continue
-
-        if user_input.lower() in ["how do i use you", "how do i use this", "how to use", "tutorial"]:
-            from assistant import get_usage_tutorial
-            tutorial = get_usage_tutorial()
-            print("Assistant:", tutorial)
-            continue
-
-        target = detect_tutorial_target(user_input)
-        if target:
-            doc = explain_object(target)
-            if doc:
-                print("Assistant:", doc)
-                continue
-
-        if user_input.lower() in [
-            "what can you do",
-            "what can you do?",
-            "what can i do",
-            "what can i do?",
-            "help",
-            "capabilities",
-        ]:
-            desc = get_capabilities_summary()
-            print("Assistant:", desc)
-            continue
-
-        # 5) Move mouse
-        if user_input.lower().startswith("move mouse to "):
-            coords = user_input.replace("move mouse to ", "", 1).split(",")
-            if len(coords) == 2:
-                try:
-                    x, y = int(coords[0]), int(coords[1])
-                    pyautogui.moveTo(x, y, duration=1)
-                except ValueError:
-                    print("[Error] Invalid coordinates")
-            continue
-
-        # 6) Simple click
-        if user_input.lower() == "click":
-            pyautogui.click()
-            continue
-
-        # 7) Fallback to orchestrator/LLM
-        result = parse_and_execute(user_input)
-        print("Assistant:", result)
+        if result:
+            print("Assistant:", result)
 
 if __name__ == "__main__":
     cli_loop()
