@@ -36,7 +36,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Fast onboarding: all config, shortcuts, and memory are editable text**
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Config editor tab:** tweak and save `config.json` without leaving the app
-- **Settings tab:** quickly switch between local and remote LLM servers, choose your preferred LLM model, and select a TTS model
+- **Settings tab:** quickly switch between local and remote LLM servers and choose your preferred LLM model
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**
