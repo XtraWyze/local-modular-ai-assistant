@@ -50,7 +50,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Automatic multi-command parsing:** say "play music and open Rocket League" to run tasks one after another
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
-- **Crash prevention:** unexpected errors are logged and the assistant says "Crash prevented" before resuming. Module calls are wrapped so exceptions never terminate the app.
+- **Crash prevention:** unexpected errors are logged and the assistant says "Crash prevented" before resuming. Module calls are wrapped so exceptions never terminate the app. TTS model load failures are now caught.
 
 Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase volume", or "use jenny voice." The GUI sliders and menu mirror these settings. In CLI mode you can also run `set speech volume 80` to change the TTS volume.
 

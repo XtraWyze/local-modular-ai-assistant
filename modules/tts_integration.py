@@ -97,7 +97,11 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
     # Enforce a single unified voice profile from config
     voice = config.get("tts_voice") or voice
     volume = volume if volume is not None else config.get("tts_volume", 0.8)
-    model = get_tts_model()
+    try:
+        model = get_tts_model()
+    except Exception as e:
+        log_error(f"[{MODULE_NAME}] load error: {e}")
+        return f"[TTS] load error: {e}"
     if speed is None:
         speed = config.get("tts_speed", 1.0)
     chunks = chunk_text(text)
