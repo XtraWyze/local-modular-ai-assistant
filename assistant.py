@@ -426,6 +426,46 @@ def process_input(user_input, output_widget):
                 last_ai_response = msg
                 return
 
+            if txt_l in ["open game bar", "open capture"]:
+                from modules import gamebar_capture
+
+                msg = gamebar_capture.open_capture()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if txt_l in ["start recording", "stop recording", "toggle recording"]:
+                from modules import gamebar_capture
+
+                msg = gamebar_capture.toggle_recording()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if txt_l in ["take screenshot", "capture screenshot"]:
+                from modules import gamebar_capture
+
+                msg = gamebar_capture.capture_screenshot()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if txt_l in ["record last 30 seconds", "capture last 30 seconds"]:
+                from modules import gamebar_capture
+
+                msg = gamebar_capture.capture_last_30s()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
             # === Voice selection ===
             m = re.search(r"(?:use|set|change) ([\w-]+) voice", text.lower())
             if m:

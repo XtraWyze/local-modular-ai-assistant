@@ -41,6 +41,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Focus windows by title (e.g. "focus Spotify")**
 - **Type text into any window by title (e.g. "type hello in Notepad")**
 - **Control music playback with media keys (play/pause, skip) using keyboard, Windows API, or pyautogui fallbacks**
+- **Control Xbox Game Bar capture:** open the overlay, start/stop recording, take screenshots, or capture the last 30 seconds
 - **Automatic multi-command parsing:** say "play music and open Rocket League" to run tasks one after another
 - **Tutorial mode:** ask "what does `function_name` do?" to hear documentation
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
