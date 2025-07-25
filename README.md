@@ -21,7 +21,6 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Hotkeys tab with a macro recorder and 3-second countdown**
 - **Vision/ocr tools:** Screen capture and image recognition by voice or command
 - **Local image generation via Stable Diffusion (no cloud required; requires `diffusers` and `torch`)**
-- **GPU auto-detection with CUDA support for image generation and TTS**
 - **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
 - **Interactive module generator with preview and confirmation**
@@ -36,7 +35,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Fast onboarding: all config, shortcuts, and memory are editable text**
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Config editor tab:** tweak and save `config.json` without leaving the app
-- **Settings tab:** quickly switch between local and remote LLM servers, choose your preferred LLM model, and select a TTS model
+- **Settings tab:** quickly switch between local and remote LLM servers
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**

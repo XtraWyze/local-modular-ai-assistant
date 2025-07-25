@@ -793,12 +793,12 @@ sd_model_entry.pack(fill="x", padx=10)
 
 sd_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
-sd_options = ["cpu"] + (gpu.get_devices() or ["cuda"] if gpu.is_available() else [])
 sd_device_menu = ttk.OptionMenu(
     image_tab,
     sd_device_var,
-    sd_device_var.get(),
-    *sd_options,
+    "cpu",
+    "cpu",
+    "cuda",
 )
 sd_device_menu.pack(anchor="w", padx=10)
 
@@ -929,32 +929,8 @@ ttk.Label(settings_tab, text="LLM URL:").pack(anchor="w", padx=10)
 url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
 url_entry.pack(fill="x", padx=10)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-# LLM Model selector
-ttk.Label(settings_tab, text="LLM Model:").pack(anchor="w", padx=10, pady=(10, 0))
-models = llm_interface.list_models()
-current_model = config.get("llm_model") or (models[0] if models else "")
-model_var = tk.StringVar(value=current_model)
-model_menu = ttk.OptionMenu(settings_tab, model_var, current_model, *models)
-model_menu.pack(anchor="w", padx=10)
+# Settings tab currently only supports toggling remote LLM usage
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-ttk.Button(
-    settings_tab,
-    text="Choose TTS Model",
-    command=open_tts_model_window,
-).pack(anchor="w", padx=10, pady=(5, 0))
-
-=======
->>>>>>> parent of 67a6ffc (Add LLM model selector)
-=======
->>>>>>> parent of ceb2212 (Merge pull request #101 from XtraWyze/codex/add-model-selector-to-settings-tab)
-=======
->>>>>>> parent of 4046aec (Add TTS model selector window)
-=======
->>>>>>> parent of 731dac8 (Merge pull request #103 from XtraWyze/codex/add-button-to-select-tts-models)
 def save_settings() -> None:
     cfg = config_loader.config
     if use_remote_var.get():
