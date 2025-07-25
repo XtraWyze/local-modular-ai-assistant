@@ -59,6 +59,13 @@ from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
+from modules.browser_automation import set_webview_callback
+try:
+    from tkinterweb import HtmlFrame  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    HtmlFrame = None  # type: ignore
+import webbrowser
+from urllib.parse import quote_plus
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -86,12 +93,14 @@ config_tab = ttk.Frame(notebook)
 hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
 image_tab = ttk.Frame(notebook)
+web_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
 notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
+notebook.add(web_tab, text="Web Activity")
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -711,6 +720,50 @@ def generate_image_btn() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
+
+# ---------- Web Activity Tab ----------
+web_search_var = tk.StringVar()
+ttk.Label(web_tab, text="Search or URL:").pack(anchor="w", padx=10, pady=(10, 0))
+web_entry = ttk.Entry(web_tab, textvariable=web_search_var)
+web_entry.pack(fill="x", padx=10)
+
+web_activity = []
+
+if HtmlFrame:
+    web_view = HtmlFrame(web_tab)
+    web_view.pack(fill="both", expand=True, padx=10, pady=10)
+else:
+    # Fallback text widget if tkinterweb isn't installed
+    web_view = tk.Text(web_tab, height=20)
+    web_view.insert(
+        "1.0",
+        "tkinterweb not installed. URLs will open in your default browser.\n",
+    )
+    web_view.config(state=tk.DISABLED)
+    web_view.pack(fill="both", expand=True, padx=10, pady=10)
+
+
+def _load_url(url: str) -> None:
+    if HtmlFrame:
+        web_view.load_website(url)
+    else:
+        webbrowser.open(url)
+
+
+def run_web_search(_event=None) -> None:
+    query = web_search_var.get().strip()
+    web_search_var.set("")
+    if not query:
+        return
+    if not query.startswith("http"):
+        query = f"https://www.google.com/search?q={quote_plus(query)}"
+    _load_url(query)
+    web_activity.append(query)
+
+
+web_entry.bind("<Return>", run_web_search)
+ttk.Button(web_tab, text="Go", command=run_web_search).pack(pady=(0, 10))
+set_webview_callback(_load_url)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(
