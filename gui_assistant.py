@@ -27,6 +27,7 @@ import os
 import sys
 import json
 import time
+import atexit
 from error_logger import log_error
 from modules import gpu
 try:
@@ -71,6 +72,10 @@ try:
     import pystray
 except Exception:  # pystray is optional
     pystray = None
+
+# Global reference to the tray icon instance
+tray_icon = None  # type: ignore
+
 
 # ========== RESOURCE PATH & CONFIG ==========
 VOSK_MODEL_PATH = resource_path("vosk-model-small-en-us-0.15")
@@ -1055,13 +1060,14 @@ def start_tray():
         output.see("end")
 
     def tray_quit(icon, item):
-        icon.stop()
+        stop_tray()
         root.quit()
         os._exit(0)
 
     if pystray is None:
         print("[Tray] pystray not installed; system tray icon disabled")
         return
+    global tray_icon
     icon = pystray.Icon(
         "assistant",
         make_icon_image(),
@@ -1074,10 +1080,20 @@ def start_tray():
             pystray.MenuItem("Quit", tray_quit)
         )
     )
+    tray_icon = icon
     icon.run()
+    tray_icon = None
+
+def stop_tray():
+    """Stop and clear the tray icon if running."""
+    global tray_icon
+    if tray_icon is not None:
+        tray_icon.stop()
+        tray_icon = None
 
 if pystray is not None:
     threading.Thread(target=start_tray, daemon=True).start()
+    atexit.register(stop_tray)
 
 # ========== WELCOME MESSAGE ==========
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
