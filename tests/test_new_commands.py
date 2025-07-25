@@ -109,3 +109,26 @@ def test_process_input_increase_system_volume(monkeypatch):
     assistant.set_listening(True)
     assistant.process_input('increase system volume', DummyWidget())
     assert calls == ['up']
+
+
+def test_process_input_set_speech_volume(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    tts = importlib.import_module('modules.tts_integration')
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    assistant.set_listening(True)
+    assistant.process_input('set speech volume to 70', DummyWidget())
+    assert calls == [0.7]
+
+
+def test_process_input_increase_speech_volume(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    tts = importlib.import_module('modules.tts_integration')
+    monkeypatch.setattr(tts, 'config', {'tts_volume': 0.5})
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    assistant.set_listening(True)
+    assistant.process_input('increase speech volume', DummyWidget())
+    assert calls == [0.6]
