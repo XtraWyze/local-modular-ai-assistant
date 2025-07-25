@@ -218,6 +218,12 @@ def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, st
 
                 output_widget.insert("end", f"You (voice): {text}\n")
                 output_widget.see("end")
+                try:
+                    from modules import debug_panel
+                    debug_panel.add_transcript(text)
+                    debug_panel.add_command(text)
+                except Exception:
+                    pass
                 threading.Thread(target=process_input, args=(text, output_widget), daemon=True).start()
             else:
                 time.sleep(0.1)

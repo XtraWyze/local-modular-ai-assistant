@@ -148,6 +148,11 @@ def search_memory(query, top_k=5):
     # Get top K
     idxs = np.argsort(sims)[::-1][:top_k]
     results = [f"{memory['texts'][i]} (score={sims[i]:.2f})" for i in idxs]
+    try:
+        from modules import debug_panel
+        debug_panel.add_memory_event(f"search '{query}' -> {len(results)} results")
+    except Exception:
+        pass
     return results
 
 # Auto-load at import
