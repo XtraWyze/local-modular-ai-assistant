@@ -1,6 +1,22 @@
 # ========== IMPORTS ==========
 import tkinter as tk
 from tkinter import ttk
+
+
+class ReadOnlyText(tk.Text):
+    """Text widget that prevents user edits but allows programmatic inserts."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("state", tk.DISABLED)
+        super().__init__(*args, **kwargs)
+        # Block user key presses to keep the widget read-only
+        self.bind("<Key>", lambda _event: "break")
+
+    def insert(self, index, chars, *tags):
+        """Insert text while temporarily enabling the widget."""
+        self.config(state=tk.NORMAL)
+        super().insert(index, chars, *tags)
+        self.config(state=tk.DISABLED)
 try:
     from PIL import Image, ImageDraw, ImageTk  # type: ignore
 except Exception:  # Pillow is optional
@@ -129,8 +145,8 @@ root.protocol("WM_DELETE_WINDOW", on_close)
 frame = ttk.Frame(main_tab)
 frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-# Main output console
-output = tk.Text(frame, height=20, wrap=tk.WORD)
+# Main output console (read-only for user)
+output = ReadOnlyText(frame, height=20, wrap=tk.WORD)
 output.pack(fill="both", expand=True)
 output.insert(tk.END, "Assistant: Assistant is sleeping. Say your wake phrase to activate.\n")
 
