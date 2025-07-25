@@ -41,6 +41,7 @@ from modules import speech_learning
 from modules.utils import resource_path
 from modules import wake_sleep_hotkey
 from modules import api_keys
+from modules import image_generator
 try:
     import pystray
 except Exception:  # pystray is optional
@@ -67,11 +68,13 @@ speech_tab = ttk.Frame(notebook)
 config_tab = ttk.Frame(notebook)
 hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
+image_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
 notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
+notebook.add(image_tab, text="Image Generator")
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -608,6 +611,50 @@ save_btn = ttk.Button(btn_frame_gen, text="Save Module", state=tk.DISABLED, comm
 save_btn.pack(side=tk.LEFT, padx=5)
 cancel_btn = ttk.Button(btn_frame_gen, text="Cancel", state=tk.DISABLED, command=cancel_generated)
 cancel_btn.pack(side=tk.LEFT, padx=5)
+
+# ---------- Image Generator Tab ----------
+img_prompt = tk.Text(image_tab, height=4)
+img_prompt.pack(fill="x", padx=10, pady=(10, 0))
+
+size_var = tk.StringVar(value="512x512")
+ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(image_tab, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
+
+img_preview = ttk.Label(image_tab)
+img_preview.pack(pady=10)
+img_status = ttk.Label(image_tab, text="")
+img_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+def generate_image_btn() -> None:
+    prompt = img_prompt.get("1.0", tk.END).strip()
+    if not prompt:
+        img_status.config(text="Enter a prompt first.")
+        return
+    img_status.config(text="Generating...")
+
+    def _run() -> None:
+        path = image_generator.generate_image(prompt, size=size_var.get())
+
+        def _update() -> None:
+            if path.endswith(".png") and os.path.exists(path):
+                if Image and ImageTk:
+                    try:
+                        img = Image.open(path)
+                        photo = ImageTk.PhotoImage(img)
+                        img_preview.configure(image=photo)
+                        img_preview.image = photo
+                    except Exception:
+                        img_preview.configure(image="")
+                img_status.config(text=f"Saved to {path}")
+            else:
+                img_preview.configure(image="")
+                img_status.config(text=path)
+
+        img_status.after(0, _update)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(speech_tab, text="Click Start and read each sentence aloud:")
