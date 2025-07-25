@@ -24,3 +24,26 @@ def test_parse_and_execute_focus(monkeypatch):
     result = orch.parse_and_execute('focus spotify')
     assert result == 'focused spotify'
     assert calls['title'] == 'spotify'
+
+
+def test_parse_and_execute_focus_with_window_word(monkeypatch):
+    wt = types.ModuleType('modules.window_tools')
+    args = {}
+
+    def mock_focus(title):
+        args['title'] = title
+        return True, f'focused {title}'
+
+    wt.focus_window = mock_focus
+    wt.__all__ = ['focus_window']
+    monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
+
+    stub_assistant = types.ModuleType('assistant')
+    stub_assistant.talk_to_llm = lambda t: 'ignored'
+    monkeypatch.setitem(sys.modules, 'assistant', stub_assistant)
+
+    orch = importlib.reload(importlib.import_module('orchestrator'))
+
+    result = orch.parse_and_execute('focus the spotify window')
+    assert result == 'focused spotify'
+    assert args['title'] == 'spotify'

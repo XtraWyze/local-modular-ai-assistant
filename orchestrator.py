@@ -110,12 +110,22 @@ def _handle_terminate_alias(text: str) -> str | None:
         return f"Error running close_app: {e}"
 
 
-def _handle_minimize_alias(text: str) -> str | None:
-    """Support ``minimize <window>`` as alias for ``minimize_window``."""
-    m = re.match(r"\bminimize\s+(.+)", text, re.IGNORECASE)
+def _extract_window_target(text: str, action: str) -> str | None:
+    """Return the window title following ``action`` if present."""
+    pattern = rf"\b{action}\s+(?:the\s+)?(?:window\s+|app(?:lication)?\s+)?(.+)"
+    m = re.match(pattern, text, re.IGNORECASE)
     if not m:
         return None
-    target = m.group(1)
+    title = m.group(1).strip()
+    title = re.sub(r"\s+(?:window|app(?:lication)?)$", "", title, flags=re.IGNORECASE)
+    return title
+
+
+def _handle_minimize_alias(text: str) -> str | None:
+    """Support ``minimize <window>`` as alias for ``minimize_window``."""
+    target = _extract_window_target(text, "minimize")
+    if not target:
+        return None
     if "minimize_window" not in ALLOWED_FUNCTIONS:
         return talk_to_llm(text)
     func = ALLOWED_FUNCTIONS["minimize_window"]
@@ -128,10 +138,9 @@ def _handle_minimize_alias(text: str) -> str | None:
 
 def _handle_focus_alias(text: str) -> str | None:
     """Support ``focus <window>`` as alias for ``focus_window``."""
-    m = re.match(r"\bfocus\s+(.+)", text, re.IGNORECASE)
-    if not m:
+    target = _extract_window_target(text, "focus")
+    if not target:
         return None
-    target = m.group(1)
     if "focus_window" not in ALLOWED_FUNCTIONS:
         return talk_to_llm(text)
     func = ALLOWED_FUNCTIONS["focus_window"]
