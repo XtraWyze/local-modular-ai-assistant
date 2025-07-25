@@ -28,6 +28,7 @@ import sys
 import json
 import time
 from error_logger import log_error
+from modules import gpu
 try:
     from watchdog.observers import Observer
     from config_watcher import ConfigFileChangeHandler
@@ -790,10 +791,16 @@ ttk.Label(image_tab, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0
 sd_model_entry = ttk.Entry(image_tab, textvariable=sd_model_var, width=50)
 sd_model_entry.pack(fill="x", padx=10)
 
-sd_device_var = tk.StringVar(value="cpu")
+sd_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
-sd_device_entry = ttk.Entry(image_tab, textvariable=sd_device_var, width=20)
-sd_device_entry.pack(anchor="w", padx=10)
+sd_options = ["cpu"] + (gpu.get_devices() or ["cuda"] if gpu.is_available() else [])
+sd_device_menu = ttk.OptionMenu(
+    image_tab,
+    sd_device_var,
+    sd_device_var.get(),
+    *sd_options,
+)
+sd_device_menu.pack(anchor="w", padx=10)
 
 size_var = tk.StringVar(value="512x512")
 ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
@@ -803,7 +810,7 @@ def toggle_source(*_args) -> None:
     """Enable or disable local model fields based on ``source_var``."""
     state = tk.NORMAL if source_var.get() == "local" else tk.DISABLED
     sd_model_entry.config(state=state)
-    sd_device_entry.config(state=state)
+    sd_device_menu.config(state=state)
 
 toggle_source()
 
