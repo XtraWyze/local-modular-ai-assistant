@@ -43,15 +43,40 @@ def process_command(user_input: str):
 
         return system_volume.set_volume(value)
 
+    if cmd.startswith("set speech volume "):
+        try:
+            value = float(cmd.split("set speech volume ", 1)[1])
+        except ValueError:
+            return "[Error] Invalid volume"
+        from modules import tts_integration
+        if value > 1:
+            value = value / 100.0
+        result = tts_integration.set_volume(value)
+        return "Speech volume set" if result is True else result
+
     if cmd in {"volume up", "increase volume"}:
         from modules import media_controls
 
         return media_controls.volume_up()
 
+    if cmd in {"speech volume up", "increase speech volume"}:
+        from modules import tts_integration
+
+        val = min(tts_integration.config.get("tts_volume", 0.8) + 0.1, 1.0)
+        tts_integration.set_volume(val)
+        return f"Speech volume set to {val}"
+
     if cmd in {"volume down", "decrease volume"}:
         from modules import media_controls
 
         return media_controls.volume_down()
+
+    if cmd in {"speech volume down", "decrease speech volume"}:
+        from modules import tts_integration
+
+        val = max(tts_integration.config.get("tts_volume", 0.8) - 0.1, 0.0)
+        tts_integration.set_volume(val)
+        return f"Speech volume set to {val}"
 
     if cmd in {"start recording", "stop recording", "toggle recording"}:
         from modules import gamebar_capture

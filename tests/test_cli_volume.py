@@ -34,3 +34,32 @@ def test_cli_volume_up(monkeypatch):
     out = process_command('volume up')
     assert calls == ['up']
     assert out == 'ok'
+
+
+def test_cli_set_speech_volume(monkeypatch):
+    tts = importlib.import_module('modules.tts_integration')
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    out = process_command('set speech volume 70')
+    assert calls == [0.7]
+    assert out == 'Speech volume set'
+
+
+def test_cli_speech_volume_up(monkeypatch):
+    tts = importlib.import_module('modules.tts_integration')
+    monkeypatch.setattr(tts, 'config', {'tts_volume': 0.5})
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    out = process_command('speech volume up')
+    assert calls == [0.6]
+    assert out == 'Speech volume set to 0.6'
+
+
+def test_cli_speech_volume_down(monkeypatch):
+    tts = importlib.import_module('modules.tts_integration')
+    monkeypatch.setattr(tts, 'config', {'tts_volume': 0.5})
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    out = process_command('speech volume down')
+    assert calls == [0.4]
+    assert out == 'Speech volume set to 0.4'

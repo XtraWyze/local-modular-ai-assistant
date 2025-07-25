@@ -332,6 +332,25 @@ def process_input(user_input, output_widget):
                 return
 
             # === Volume commands ===
+            m = re.search(r"set (?:speech|tts) volume(?: to)? ([0-9]*\.?[0-9]+)", text.lower())
+            if m:
+                val = float(m.group(1))
+                from modules import tts_integration
+
+                if val > 1:
+                    val = val / 100.0
+                ok = tts_integration.set_volume(val)
+                msg = (
+                    f"Volume set to {val}"
+                    if ok is True
+                    else "Invalid volume. Use 0.0 to 1.0"
+                )
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
             m = re.search(r"set (?:system )?volume(?: to)? ([0-9]*\.?[0-9]+)", text.lower())
             if m:
                 val = float(m.group(1))
@@ -371,7 +390,7 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "increase volume" in text.lower():
+            if "increase speech volume" in text.lower() or "speech volume up" in text.lower() or "increase volume" in text.lower():
                 from modules import tts_integration
 
                 val = min(tts_integration.config.get("tts_volume", 0.8) + 0.1, 1.0)
@@ -382,7 +401,13 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "decrease volume" in text.lower() or "lower volume" in text.lower():
+            if (
+                "decrease speech volume" in text.lower()
+                or "lower speech volume" in text.lower()
+                or "speech volume down" in text.lower()
+                or "decrease volume" in text.lower()
+                or "lower volume" in text.lower()
+            ):
                 from modules import tts_integration
 
                 val = max(tts_integration.config.get("tts_volume", 0.8) - 0.1, 0.0)
