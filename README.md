@@ -291,6 +291,9 @@ Load plugin packages with `modules.plugin_loader` to dynamically add new
 modules at runtime. Launch `python config_gui.py` for a quick settings editor.
 Use the **Edit Memory** button there or in the main GUI to view conversation
 history and adjust the `memory_max` limit.
+Python files placed in the `skills/` directory are automatically imported at
+startup. Any top-level functions they define become available as tools for the
+orchestrator.
 
 Place custom macro scripts in the `macros/` folder. Load them at runtime with `modules.macro_loader` or record new ones from the **Hotkeys** tab in the GUI.
 You can now record a macro and automatically generate a runnable Python script using `modules.automation_learning.record_macro_script`.

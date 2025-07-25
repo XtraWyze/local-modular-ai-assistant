@@ -13,6 +13,7 @@ import types
 from pathlib import Path
 
 from assistant import talk_to_llm
+from skill_loader import load_skills
 
 # Dynamically load all modules under the "modules" package and collect
 # functions exported via their ``__all__`` variables.
@@ -28,6 +29,11 @@ for info in pkgutil.iter_modules([str(module_dir)]):
         func = getattr(mod, fname, None)
         if callable(func):
             setattr(TOOLS, fname, func)
+
+# Load functions from optional "skills" directory
+skills_dir = Path(__file__).parent / "skills"
+for name, func in load_skills(str(skills_dir)).items():
+    setattr(TOOLS, name, func)
 
 # Build allowed function mapping automatically from the TOOLS namespace
 ALLOWED_FUNCTIONS = {
