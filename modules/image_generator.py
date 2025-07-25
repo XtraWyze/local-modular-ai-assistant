@@ -6,7 +6,7 @@ import base64
 import os
 from typing import Optional
 
-import requests
+import importlib
 
 from error_logger import log_error
 from modules.api_keys import get_api_key
@@ -64,7 +64,13 @@ def generate_image(
         "response_format": "b64_json",
     }
     try:
-        resp = requests.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers, timeout=60)
+        requests = importlib.import_module("requests")
+        resp = requests.post(
+            "https://api.openai.com/v1/images/generations",
+            json=payload,
+            headers=headers,
+            timeout=60,
+        )
         resp.raise_for_status()
         data = resp.json()
         b64 = data.get("data", [{}])[0].get("b64_json")
