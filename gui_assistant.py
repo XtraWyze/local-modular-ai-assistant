@@ -414,9 +414,17 @@ def reload_config():
     if errors:
         output.insert(tk.END, "[CONFIG VALIDATION ERROR]\n" + "\n".join(errors) + "\n")
         speak("Reload failed due to config error.")
-    else:
-        output.insert(tk.END, "[SYSTEM] Config reloaded and validated!\n")
-        speak("Configuration has been reloaded.")
+        return
+
+    output.insert(tk.END, "[SYSTEM] Config reloaded and validated!\n")
+    speak("Configuration has been reloaded.")
+
+    # Mirror updated values in the UI controls
+    volume_scale.set(config.get("tts_volume", 0.8))
+    speed_scale.set(config.get("tts_speed", 1.0))
+    tts_module.config.update(config)
+    current_voice = config.get("tts_voice") or voice_var.get()
+    voice_var.set(current_voice)
 
 # ========== BUTTON HANDLER (UI ONLY) ==========
 buttons_frame = ttk.Frame(entry_frame)

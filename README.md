@@ -51,7 +51,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Emulation mode:** set `emulate_actions` to true to practice commands safely
 - **Crash prevention:** unexpected errors are logged and the assistant says "Crash prevented" before resuming. Module calls are wrapped so exceptions never terminate the app.
 
-Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase volume", or "use jenny voice." The GUI sliders and menu mirror these settings.
+Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "increase speech volume", or "use jenny voice." Say "volume up" or "increase volume" to raise the system volume. The GUI sliders and menu mirror these settings. In CLI mode you can also run `set speech volume 80` to change the TTS volume.
 
 ---
 

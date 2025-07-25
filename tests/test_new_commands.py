@@ -109,3 +109,48 @@ def test_process_input_increase_system_volume(monkeypatch):
     assistant.set_listening(True)
     assistant.process_input('increase system volume', DummyWidget())
     assert calls == ['up']
+
+
+def test_process_input_volume_up(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_up', lambda: calls.append('up') or 'ok')
+    assistant.set_listening(True)
+    assistant.process_input('volume up', DummyWidget())
+    assert calls == ['up']
+
+
+def test_process_input_volume_down(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    mc = importlib.import_module('modules.media_controls')
+    calls = []
+    monkeypatch.setattr(mc, 'volume_down', lambda: calls.append('down') or 'ok')
+    assistant.set_listening(True)
+    assistant.process_input('volume down', DummyWidget())
+    assert calls == ['down']
+
+
+def test_process_input_set_speech_volume(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    tts = importlib.import_module('modules.tts_integration')
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    assistant.set_listening(True)
+    assistant.process_input('set speech volume to 70', DummyWidget())
+    assert calls == [0.7]
+
+
+def test_process_input_increase_speech_volume(monkeypatch):
+    assistant, _ = import_assistant(monkeypatch)
+    monkeypatch.setattr(assistant, 'speak', lambda *a, **kw: None)
+    tts = importlib.import_module('modules.tts_integration')
+    monkeypatch.setattr(tts, 'config', {'tts_volume': 0.5})
+    calls = []
+    monkeypatch.setattr(tts, 'set_volume', lambda v: calls.append(v) or True)
+    assistant.set_listening(True)
+    assistant.process_input('increase speech volume', DummyWidget())
+    assert calls == [0.6]

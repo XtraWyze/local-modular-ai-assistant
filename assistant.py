@@ -332,7 +332,27 @@ def process_input(user_input, output_widget):
                 return
 
             # === Volume commands ===
-            m = re.search(r"set (?:system )?volume(?: to)? ([0-9]*\.?[0-9]+)", text.lower())
+            txt_l = text.lower()
+            m = re.search(r"set (?:speech|tts) volume(?: to)? ([0-9]*\.?[0-9]+)", txt_l)
+            if m:
+                val = float(m.group(1))
+                from modules import tts_integration
+
+                if val > 1:
+                    val = val / 100.0
+                ok = tts_integration.set_volume(val)
+                msg = (
+                    f"Volume set to {val}"
+                    if ok is True
+                    else "Invalid volume. Use 0.0 to 1.0"
+                )
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            m = re.search(r"set (?:system )?volume(?: to)? ([0-9]*\.?[0-9]+)", txt_l)
             if m:
                 val = float(m.group(1))
                 if val > 1:
@@ -353,25 +373,11 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "increase system volume" in text.lower():
-                from modules import media_controls
 
-                msg = media_controls.volume_up()
-                output_widget.insert("end", f"Assistant: {msg}\n")
-                output_widget.see("end")
-                speak(msg)
-                last_ai_response = msg
-                return
-            if "decrease system volume" in text.lower() or "lower system volume" in text.lower():
-                from modules import media_controls
-
-                msg = media_controls.volume_down()
-                output_widget.insert("end", f"Assistant: {msg}\n")
-                output_widget.see("end")
-                speak(msg)
-                last_ai_response = msg
-                return
-            if "increase volume" in text.lower():
+            if (
+                "increase speech volume" in txt_l
+                or "speech volume up" in txt_l
+            ):
                 from modules import tts_integration
 
                 val = min(tts_integration.config.get("tts_volume", 0.8) + 0.1, 1.0)
@@ -382,12 +388,45 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "decrease volume" in text.lower() or "lower volume" in text.lower():
+            if (
+                "decrease speech volume" in txt_l
+                or "lower speech volume" in txt_l
+                or "speech volume down" in txt_l
+            ):
                 from modules import tts_integration
 
                 val = max(tts_integration.config.get("tts_volume", 0.8) - 0.1, 0.0)
                 tts_integration.set_volume(val)
                 msg = f"Volume set to {val}"
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+
+            if (
+                "increase system volume" in txt_l
+                or "volume up" in txt_l
+                or "increase volume" in txt_l
+            ):
+                from modules import media_controls
+
+                msg = media_controls.volume_up()
+                output_widget.insert("end", f"Assistant: {msg}\n")
+                output_widget.see("end")
+                speak(msg)
+                last_ai_response = msg
+                return
+            if (
+                "decrease system volume" in txt_l
+                or "volume down" in txt_l
+                or "lower system volume" in txt_l
+                or "decrease volume" in txt_l
+                or "lower volume" in txt_l
+            ):
+                from modules import media_controls
+
+                msg = media_controls.volume_down()
                 output_widget.insert("end", f"Assistant: {msg}\n")
                 output_widget.see("end")
                 speak(msg)
