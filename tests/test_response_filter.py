@@ -8,7 +8,6 @@ import types
 def import_assistant(monkeypatch):
     li = types.ModuleType('llm_interface')
     li.generate_response = lambda *a, **kw: 'ok'
-    li.DEFAULT_FALLBACK = "fallback"
     monkeypatch.setitem(sys.modules, 'llm_interface', li)
     monkeypatch.setitem(sys.modules, 'keyboard', types.ModuleType('keyboard'))
     monkeypatch.setitem(sys.modules, 'pyautogui', types.ModuleType('pyautogui'))
