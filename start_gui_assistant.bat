@@ -2,9 +2,6 @@
 REM Ensure we run from the script directory
 cd /d "%~dp0"
 
-REM Activate the virtual environment
-call venv\Scripts\activate
-
 REM Launch the GUI assistant
 python gui_assistant.py
 
