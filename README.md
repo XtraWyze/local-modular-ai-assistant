@@ -34,6 +34,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Fast onboarding: all config, shortcuts, and memory are editable text**
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Config editor tab:** tweak and save `config.json` without leaving the app
+- **Settings tab:** quickly switch between local and remote LLM servers
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**
@@ -188,7 +189,8 @@ your local network:
    ollama serve
    ```
    (Assuming the host IP is `192.168.1.50`.)
-2. On the assistant PC, edit `config.json` and set:
+2. On the assistant PC, open the **Settings** tab (or edit `config.json`) and
+   enable *Use remote Ollama server* with the URL:
    ```json
    "llm_url": "http://192.168.1.50:11434/v1/chat/completions"
    ```
