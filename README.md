@@ -67,7 +67,7 @@ Adjust voice playback on the fly with phrases like "set speech speed to 1.2", "i
 - [Vosk](https://alphacephei.com/vosk/) speech model (see config for path)
 - `sounddevice` (audio playback and microphone input)
 - `watchdog` (for live config reload, highly recommended)
-- `tkinterweb` for the built-in browser tab (optional; use `messages_enabled=False` to hide debug messages)
+- `tkinterweb` for the built-in browser tab (optional)
 - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for vision tools
   (on Windows set `TESSERACT_CMD` if not installed in the default location)
 - `pygetwindow` (or `wmctrl` on Linux) for listing open windows and focusing

@@ -881,8 +881,7 @@ web_entry = ttk.Entry(web_tab, textvariable=web_search_var)
 web_entry.pack(fill="x", padx=10)
 
 if HtmlFrame:
-    # Disable TkinterWeb debug messages for cleaner console output
-    web_view = HtmlFrame(web_tab, messages_enabled=False)
+    web_view = HtmlFrame(web_tab)
     web_view.pack(fill="both", expand=True, padx=10, pady=10)
 else:
     # Fallback text widget if tkinterweb isn't installed
