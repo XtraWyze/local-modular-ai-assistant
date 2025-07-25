@@ -35,6 +35,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Config editor tab:** tweak and save `config.json` without leaving the app
 - **Automatic .exe scanning builds a registry of installed applications**
+- **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**
 - **Close or terminate apps by window title or process name (e.g. "terminate Rocket League")**
 - **List open windows via the taskbar (e.g. "what windows are open?")**
