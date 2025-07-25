@@ -39,7 +39,7 @@ except Exception:
     WATCHDOG_AVAILABLE = False
 from config_loader import ConfigLoader
 from config_validator import validate_config
-from config_gui import open_memory_window
+from config_gui import open_memory_window, open_tts_model_window
 from assistant import set_screen_viewer_callback
 from assistant import (
     process_input,
@@ -954,6 +954,12 @@ current_model = config.get("llm_model") or (models[0] if models else "")
 model_var = tk.StringVar(value=current_model)
 model_menu = ttk.OptionMenu(settings_tab, model_var, current_model, *models)
 model_menu.pack(anchor="w", padx=10)
+
+ttk.Button(
+    settings_tab,
+    text="Choose TTS Model",
+    command=open_tts_model_window,
+).pack(anchor="w", padx=10, pady=(5, 0))
 
 def save_settings() -> None:
     cfg = config_loader.config
