@@ -12,8 +12,20 @@ else:
 
 MODULE_NAME = "browser_automation"
 _driver = None
+_webview_callback = lambda url: None
 
-__all__ = ["start_browser", "open_url", "click_selector", "quit_browser"]
+def set_webview_callback(func) -> None:
+    """Register a callback for GUI web view updates."""
+    global _webview_callback
+    _webview_callback = func
+
+__all__ = [
+    "start_browser",
+    "open_url",
+    "click_selector",
+    "quit_browser",
+    "set_webview_callback",
+]
 
 
 def start_browser(headless: bool = True):
@@ -32,6 +44,10 @@ def open_url(url: str) -> str:
     if not _driver:
         return "browser not started"
     _driver.get(url)
+    try:
+        _webview_callback(url)
+    except Exception:
+        pass
     return f"opened {url}"
 
 
