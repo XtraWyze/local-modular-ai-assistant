@@ -38,6 +38,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Config editor tab:** tweak and save `config.json` without leaving the app
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 - **Settings tab:** quickly switch between local and remote LLM servers, choose your preferred LLM model, and select a TTS model
 =======
 - **Settings tab:** quickly switch between local and remote LLM servers
@@ -45,6 +46,9 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 =======
 - **Settings tab:** quickly switch between local and remote LLM servers
 >>>>>>> parent of ceb2212 (Merge pull request #101 from XtraWyze/codex/add-model-selector-to-settings-tab)
+=======
+- **Settings tab:** quickly switch between local and remote LLM servers and choose your preferred LLM model
+>>>>>>> parent of 4046aec (Add TTS model selector window)
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**

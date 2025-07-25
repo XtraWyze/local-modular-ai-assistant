@@ -39,7 +39,7 @@ except Exception:
     WATCHDOG_AVAILABLE = False
 from config_loader import ConfigLoader
 from config_validator import validate_config
-from config_gui import open_memory_window, open_tts_model_window
+from config_gui import open_memory_window
 from assistant import set_screen_viewer_callback
 from assistant import (
     process_input,
@@ -939,6 +939,7 @@ model_var = tk.StringVar(value=current_model)
 model_menu = ttk.OptionMenu(settings_tab, model_var, current_model, *models)
 model_menu.pack(anchor="w", padx=10)
 
+<<<<<<< HEAD
 ttk.Button(
     settings_tab,
     text="Choose TTS Model",
@@ -949,6 +950,8 @@ ttk.Button(
 >>>>>>> parent of 67a6ffc (Add LLM model selector)
 =======
 >>>>>>> parent of ceb2212 (Merge pull request #101 from XtraWyze/codex/add-model-selector-to-settings-tab)
+=======
+>>>>>>> parent of 4046aec (Add TTS model selector window)
 def save_settings() -> None:
     cfg = config_loader.config
     if use_remote_var.get():

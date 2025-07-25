@@ -3,13 +3,7 @@
 import json
 import tkinter as tk
 from tkinter import messagebox
-try:
-    from tkinter import ttk
-except Exception:  # pragma: no cover - missing ttk in tests
-    ttk = None  # type: ignore
 import memory_manager as mm
-from error_logger import log_error
-from modules import tts_integration
 
 CONFIG_FILE = "config.json"
 
@@ -59,40 +53,6 @@ def open_memory_window():
         messagebox.showinfo("Saved", "Memory updated")
 
     tk.Button(win, text="Save", command=save).pack(pady=5)
-    return win
-
-
-def open_tts_model_window():
-    """Display available TTS models and allow switching."""
-    win = tk.Toplevel()
-    win.title("TTS Model Selector")
-
-    try:
-        models = tts_integration.list_models()
-    except Exception as exc:  # pragma: no cover - unexpected import errors
-        log_error(f"[TTS] list_models failed: {exc}")
-        models = []
-
-    tk.Label(win, text="TTS Model:").pack(pady=(5, 0))
-    current = tts_integration.config.get("tts_model")
-    if current not in models and models:
-        current = models[0]
-    var = tk.StringVar(value=current)
-    try:
-        menu = ttk.OptionMenu(win, var, var.get(), *models)
-    except Exception:  # pragma: no cover - ttk may be missing in tests
-        menu = tk.OptionMenu(win, var, *models)
-    menu.pack(padx=10, pady=5)
-
-    def save() -> None:
-        try:
-            tts_integration.set_model(var.get())
-            messagebox.showinfo("Saved", "TTS model updated")
-        except Exception as exc:  # pragma: no cover - unexpected errors
-            log_error(f"[TTS] set_model failed: {exc}")
-        win.destroy()
-
-    tk.Button(win, text="Save", command=save).pack(pady=(0, 10))
     return win
 
 def open_config_window():
