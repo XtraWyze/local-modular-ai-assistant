@@ -37,6 +37,11 @@ def update_state(**kwargs):
     state.update(kwargs)
     state.setdefault("history", []).append(kwargs)
     save_state()
+    try:
+        from modules import debug_panel
+        debug_panel.add_memory_event(f"state update: {kwargs}")
+    except Exception:
+        pass
 
 def load_actions():
     global actions

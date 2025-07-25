@@ -86,6 +86,11 @@ def see_screen(monitor: int | None = None, log: bool = True):
         text = pytesseract.image_to_string(img)
         if log:
             save_ocr_log("full" if monitor is None else f"monitor_{monitor}", text)
+        try:
+            from modules import debug_panel
+            debug_panel.add_ocr_result(text.strip())
+        except Exception:
+            pass
         return f"Screen says:\n{text.strip()[:800] or 'No text found.'}"
     except Exception as e:  # pragma: no cover - safety net
         log_error(f"[vision_tools] see_screen failed: {e}")
@@ -110,6 +115,11 @@ def see_region(x: int, y: int, w: int, h: int, monitor: int | None = None, log: 
                 f"region_{x}_{y}" if monitor is None else f"monitor{monitor}_{x}_{y}"
             )
             save_ocr_log(label, text)
+        try:
+            from modules import debug_panel
+            debug_panel.add_ocr_result(text.strip())
+        except Exception:
+            pass
         return f"Region ({x},{y},{w},{h}) says:\n{text.strip()[:800] or 'No text found.'}"
     except Exception as e:  # pragma: no cover - safety net
         log_error(f"[vision_tools] see_region failed: {e}")
@@ -197,6 +207,11 @@ def analyze_image(path: str):
     try:
         img = Image.open(path)
         text = pytesseract.image_to_string(img)
+        try:
+            from modules import debug_panel
+            debug_panel.add_ocr_result(text.strip())
+        except Exception:
+            pass
         return text.strip()[:800] or "No text found."
     except Exception as e:  # pragma: no cover
         log_error(f"[vision_tools] analyze_image failed: {e}")

@@ -60,6 +60,7 @@ from modules import speech_learning
 from modules.utils import resource_path
 from modules import wake_sleep_hotkey
 from modules import api_keys
+from modules import debug_panel
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
 from modules.browser_automation import set_webview_callback
@@ -379,6 +380,8 @@ def send():
     user_input = entry.get()
     entry.delete(0, tk.END)
     # Use imported process_input, pass the UI output widget for responses
+    if user_input.strip():
+        debug_panel.add_command(user_input)
     threading.Thread(target=process_input, args=(user_input, output), daemon=True).start()
 
 # ===== Task Entry Handlers =====
@@ -394,6 +397,7 @@ def send_task(event=None):
         return
     task_history.append(user_input)
     history_index = len(task_history)
+    debug_panel.add_command(user_input)
     threading.Thread(target=process_input, args=(user_input, output), daemon=True).start()
 
 def show_prev_task(event):
@@ -447,6 +451,20 @@ memory_button.pack(side=tk.LEFT, padx=(0, 5))
 screen_button = ttk.Button(buttons_frame, text="What's on my screen?", command=open_screen_viewer)
 
 screen_button.pack(side=tk.LEFT, padx=(0, 5))
+
+debug_window: debug_panel.DebugOverlay | None = None
+
+def toggle_debug_panel() -> None:
+    global debug_window
+    if debug_window and debug_window.winfo_exists():
+        debug_window.hide()
+        debug_window.destroy()
+        debug_window = None
+    else:
+        debug_window = debug_panel.DebugOverlay(master=root)
+
+debug_button = ttk.Button(buttons_frame, text="Debug", command=toggle_debug_panel)
+debug_button.pack(side=tk.LEFT, padx=(0, 5))
 
 
 
