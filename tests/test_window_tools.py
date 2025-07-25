@@ -10,10 +10,10 @@ def test_invalid_index():
 
 def test_minimize_window_not_found(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
-    fake_gw = type('GW', (), {
+    mock_gw1 = type('GW', (), {
         'getAllTitles': lambda: [],
     })
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, 'gw', mock_gw1)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
     ok, msg = minimize_window('xyz')
     assert not ok
@@ -24,17 +24,17 @@ def test_minimize_window_success(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
     events = {}
 
-    class FakeWin:
+    class MockWin:
         def __init__(self, title):
             self.title = title
         def minimize(self):
             events['min'] = True
 
-    fake_gw = type('GW', (), {
+    mock_gw2 = type('GW', (), {
         'getAllTitles': lambda: ['My App'],
-        'getWindowsWithTitle': lambda t: [FakeWin(t)],
+        'getWindowsWithTitle': lambda t: [MockWin(t)],
     })
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, 'gw', mock_gw2)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
     ok, msg = minimize_window('my app')
     assert ok
@@ -46,16 +46,16 @@ def test_move_window_to_monitor(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
     vt = importlib.import_module('modules.vision_tools')
 
-    class FakeWin:
+    class MockWin:
         def __init__(self, title):
             self.title = title
         def moveTo(self, x, y):
             self.moved = (x, y)
 
-    fake_gw = type('GW', (), {
-        'getWindowsWithTitle': lambda t: [FakeWin(t)]
+    mock_gw3 = type('GW', (), {
+        'getWindowsWithTitle': lambda t: [MockWin(t)]
     })
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, 'gw', mock_gw3)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
     monitors = [
         type('M', (), {'x': 0, 'y': 0})(),
@@ -72,8 +72,8 @@ def test_move_window_to_monitor_invalid(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
     vt = importlib.import_module('modules.vision_tools')
 
-    fake_gw = type('GW', (), {'getWindowsWithTitle': lambda t: []})
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    mock_gw4 = type('GW', (), {'getWindowsWithTitle': lambda t: []})
+    monkeypatch.setattr(wt, 'gw', mock_gw4)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
     monkeypatch.setattr(vt, 'get_monitors', lambda: [])
 
@@ -85,20 +85,20 @@ def test_move_window_to_monitor_invalid(monkeypatch):
 def test_type_in_window(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
 
-    class FakeWin:
+    class MockWin:
         def __init__(self, title):
             self.title = title
         def activate(self):
             pass
 
-    fake_gw = types.SimpleNamespace(
+    mock_gw5 = types.SimpleNamespace(
         getAllTitles=lambda: ['Notepad'],
-        getWindowsWithTitle=lambda t: [FakeWin(t)]
+        getWindowsWithTitle=lambda t: [MockWin(t)]
     )
     typed = []
-    fake_pg = types.SimpleNamespace(write=lambda text, interval=0.05: typed.append(text))
-    monkeypatch.setattr(wt, 'gw', fake_gw)
-    monkeypatch.setattr(wt, 'pyautogui', fake_pg)
+    mock_pg = types.SimpleNamespace(write=lambda text, interval=0.05: typed.append(text))
+    monkeypatch.setattr(wt, 'gw', mock_gw5)
+    monkeypatch.setattr(wt, 'pyautogui', mock_pg)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
     monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
 
@@ -110,8 +110,8 @@ def test_type_in_window(monkeypatch):
 
 def test_focus_window_not_found(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
-    fake_gw = types.SimpleNamespace(getAllTitles=lambda: [])
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    mock_gw6 = types.SimpleNamespace(getAllTitles=lambda: [])
+    monkeypatch.setattr(wt, 'gw', mock_gw6)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
 
     ok, msg = wt.focus_window('missing')
@@ -122,7 +122,7 @@ def test_focus_window_not_found(monkeypatch):
 def test_focus_window_success(monkeypatch):
     wt = importlib.import_module('modules.window_tools')
 
-    class FakeWin:
+    class MockWin:
         def __init__(self, title):
             self.title = title
             self.activated = False
@@ -130,15 +130,15 @@ def test_focus_window_success(monkeypatch):
         def activate(self):
             self.activated = True
 
-    fake_win = FakeWin('Test App')
-    fake_gw = types.SimpleNamespace(
+    mock_win = MockWin('Test App')
+    mock_gw7 = types.SimpleNamespace(
         getAllTitles=lambda: ['Test App'],
-        getWindowsWithTitle=lambda t: [fake_win]
+        getWindowsWithTitle=lambda t: [mock_win]
     )
-    monkeypatch.setattr(wt, 'gw', fake_gw)
+    monkeypatch.setattr(wt, 'gw', mock_gw7)
     monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
 
     ok, msg = wt.focus_window('test app')
     assert ok
-    assert fake_win.activated
+    assert mock_win.activated
     assert 'activated' in msg.lower()

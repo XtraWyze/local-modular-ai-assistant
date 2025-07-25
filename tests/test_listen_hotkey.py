@@ -14,8 +14,8 @@ def test_start_hotkey_missing_keyboard(monkeypatch):
 def test_start_hotkey(monkeypatch):
     hk = importlib.import_module('modules.listen_hotkey')
     events = []
-    fake_kb = types.SimpleNamespace(add_hotkey=lambda k, cb: events.append(k))
-    monkeypatch.setattr(hk, 'keyboard', fake_kb)
+    mock_kb = types.SimpleNamespace(add_hotkey=lambda k, cb: events.append(k))
+    monkeypatch.setattr(hk, 'keyboard', mock_kb)
     monkeypatch.setattr(hk, '_IMPORT_ERROR', None)
     out = hk.start_hotkey()
     assert 'disabled' in out

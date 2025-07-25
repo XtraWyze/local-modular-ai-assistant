@@ -7,7 +7,7 @@ import pytest
 from module_manager import ModuleRegistry
 
 
-def fake_post(url, json=None, headers=None, timeout=60):
+def mock_post(url, json=None, headers=None, timeout=60):
     class Dummy:
         def raise_for_status(self):
             pass
@@ -21,7 +21,7 @@ def fake_post(url, json=None, headers=None, timeout=60):
 @pytest.fixture(autouse=True)
 def _patch_requests(monkeypatch):
     mod = types.ModuleType("requests")
-    mod.post = fake_post
+    mod.post = mock_post
     monkeypatch.setitem(importlib.sys.modules, "requests", mod)
     yield
 

@@ -15,8 +15,8 @@ def test_play_pause_missing_keyboard(monkeypatch):
 def test_play_pause_sends_key(monkeypatch):
     mc = importlib.import_module('modules.media_controls')
     events = []
-    fake_kb = types.SimpleNamespace(send=lambda name: events.append(name))
-    monkeypatch.setattr(mc, 'keyboard', fake_kb)
+    mock_kb = types.SimpleNamespace(send=lambda name: events.append(name))
+    monkeypatch.setattr(mc, 'keyboard', mock_kb)
     monkeypatch.setattr(mc, '_IMPORT_ERROR', None)
     out = mc.play_pause()
     assert 'Play/Pause pressed' in out
@@ -41,8 +41,8 @@ def test_play_pause_pyautogui_fallback(monkeypatch):
     monkeypatch.setattr(mc, 'keyboard', None)
     monkeypatch.setattr(mc.sys, 'platform', 'linux')
     events = []
-    fake_pg = types.SimpleNamespace(press=lambda key: events.append(key))
-    monkeypatch.setattr(mc, 'pyautogui', fake_pg, raising=False)
+    mock_pg = types.SimpleNamespace(press=lambda key: events.append(key))
+    monkeypatch.setattr(mc, 'pyautogui', mock_pg, raising=False)
     monkeypatch.setattr(mc, '_IMPORT_ERROR', RuntimeError('missing'))
     out = mc.play_pause()
     assert 'Play/Pause pressed' in out
@@ -52,8 +52,8 @@ def test_play_pause_pyautogui_fallback(monkeypatch):
 def test_volume_down(monkeypatch):
     mc = importlib.import_module('modules.media_controls')
     events = []
-    fake_kb = types.SimpleNamespace(send=lambda name: events.append(name))
-    monkeypatch.setattr(mc, 'keyboard', fake_kb)
+    mock_kb2 = types.SimpleNamespace(send=lambda name: events.append(name))
+    monkeypatch.setattr(mc, 'keyboard', mock_kb2)
     monkeypatch.setattr(mc, '_IMPORT_ERROR', None)
     out = mc.volume_down()
     assert 'Volume down pressed' in out

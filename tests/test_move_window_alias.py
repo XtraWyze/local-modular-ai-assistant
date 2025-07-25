@@ -5,11 +5,11 @@ import sys
 def test_parse_and_execute_move_window(monkeypatch):
     wt = types.ModuleType('modules.window_tools')
     calls = {}
-    def fake_move(title, idx):
+    def mock_move(title, idx):
         calls['title'] = title
         calls['idx'] = idx
         return True, 'done'
-    wt.move_window_to_monitor = fake_move
+    wt.move_window_to_monitor = mock_move
     wt.__all__ = ['move_window_to_monitor']
     monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
 

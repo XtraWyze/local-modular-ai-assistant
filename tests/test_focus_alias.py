@@ -7,11 +7,11 @@ def test_parse_and_execute_focus(monkeypatch):
     wt = types.ModuleType('modules.window_tools')
     calls = {}
 
-    def fake_focus(title):
+    def mock_focus(title):
         calls['title'] = title
         return True, f"focused {title}"
 
-    wt.focus_window = fake_focus
+    wt.focus_window = mock_focus
     wt.__all__ = ['focus_window']
     monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
 

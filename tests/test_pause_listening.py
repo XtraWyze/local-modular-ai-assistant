@@ -15,11 +15,11 @@ def test_process_input_pauses_listening(monkeypatch):
     assistant.set_listening(True)
     states = {}
 
-    def fake_llm(prompt):
+    def mock_llm(prompt):
         states['during'] = assistant.is_listening()
         return 'ok'
 
-    monkeypatch.setattr(assistant, 'talk_to_llm', fake_llm)
+    monkeypatch.setattr(assistant, 'talk_to_llm', mock_llm)
 
     assistant.process_input('hello', DummyWidget())
     assert states.get('during') is False
@@ -33,10 +33,10 @@ def test_pending_commands_cleared(monkeypatch):
     assistant, _ = import_assistant(monkeypatch)
     assistant.set_listening(True)
 
-    def fake_llm(prompt):
+    def mock_llm(prompt):
         return 'ok'
 
-    monkeypatch.setattr(assistant, 'talk_to_llm', fake_llm)
+    monkeypatch.setattr(assistant, 'talk_to_llm', mock_llm)
 
     assistant.queue_command('extra', DummyWidget())
     assert assistant.pending_commands

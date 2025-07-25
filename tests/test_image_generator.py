@@ -6,9 +6,9 @@ import types
 import pytest
 
 
-def fake_post(url, json=None, headers=None, timeout=60):
+def mock_post(url, json=None, headers=None, timeout=60):
     """Return a dummy response object and capture the payload."""
-    fake_post.last_payload = json
+    mock_post.last_payload = json
 
     class Dummy:
         def raise_for_status(self):
@@ -24,7 +24,7 @@ def fake_post(url, json=None, headers=None, timeout=60):
 @pytest.fixture(autouse=True)
 def _patch_requests(monkeypatch):
     mod = types.ModuleType("requests")
-    mod.post = fake_post
+    mod.post = mock_post
     monkeypatch.setitem(importlib.sys.modules, "requests", mod)
     yield
 
@@ -36,5 +36,5 @@ def test_generate_image(monkeypatch, tmp_path):
     result = ig.generate_image("a cat")
     assert result.endswith(".png")
     assert os.path.exists(result)
-    assert fake_post.last_payload["model"] == "dall-e-3"
+    assert mock_post.last_payload["model"] == "dall-e-3"
 
