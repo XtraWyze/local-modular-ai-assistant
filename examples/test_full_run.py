@@ -29,7 +29,29 @@ class FullRunTest(unittest.TestCase):
         cls.registry = ModuleRegistry()
         cls.registry.auto_discover("modules", config_map=MODULE_CONFIGS)
         import llm_interface
-        llm_interface.config["llm_backend"] = "mock"
+        llm_interface.config["llm_backend"] = "localai"
+
+        cls._orig_urlopen = llm_interface.request.urlopen
+
+        def dummy_open(req, timeout=0):
+            class Resp:
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, exc_type, exc_val, exc_tb):
+                    pass
+
+                def read(self):
+                    return b'{"choices": [{"message": {"content": "ok"}}]}'
+
+            return Resp()
+
+        llm_interface.request.urlopen = dummy_open
+
+    @classmethod
+    def tearDownClass(cls):
+        import llm_interface
+        llm_interface.request.urlopen = cls._orig_urlopen
 
     def assert_non_empty(self, result):
         self.assertIsNotNone(result, "Result is None")

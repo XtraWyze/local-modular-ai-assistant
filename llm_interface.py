@@ -64,8 +64,6 @@ def generate_response(prompt: str, history=None, system_prompt: str | None = Non
         "temperature": 0.7,
     }
 
-    if config.get("llm_backend") == "mock":
-        return "mock-response"
 
     url = _get_url()
     try:

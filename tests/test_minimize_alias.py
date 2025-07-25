@@ -7,11 +7,11 @@ def test_parse_and_execute_minimize(monkeypatch):
     wt = types.ModuleType('modules.window_tools')
     calls = {}
 
-    def fake_minimize(title):
+    def mock_minimize(title):
         calls['title'] = title
         return True, f"minimized {title}"
 
-    wt.minimize_window = fake_minimize
+    wt.minimize_window = mock_minimize
     wt.__all__ = ['minimize_window']
     monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
 

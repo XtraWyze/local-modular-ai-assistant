@@ -107,11 +107,11 @@ def test_process_input_chitchat(monkeypatch):
     assistant.set_listening(True)
     seen = {}
 
-    def fake_llm(prompt):
+    def mock_llm(prompt):
         seen["text"] = prompt
         return "hi there"
 
-    monkeypatch.setattr(assistant, "talk_to_llm", fake_llm)
+    monkeypatch.setattr(assistant, "talk_to_llm", mock_llm)
 
     class DummyWidget:
         def insert(self, *a, **kw):

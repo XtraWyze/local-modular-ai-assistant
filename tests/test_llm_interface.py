@@ -9,7 +9,7 @@ import llm_interface
 
 
 def test_generate_response(monkeypatch):
-    def fake_urlopen(req, timeout=0):
+    def mock_urlopen(req, timeout=0):
         class Resp:
             def __enter__(self):
                 return self
@@ -22,7 +22,7 @@ def test_generate_response(monkeypatch):
 
         return Resp()
 
-    monkeypatch.setattr(llm_interface.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(llm_interface.request, "urlopen", mock_urlopen)
     monkeypatch.setattr(llm_interface, "get_module_overview", lambda: {})
     llm_interface.config["llm_backend"] = "localai"
     result = llm_interface.generate_response("hi", history=[])
@@ -30,7 +30,7 @@ def test_generate_response(monkeypatch):
 
 
 def test_generate_response_missing_fields(monkeypatch):
-    def fake_urlopen(req, timeout=0):
+    def mock_urlopen(req, timeout=0):
         class Resp:
             def __enter__(self):
                 return self
@@ -43,7 +43,7 @@ def test_generate_response_missing_fields(monkeypatch):
 
         return Resp()
 
-    monkeypatch.setattr(llm_interface.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(llm_interface.request, "urlopen", mock_urlopen)
     monkeypatch.setattr(llm_interface, "get_module_overview", lambda: {})
     llm_interface.config["llm_backend"] = "localai"
     result = llm_interface.generate_response("hi", history=[])

@@ -38,13 +38,13 @@ def test_cancel_after_timeout(monkeypatch):
     rec = SilentRec()
     mic = DummyMic()
 
-    fake = {"t": 0.0}
+    time_state = {"t": 0.0}
 
-    def fake_time():
-        fake["t"] += 1.0
-        return fake["t"]
+    def advance_time():
+        time_state["t"] += 1.0
+        return time_state["t"]
 
-    monkeypatch.setattr(speech_learning, "time", type("T", (), {"time": fake_time, "sleep": lambda x: None}))
+    monkeypatch.setattr(speech_learning, "time", type("T", (), {"time": advance_time, "sleep": lambda x: None}))
 
     out = speech_learning.read_sentences(["one"], recognizer=rec, microphone=mic, pause_secs=0, cancel_after=5)
     assert out == [""]
@@ -66,16 +66,16 @@ def test_learn_wake_sleep(monkeypatch):
 
     added = []
 
-    def fake_add_wake(p):
+    def mock_add_wake(p):
         added.append(("wake", p))
 
-    def fake_add_sleep(p):
+    def mock_add_sleep(p):
         added.append(("sleep", p))
 
     pm = type(
         "PM",
         (),
-        {"add_wake_phrase": fake_add_wake, "add_sleep_phrase": fake_add_sleep},
+        {"add_wake_phrase": mock_add_wake, "add_sleep_phrase": mock_add_sleep},
     )
     monkeypatch.setitem(sys.modules, "phrase_manager", pm)
 

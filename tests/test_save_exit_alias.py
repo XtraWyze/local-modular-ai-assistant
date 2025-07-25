@@ -6,10 +6,10 @@ import sys
 def test_parse_and_execute_save_exit(monkeypatch):
     mod = types.ModuleType('modules.save_exit')
     called = {}
-    def fake_save_and_exit(title):
+    def mock_save_and_exit(title):
         called['title'] = title
         return f"closed {title}"
-    mod.save_and_exit = fake_save_and_exit
+    mod.save_and_exit = mock_save_and_exit
     mod.__all__ = ['save_and_exit']
     monkeypatch.setitem(sys.modules, 'modules.save_exit', mod)
 

@@ -21,10 +21,10 @@ def test_clone_repo_git_missing(monkeypatch, capsys, tmp_path):
 def test_main_ollama(monkeypatch):
     calls = []
 
-    def fake_clone(url, dest):
+    def mock_clone(url, dest):
         calls.append((url, dest))
 
-    monkeypatch.setattr(install_llm_backends, "clone_repo", fake_clone)
+    monkeypatch.setattr(install_llm_backends, "clone_repo", mock_clone)
     monkeypatch.setattr(sys, "argv", ["install_llm_backends.py", "--ollama"])
     install_llm_backends.main()
     assert calls == [(

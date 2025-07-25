@@ -35,14 +35,14 @@ def test_parse_and_execute_invalid_function(monkeypatch):
     monkeypatch.setitem(sys.modules, "modules.tools", stub_tools)
 
     calls = []
-    def fake_llm(prompt):
+    def mock_llm(prompt):
         calls.append(prompt)
         if "Translate" in prompt:
             return "os.system('rm -rf /')"
         return "fallback"
 
     stub_assistant = types.ModuleType("assistant")
-    stub_assistant.talk_to_llm = fake_llm
+    stub_assistant.talk_to_llm = mock_llm
     monkeypatch.setitem(sys.modules, "assistant", stub_assistant)
 
     orch = importlib.reload(importlib.import_module("orchestrator"))
@@ -63,14 +63,14 @@ def test_parse_and_execute_type_validation(monkeypatch):
 
     calls = []
 
-    def fake_llm(prompt):
+    def mock_llm(prompt):
         calls.append(prompt)
         if "Translate" in prompt:
             return "click_at('a', 'b')"
         return "fallback"
 
     stub_assistant = types.ModuleType("assistant")
-    stub_assistant.talk_to_llm = fake_llm
+    stub_assistant.talk_to_llm = mock_llm
     monkeypatch.setitem(sys.modules, "assistant", stub_assistant)
 
     orch = importlib.reload(importlib.import_module("orchestrator"))

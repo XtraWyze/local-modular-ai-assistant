@@ -8,8 +8,8 @@ def test_record_and_play_macro(tmp_path, monkeypatch):
     # Stub pyautogui functions
     mod = importlib.import_module('modules.automation_learning')
     events = [{'x': 1}]
-    fake_pa = types.SimpleNamespace(record=lambda: events, play=lambda e: None)
-    monkeypatch.setattr(mod, 'pyautogui', fake_pa)
+    mock_pa = types.SimpleNamespace(record=lambda: events, play=lambda e: None)
+    monkeypatch.setattr(mod, 'pyautogui', mock_pa)
     monkeypatch.setattr(mod, '_IMPORT_ERROR', None)
 
     macro_dir = tmp_path / 'macros'
@@ -27,8 +27,8 @@ def test_record_and_play_macro(tmp_path, monkeypatch):
 def test_record_macro_script(tmp_path, monkeypatch):
     mod = importlib.import_module('modules.automation_learning')
     events = [{'x': 2}]
-    fake_pa = types.SimpleNamespace(record=lambda: events, play=lambda e: None)
-    monkeypatch.setattr(mod, 'pyautogui', fake_pa)
+    mock_pa = types.SimpleNamespace(record=lambda: events, play=lambda e: None)
+    monkeypatch.setattr(mod, 'pyautogui', mock_pa)
     monkeypatch.setattr(mod, '_IMPORT_ERROR', None)
 
     macro_dir = tmp_path / 'macros'
@@ -45,8 +45,8 @@ def test_record_macro_script(tmp_path, monkeypatch):
 def test_record_macro_no_record_attr(tmp_path, monkeypatch):
     """Ensure fallback recorder works when pyautogui lacks record()."""
     mod = importlib.import_module('modules.automation_learning')
-    fake_pa = types.SimpleNamespace()
-    monkeypatch.setattr(mod, 'pyautogui', fake_pa)
+    mock_pa = types.SimpleNamespace()
+    monkeypatch.setattr(mod, 'pyautogui', mock_pa)
     monkeypatch.setattr(mod, '_IMPORT_ERROR', None)
     # Replace fallback recorder with stub
     monkeypatch.setattr(mod, 'record_events', lambda: [{'z': 3}])

@@ -101,7 +101,7 @@ def save_and_exit(title: str) -> str:
         time.sleep(0.3)
         if win not in gw.getAllWindows():
             return f"Saved and closed '{win.title}'"
-    return f"Save attempts done; window may still be open"
+    return "Save attempts done; window may still be open"
 
 
 def get_description() -> str:

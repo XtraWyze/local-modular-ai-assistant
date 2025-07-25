@@ -14,11 +14,11 @@ def test_start_hotkeys_missing_keyboard(monkeypatch):
 def test_start_hotkeys(monkeypatch):
     mod = importlib.import_module('modules.wake_sleep_hotkey')
     events = []
-    fake_kb = types.SimpleNamespace(
+    mock_kb = types.SimpleNamespace(
         add_hotkey=lambda k, cb: events.append(k),
         remove_hotkey=lambda k: events.remove(k) if k in events else None,
     )
-    monkeypatch.setattr(mod, 'keyboard', fake_kb)
+    monkeypatch.setattr(mod, 'keyboard', mock_kb)
     monkeypatch.setattr(mod, '_IMPORT_ERROR', None)
     out = mod.start_hotkeys()
     assert mod.WAKE_HOTKEY in out and mod.SLEEP_HOTKEY in out
