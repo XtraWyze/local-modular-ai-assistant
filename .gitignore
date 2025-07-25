@@ -14,6 +14,7 @@ assistant_memory.json
 assistant_state.json
 learned_actions.json
 learned_launchers.json
+generated_images/
 
 # VS Code or other editor settings
 .vscode/
