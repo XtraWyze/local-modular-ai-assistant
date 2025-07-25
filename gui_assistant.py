@@ -947,6 +947,7 @@ url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
 url_entry.pack(fill="x", padx=10)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # LLM Model selector
 ttk.Label(settings_tab, text="LLM Model:").pack(anchor="w", padx=10, pady=(10, 0))
 models = llm_interface.list_models()
@@ -963,6 +964,8 @@ ttk.Button(
 
 =======
 >>>>>>> parent of 67a6ffc (Add LLM model selector)
+=======
+>>>>>>> parent of ceb2212 (Merge pull request #101 from XtraWyze/codex/add-model-selector-to-settings-tab)
 def save_settings() -> None:
     cfg = config_loader.config
     if use_remote_var.get():
