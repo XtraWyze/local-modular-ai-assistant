@@ -1,3 +1,4 @@
+import sys
 from modules import speech_learning
 
 class DummyRec:
@@ -51,3 +52,33 @@ def test_cancel_after_timeout(monkeypatch):
 
 def test_get_description():
     assert isinstance(speech_learning.get_description(), str)
+
+
+def test_learn_wake_sleep(monkeypatch):
+    rec = DummyRec()
+    mic = DummyMic()
+
+    monkeypatch.setattr(
+        speech_learning,
+        "read_sentences",
+        lambda *a, **kw: ["wake", "sleep"],
+    )
+
+    added = []
+
+    def fake_add_wake(p):
+        added.append(("wake", p))
+
+    def fake_add_sleep(p):
+        added.append(("sleep", p))
+
+    pm = type(
+        "PM",
+        (),
+        {"add_wake_phrase": fake_add_wake, "add_sleep_phrase": fake_add_sleep},
+    )
+    monkeypatch.setitem(sys.modules, "phrase_manager", pm)
+
+    out = speech_learning.learn_wake_sleep(recognizer=rec, microphone=mic)
+    assert out == ["wake", "sleep"]
+    assert added == [("wake", "wake"), ("sleep", "sleep")]

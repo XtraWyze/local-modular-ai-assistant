@@ -19,7 +19,30 @@ DEFAULT_SENTENCES = [
     "I am training my personal assistant.",
 ]
 
-__all__ = ["read_sentences"]
+# Predefined prompt sets for the GUI speech learning tab
+WAKE_SLEEP_PROMPTS = [
+    "Wake up",
+    "Go to sleep",
+]
+
+SENTENCE_PROMPTS = [
+    "The quick brown fox jumps over the lazy dog.",
+]
+
+PARAGRAPH_PROMPTS = [
+    (
+        "This is a longer paragraph for speech training. "
+        "It helps the assistant learn your voice over extended text."
+    )
+]
+
+__all__ = [
+    "read_sentences",
+    "learn_wake_sleep",
+    "WAKE_SLEEP_PROMPTS",
+    "SENTENCE_PROMPTS",
+    "PARAGRAPH_PROMPTS",
+]
 
 def read_sentences(
     sentences: Optional[Iterable[str]] = None,
@@ -99,11 +122,48 @@ def read_sentences(
     return results
 
 
+def learn_wake_sleep(
+    recognizer: Optional[object] = None,
+    microphone: Optional[object] = None,
+    speak_func: Optional[Callable[[str], None]] = None,
+) -> List[str]:
+    """Learn custom wake and sleep phrases.
+
+    The first recognized phrase is added as a wake phrase and the second
+    as a sleep phrase using :mod:`phrase_manager`.
+
+    Parameters
+    ----------
+    recognizer, microphone, speak_func : see :func:`read_sentences`
+
+    Returns
+    -------
+    list[str]
+        Recognized phrases in order.
+    """
+
+    results = read_sentences(
+        WAKE_SLEEP_PROMPTS,
+        recognizer=recognizer,
+        microphone=microphone,
+        speak_func=speak_func,
+    )
+    if len(results) >= 2 and results[0] and results[1]:
+        try:
+            from phrase_manager import add_wake_phrase, add_sleep_phrase
+
+            add_wake_phrase(results[0])
+            add_sleep_phrase(results[1])
+        except Exception as exc:  # pragma: no cover - optional dependency
+            log_error(f"[{MODULE_NAME}] phrase update failed: {exc}")
+    return results
+
+
 def get_info() -> dict:
     return {
         "name": MODULE_NAME,
         "description": get_description(),
-        "functions": ["read_sentences"],
+        "functions": ["read_sentences", "learn_wake_sleep"],
     }
 
 
@@ -119,6 +179,7 @@ def register():
         MODULE_NAME,
         {
             "read_sentences": read_sentences,
+            "learn_wake_sleep": learn_wake_sleep,
             "get_info": get_info,
         },
     )
