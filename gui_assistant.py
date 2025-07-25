@@ -27,6 +27,7 @@ import os
 import sys
 import json
 import time
+from error_logger import log_error
 try:
     from watchdog.observers import Observer
     from config_watcher import ConfigFileChangeHandler
@@ -526,9 +527,11 @@ def start_macro_recording() -> None:
         from modules import automation_learning
 
         path = automation_learning.record_macro(name)
-        macro_status.after(
-            0, lambda: macro_status.config(text=f"Saved to {path}")
-        )
+        def _cb() -> None:
+            macro_status.config(text=f"Saved to {path}")
+            update_macro_buttons()
+
+        macro_status.after(0, _cb)
 
     def countdown_step() -> None:
         nonlocal count
@@ -546,6 +549,111 @@ def start_macro_recording() -> None:
 ttk.Button(macro_frame, text="Record Macro", command=start_macro_recording).pack(
     pady=(0, 10)
 )
+
+# --- Macro Button Grid ---
+macro_buttons_frame = ttk.Frame(macro_frame)
+macro_buttons_frame.pack(fill="both", expand=True)
+macro_buttons: list[ttk.Button] = []
+
+def _run_macro(name: str) -> None:
+    """Play the macro ``name`` and show status."""
+    from modules.automation_learning import play_macro
+
+    result = play_macro(name)
+    macro_status.config(text=result)
+
+
+def update_macro_buttons() -> None:
+    """Refresh the macro grid based on saved macros."""
+    from modules.automation_learning import list_macros
+
+    macros = list_macros()
+    for i, btn in enumerate(macro_buttons):
+        if i < len(macros):
+            name = macros[i]
+            btn.configure(
+                text=name,
+                state=tk.NORMAL,
+                command=lambda n=name: _run_macro(n),
+            )
+        else:
+            btn.configure(
+                text=f"Slot {i + 1}", command=lambda: None, state=tk.DISABLED
+            )
+
+
+for r in range(5):
+    for c in range(6):
+        btn = ttk.Button(macro_buttons_frame, text=f"Slot {r * 6 + c + 1}")
+        btn.grid(row=r, column=c, padx=2, pady=2, sticky="nsew")
+        macro_buttons.append(btn)
+for i in range(6):
+    macro_buttons_frame.columnconfigure(i, weight=1)
+
+update_macro_buttons()
+
+
+def _remove_macro(name: str) -> None:
+    """Delete ``name`` macro file and unregister the action."""
+    from modules.automation_learning import MACRO_DIR
+    from state_manager import remove_action
+
+    try:
+        path = os.path.join(MACRO_DIR, f"{name}.json")
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception as exc:  # pragma: no cover - file I/O error
+        log_error(f"[GUI] remove macro error: {exc}")
+    remove_action(name)
+    update_macro_buttons()
+
+
+def edit_macros() -> None:
+    """Open a simple editor to delete individual or all macros."""
+    win = tk.Toplevel(root)
+    win.title("Edit Macros")
+    listbox = tk.Listbox(win)
+    listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def _refresh() -> None:
+        listbox.delete(0, tk.END)
+        from modules.automation_learning import list_macros
+
+        for m in list_macros():
+            listbox.insert(tk.END, m)
+
+    status = ttk.Label(win, text="")
+    status.pack()
+
+    def delete_selected() -> None:
+        if not listbox.curselection():
+            status.config(text="Select a macro first.")
+            return
+        name = listbox.get(listbox.curselection()[0])
+        _remove_macro(name)
+        status.config(text=f"Deleted {name}")
+        _refresh()
+
+    def delete_all() -> None:
+        for name in listbox.get(0, tk.END):
+            _remove_macro(name)
+        status.config(text="All macros deleted")
+        _refresh()
+
+    btn_frame = ttk.Frame(win)
+    btn_frame.pack(pady=5)
+    ttk.Button(btn_frame, text="Delete Selected", command=delete_selected).pack(
+        side=tk.LEFT, padx=5
+    )
+    ttk.Button(btn_frame, text="Delete All", command=delete_all).pack(
+        side=tk.LEFT, padx=5
+    )
+
+    _refresh()
+
+
+ttk.Button(macro_frame, text="Edit Macros", command=edit_macros).pack(pady=(0, 5))
+
 
 # ---------- Module Generator Tab ----------
 gen_name_var = tk.StringVar()
