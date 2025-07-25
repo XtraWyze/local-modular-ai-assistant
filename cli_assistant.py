@@ -9,6 +9,8 @@ from assistant import (
 )
 from orchestrator import parse_and_execute
 from modules.actions import detect_action
+from modules import command_macros
+import re
 import planning_agent
 import keyboard
 import pyautogui
@@ -106,6 +108,30 @@ def handle_cli_input(user_input: str) -> str | None:
     user_input = user_input.strip()
     if not user_input:
         return ""
+
+    # Record command if a macro is being learned
+    if command_macros.is_recording() and user_input.lower() not in {"stop macro"}:
+        command_macros.record_command(user_input)
+
+    m = re.match(r"learn this macro (\w+)", user_input, re.IGNORECASE)
+    if m:
+        return command_macros.start_recording(m.group(1))
+
+    if user_input.lower() == "stop macro":
+        return command_macros.stop_recording()
+
+    if user_input.lower() == "list macros":
+        names = command_macros.list_macros()
+        return ", ".join(names) if names else "No macros saved"
+
+    m = re.match(r"run macro (\w+)", user_input, re.IGNORECASE)
+    if m:
+        return command_macros.run_macro(m.group(1), parse_and_execute)
+
+    m = re.match(r"edit macro (\w+) (.+)", user_input, re.IGNORECASE)
+    if m:
+        cmds = [c.strip() for c in m.group(2).split(';') if c.strip()]
+        return command_macros.edit_macro(m.group(1), cmds)
 
     # Basic volume and media commands
     resp = process_command(user_input)
