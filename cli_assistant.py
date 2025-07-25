@@ -53,6 +53,26 @@ def process_command(user_input: str):
 
         return media_controls.volume_down()
 
+    if cmd in {"start recording", "stop recording", "toggle recording"}:
+        from modules import gamebar_capture
+
+        return gamebar_capture.toggle_recording()
+
+    if cmd in {"open game bar", "open capture"}:
+        from modules import gamebar_capture
+
+        return gamebar_capture.open_capture()
+
+    if cmd in {"take screenshot", "capture screenshot"}:
+        from modules import gamebar_capture
+
+        return gamebar_capture.capture_screenshot()
+
+    if cmd in {"record last 30 seconds", "capture last 30 seconds"}:
+        from modules import gamebar_capture
+
+        return gamebar_capture.capture_last_30s()
+
     return None
 
 

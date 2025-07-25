@@ -1,6 +1,22 @@
 # ========== IMPORTS ==========
 import tkinter as tk
 from tkinter import ttk
+
+
+class ReadOnlyText(tk.Text):
+    """Text widget that prevents user edits but allows programmatic inserts."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("state", tk.DISABLED)
+        super().__init__(*args, **kwargs)
+        # Block user key presses to keep the widget read-only
+        self.bind("<Key>", lambda _event: "break")
+
+    def insert(self, index, chars, *tags):
+        """Insert text while temporarily enabling the widget."""
+        self.config(state=tk.NORMAL)
+        super().insert(index, chars, *tags)
+        self.config(state=tk.DISABLED)
 try:
     from PIL import Image, ImageDraw, ImageTk  # type: ignore
 except Exception:  # Pillow is optional
@@ -129,8 +145,8 @@ root.protocol("WM_DELETE_WINDOW", on_close)
 frame = ttk.Frame(main_tab)
 frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-# Main output console
-output = tk.Text(frame, height=20, wrap=tk.WORD)
+# Main output console (read-only for user)
+output = ReadOnlyText(frame, height=20, wrap=tk.WORD)
 output.pack(fill="both", expand=True)
 output.insert(tk.END, "Assistant: Assistant is sleeping. Say your wake phrase to activate.\n")
 
@@ -657,20 +673,47 @@ def generate_image_btn() -> None:
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
 
 # ---------- Speech Learning Tab ----------
-speech_label = ttk.Label(speech_tab, text="Click Start and read each sentence aloud:")
+speech_label = ttk.Label(
+    speech_tab,
+    text="Practice speaking or teach new wake/sleep phrases. Click a button below:",
+)
 speech_label.pack(pady=(10, 5))
 
 speech_results = tk.Text(speech_tab, height=10, width=60, wrap=tk.WORD)
 speech_results.pack(padx=10, pady=5)
 
-def run_speech_training():
-    speech_results.delete("1.0", tk.END)
-    results = speech_learning.read_sentences(speak_func=tts_module.speak)
-    for prompt, heard in zip(speech_learning.DEFAULT_SENTENCES, results):
-        speech_results.insert(tk.END, f"Prompt: {prompt}\nHeard: {heard}\n\n")
 
-start_train_btn = ttk.Button(speech_tab, text="Start Training", command=run_speech_training)
-start_train_btn.pack(pady=5)
+def _run_learning(prompts, update_phrases=False):
+    speech_results.delete("1.0", tk.END)
+    results = speech_learning.read_sentences(prompts, speak_func=tts_module.speak)
+    for prompt, heard in zip(prompts, results):
+        speech_results.insert(tk.END, f"Prompt: {prompt}\nHeard: {heard}\n\n")
+    if update_phrases and len(results) >= 2:
+        from phrase_manager import add_wake_phrase, add_sleep_phrase
+
+        speech_results.insert(tk.END, add_wake_phrase(results[0]) + "\n")
+        speech_results.insert(tk.END, add_sleep_phrase(results[1]) + "\n")
+
+
+def run_wake_sleep():
+    _run_learning(speech_learning.WAKE_SLEEP_PROMPTS, update_phrases=True)
+
+
+def run_sentence():
+    _run_learning(speech_learning.SENTENCE_PROMPTS)
+
+
+def run_paragraph():
+    _run_learning(speech_learning.PARAGRAPH_PROMPTS)
+
+
+btn_frame = ttk.Frame(speech_tab)
+btn_frame.pack(pady=5)
+ttk.Button(btn_frame, text="Learn Wake/Sleep", command=run_wake_sleep).pack(
+    side=tk.LEFT, padx=5
+)
+ttk.Button(btn_frame, text="Sentence", command=run_sentence).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_frame, text="Paragraph", command=run_paragraph).pack(side=tk.LEFT, padx=5)
 
 # ========== START VOICE LISTENERS & SCHEDULE THREADS ==========
 wake_sleep_hotkey.start_hotkeys()

@@ -16,7 +16,14 @@ MODULE_NAME = "image_generator"
 __all__ = ["generate_image", "get_info", "get_description"]
 
 
-def generate_image(prompt: str, *, provider: str = "openai", size: str = "512x512", save_dir: str = "generated_images") -> str:
+def generate_image(
+    prompt: str,
+    *,
+    provider: str = "openai",
+    model: str = "dall-e-3",
+    size: str = "512x512",
+    save_dir: str = "generated_images",
+) -> str:
     """Generate an image from ``prompt`` and save it locally.
 
     Parameters
@@ -25,8 +32,10 @@ def generate_image(prompt: str, *, provider: str = "openai", size: str = "512x51
         Text description of the desired image.
     provider:
         API provider identifier. Currently only ``"openai"`` is supported.
+    model:
+        Model identifier for the provider, e.g. ``"dall-e-3"``.
     size:
-        Image resolution string, e.g. ``"512x512"``.
+        Image resolution string (for providers that support it), e.g. ``"512x512"``.
     save_dir:
         Folder to store generated images.
 
@@ -49,6 +58,7 @@ def generate_image(prompt: str, *, provider: str = "openai", size: str = "512x51
     }
     payload = {
         "prompt": prompt,
+        "model": model,
         "n": 1,
         "size": size,
         "response_format": "b64_json",

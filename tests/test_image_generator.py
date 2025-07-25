@@ -7,6 +7,9 @@ import pytest
 
 
 def fake_post(url, json=None, headers=None, timeout=60):
+    """Return a dummy response object and capture the payload."""
+    fake_post.last_payload = json
+
     class Dummy:
         def raise_for_status(self):
             pass
@@ -33,4 +36,5 @@ def test_generate_image(monkeypatch, tmp_path):
     result = ig.generate_image("a cat")
     assert result.endswith(".png")
     assert os.path.exists(result)
+    assert fake_post.last_payload["model"] == "dall-e-3"
 
