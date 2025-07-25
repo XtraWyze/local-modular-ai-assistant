@@ -1,7 +1,7 @@
 {
   "tts_model": "tts_models/en/jenny/jenny",
   "tts_voice": null,
-  "tts_volume": 0.7,
+  "tts_volume": 0.95,
   "tts_speed": 1.1,
   "use_voice": true,
   "prefer_local_llm": true,
@@ -14,6 +14,7 @@
   "enable_plugins": true,
   "wake_phrases": [
     "hey assistant",
+    "hey moat",
     "wake up",
     "hello assistant",
     "okay assistant",
