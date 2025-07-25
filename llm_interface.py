@@ -1,5 +1,7 @@
 import json
 from urllib import request
+from pathlib import Path
+import subprocess
 from config_loader import ConfigLoader
 from memory_manager import search_memory
 from error_logger import log_error
@@ -86,3 +88,30 @@ def generate_response(prompt: str, history=None, system_prompt: str | None = Non
     except Exception as exc:  # pragma: no cover - network failure
         log_error(f"LLM request failed: {exc}")
         return f"[LLM Error] {exc}"
+
+
+def list_models() -> list[str]:
+    """Return available LLM model names for the configured backend."""
+    backend = config.get("llm_backend", "localai")
+    paths = {
+        "localai": Path("LocalAI") / "models",
+        "webui": Path("text-generation-webui") / "models",
+    }
+    if backend == "ollama":
+        try:
+            out = subprocess.check_output(["ollama", "list"], text=True)
+            names = [line.split()[0] for line in out.splitlines() if line.strip()]
+            return names
+        except Exception:
+            paths["ollama"] = Path.home() / ".ollama" / "models"
+
+    model_dir = paths.get(backend)
+    if model_dir and model_dir.exists():
+        names: list[str] = []
+        for entry in model_dir.iterdir():
+            if entry.is_dir():
+                names.append(entry.name)
+            elif entry.suffix.lower() in {".gguf", ".ggml", ".bin", ".pth", ".pt"}:
+                names.append(entry.stem)
+        return sorted(set(names))
+    return []

@@ -917,6 +917,7 @@ url_var = tk.StringVar(value=config.get("llm_url", "http://localhost:11434/v1/ch
 def _toggle_remote() -> None:
     state = tk.NORMAL if use_remote_var.get() else tk.DISABLED
     url_entry.config(state=state)
+    model_menu.config(state=tk.DISABLED if use_remote_var.get() else tk.NORMAL)
 
 ttk.Checkbutton(
     settings_tab,
@@ -929,12 +930,22 @@ ttk.Label(settings_tab, text="LLM URL:").pack(anchor="w", padx=10)
 url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
 url_entry.pack(fill="x", padx=10)
 
+# LLM Model selector
+ttk.Label(settings_tab, text="LLM Model:").pack(anchor="w", padx=10, pady=(10, 0))
+models = llm_interface.list_models()
+current_model = config.get("llm_model") or (models[0] if models else "")
+model_var = tk.StringVar(value=current_model)
+model_menu = ttk.OptionMenu(settings_tab, model_var, current_model, *models)
+model_menu.pack(anchor="w", padx=10)
+
 def save_settings() -> None:
     cfg = config_loader.config
     if use_remote_var.get():
         cfg["llm_url"] = url_var.get().strip()
     else:
         cfg.pop("llm_url", None)
+    if model_var.get():
+        cfg["llm_model"] = model_var.get().strip()
     with open("config.json", "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
     config_loader.config = cfg
