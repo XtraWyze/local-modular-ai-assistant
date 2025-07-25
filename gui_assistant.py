@@ -620,6 +620,10 @@ size_var = tk.StringVar(value="512x512")
 ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
 ttk.OptionMenu(image_tab, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
 
+provider_var = tk.StringVar(value="openai")
+ttk.Label(image_tab, text="Provider:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(image_tab, provider_var, "openai", "openai", "diffusers").pack(anchor="w", padx=10)
+
 img_preview = ttk.Label(image_tab)
 img_preview.pack(pady=10)
 img_status = ttk.Label(image_tab, text="")
@@ -633,7 +637,11 @@ def generate_image_btn() -> None:
     img_status.config(text="Generating...")
 
     def _run() -> None:
-        path = image_generator.generate_image(prompt, size=size_var.get())
+        path = image_generator.generate_image(
+            prompt,
+            provider=provider_var.get(),
+            size=size_var.get(),
+        )
 
         def _update() -> None:
             if path.endswith(".png") and os.path.exists(path):

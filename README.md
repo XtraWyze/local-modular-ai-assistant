@@ -26,6 +26,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **LLM auto-loads module list for accurate tool usage**
 - **User-friendly GUI with mic overlay and system tray**
 - **Speech learning tab to practice recognition**
+- **Image Generator tab to create pictures via OpenAI or local models**
 - **Lightweight CLI mode for keyboard power-users**
 - **Full local/offline LLM via LocalAI or text-generation-webui**
 - **Ask "What can you do?" to hear all available modules**
@@ -268,6 +269,7 @@ Add new tools or actions in `modules/tools.py` or `modules/actions.py`, or creat
 
 Use the generator script to scaffold new modules quickly.
 You can also open the **Module Generator** tab in the GUI to preview and save new modules interactively.
+Open the **Image Generator** tab to create images from prompts locally or via OpenAI.
 
 Enable/disable plugins in config.json (enable_plugins).
 
