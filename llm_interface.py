@@ -15,9 +15,6 @@ SYSTEM_PROMPT = (
     "You use local memory to recall past events and can control the system through modules."
 )
 
-# Friendly reply used if the LLM response is malformed
-DEFAULT_FALLBACK = "I'm doing well, thanks for asking!"
-
 
 def _module_prompt() -> str:
     """Return a short description of available modules for the system prompt."""
