@@ -179,8 +179,6 @@ def close_window(partial_title: str) -> tuple[bool, str]:
     return False, f"Failed to close '{matches[0]}'"
 
 
-# Window manipulation implementations ---------------------------------------
-
 def focus_window(partial_title: str) -> tuple[bool, str]:
     """Bring the first window matching ``partial_title`` to the foreground."""
     if gw is None or _GW_ERROR:
