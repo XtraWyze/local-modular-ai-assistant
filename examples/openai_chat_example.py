@@ -1,3 +1,8 @@
+
+"""Minimal script to confirm your OpenAI key and connection."""
+
+
+main
 import logging
 import os
 from typing import Optional
