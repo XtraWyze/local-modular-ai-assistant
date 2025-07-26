@@ -47,7 +47,13 @@ def test_generate_image(monkeypatch, tmp_path):
     importlib.reload(mod)
 
     outdir = tmp_path / 'imgs'
-    result = mod.generate_image('a cat', 'path/to/model', device='cpu', save_dir=str(outdir))
+    result = mod.generate_image(
+        'a cat',
+        'path/to/model',
+        device='cpu',
+        save_dir=str(outdir),
+        name='cat',
+    )
     assert result.endswith('.png')
     assert Path(result).exists()
     assert DummyPipeline.path == 'path/to/model'

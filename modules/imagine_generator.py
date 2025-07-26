@@ -19,6 +19,7 @@ def imagine(
     model: str = "dall-e-3",
     size: str = "512x512",
     save_dir: str = "generated_images",
+    name: str | None = None,
     sd_model_path: str | None = None,
     device: str | None = None,
 ) -> str:
@@ -37,6 +38,9 @@ def imagine(
         Image resolution for the cloud provider.
     save_dir:
         Directory to store the generated image.
+    name:
+        Optional file name for the image without extension. Invalid characters
+        are stripped and ``.png`` is appended.
     sd_model_path:
         Path to the Stable Diffusion model when ``source`` is ``"local"``.
     device:
@@ -45,8 +49,20 @@ def imagine(
     if source == "local":
         if not sd_model_path:
             return "Stable Diffusion model path required"
-        return sd.generate_image(prompt, sd_model_path, device=device, save_dir=save_dir)
-    return ig.generate_image(prompt, model=model, size=size, save_dir=save_dir)
+        return sd.generate_image(
+            prompt,
+            sd_model_path,
+            device=device,
+            save_dir=save_dir,
+            name=name,
+        )
+    return ig.generate_image(
+        prompt,
+        model=model,
+        size=size,
+        save_dir=save_dir,
+        name=name,
+    )
 
 
 def get_info() -> dict:
