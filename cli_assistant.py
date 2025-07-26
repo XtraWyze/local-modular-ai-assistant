@@ -233,7 +233,9 @@ def handle_cli_input(user_input: str) -> str | None:
 
 def cli_loop():
     print(
-        "Local AI Assistant with Memory\nType 'exit' to quit, 'recall <keyword>' to search memory."
+        "Local AI Assistant with Memory\n"
+        "Type 'exit' to quit, 'recall <keyword>' to search memory.\n"
+        "Try window commands like 'open notepad', 'close chrome window', or 'resize spotify to 800 600'."
     )
     while True:
         user_input = input("You: ")
