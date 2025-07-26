@@ -342,6 +342,11 @@ You can also start and control the remote server via voice commands:
 `"start remote server"`, `"stop remote server"`, and
 `"send remote <host> <port> <command>"`.
 
+### LAN Auto-Discovery
+The ``lan_discovery`` module uses mDNS to broadcast the assistant on your LAN.
+Run ``lan_launcher.py`` or the ``start_lan_assistant`` scripts to automatically
+start a server or connect to one without manually entering an IP address.
+
 Or start the lightweight Flask REST API:
 ```bash
 python -m modules.web_api
