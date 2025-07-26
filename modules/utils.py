@@ -8,7 +8,6 @@ from pathlib import Path
 __all__ = [
     "resource_path",
     "project_path",
-    "chunk_text",
     "clean_for_tts",
     "hide_cmd_window",
     "show_cmd_window",
@@ -33,20 +32,6 @@ def project_path(*parts: str) -> str:
     root = Path(__file__).resolve().parents[1]
     return str(root.joinpath(*parts))
 
-def chunk_text(text: str, max_length: int = 220) -> list[str]:
-    """Split ``text`` into sentence chunks no longer than ``max_length``."""
-    sentences = re.split(r'(?<=[.?!])\s+', text)
-    chunks, current = [], ""
-    for s in sentences:
-        if len(current) + len(s) < max_length:
-            current += " " + s
-        else:
-            if current.strip():
-                chunks.append(current.strip())
-            current = s
-    if current.strip():
-        chunks.append(current.strip())
-    return chunks
 
 def clean_for_tts(text: str) -> str:
     """Remove unsupported characters for TTS output."""
@@ -63,7 +48,6 @@ def get_info():
         "functions": [
             "resource_path",
             "project_path",
-            "chunk_text",
             "clean_for_tts",
             "hide_cmd_window",
             "show_cmd_window",

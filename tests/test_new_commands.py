@@ -26,7 +26,7 @@ def test_process_input_plan(monkeypatch):
     queued = []
     monkeypatch.setattr(assistant, 'queue_command', lambda t, w: queued.append(t))
     assistant.process_input('plan open app then close app', DummyWidget())
-    assert queued == ['open app', 'close app']
+    assert queued == ['open app then close app']
 
 
 def test_process_input_pause_music(monkeypatch):
