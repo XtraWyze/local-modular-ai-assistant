@@ -59,6 +59,8 @@
   "pro_mode": false,
   "tts_backend": "coqui",
   "stt_backend": "vosk",
+  "hf_tts_model": "facebook/fastspeech2-en-ljspeech",
+  "hf_stt_model": "openai/whisper-small",
   "api_keys": {
     "openai": "",
     "anthropic": "",

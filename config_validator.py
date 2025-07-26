@@ -50,6 +50,8 @@ CONFIG_SCHEMA = {
         "max_speech_length": {"type": "number"},
         "auto_sleep_timeout": {"type": "number"},
         "voice_beep": {"type": "boolean"},
+        "hf_tts_model": {"type": "string"},
+        "hf_stt_model": {"type": "string"},
         "log_level": {"type": "string"},
         "enable_advanced_logging": {"type": "boolean"},
         "busy_timeout": {"type": "number"},
