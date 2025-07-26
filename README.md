@@ -103,6 +103,10 @@ python cleanup.py
 pip install diffusers huggingface-hub torch
 # Troubleshooting: upgrade if you see a "cached_download" ImportError
 pip install -U diffusers huggingface-hub  # pinned in requirements.txt as diffusers==0.34.0, huggingface-hub==0.33.5
+# Optional: create tool-specific virtual environments
+python setup_ollama_env.py     # minimal env for Ollama clients
+python setup_opendream_env.py  # minimal env for Stable Diffusion
+python setup_fastapi_env.py    # minimal env for FastAPI servers
 Optional: Download/prepare your LLM and speech models, and place them in the project directory as needed.
 
 ### Required Downloads
