@@ -64,6 +64,7 @@ from modules import api_keys
 from modules import debug_panel
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
+from modules import imagine_generator
 from modules import video_generator
 from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
@@ -895,7 +896,11 @@ def open_folder(path: str) -> None:
     except Exception as exc:
         img_status.config(text=f"Failed to open: {exc}")
 
-ttk.Button(image_tab, text="Open Folder", command=lambda: open_folder(img_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+ttk.Button(
+    image_tab,
+    text="Open Folder",
+    command=lambda: open_folder(img_dir_var.get()),
+).pack(anchor="w", padx=10, pady=(0, 5))
 
 img_name_var = tk.StringVar(value="")
 ttk.Label(image_tab, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
@@ -1003,6 +1008,85 @@ def generate_image_btn() -> None:
         img_status.after(0, _update)
 
     threading.Thread(target=_run, daemon=True).start()
+
+
+def imagine_via_gui(
+    prompt: str,
+    *,
+    source: str = "cloud",
+    model: str = "dall-e-3",
+    size: str = "512x512",
+    save_dir: str = "generated_images",
+    name: str | None = None,
+    sd_model_path: str | None = None,
+    device: str | None = None,
+) -> str:
+    """Generate an image via the GUI and return the file path."""
+
+    start = time.time()
+
+    def _prepare() -> None:
+        notebook.select(image_tab)
+        img_prompt.delete("1.0", tk.END)
+        img_prompt.insert("1.0", prompt)
+        source_var.set(source)
+        sd_model_var.set(sd_model_path or "")
+        sd_device_var.set(device or gpu.get_device())
+        size_var.set(size)
+        img_dir_var.set(save_dir)
+        img_name_var.set(name or "")
+        toggle_source()
+        img_status.config(text="Generating...")
+        _start_eta_timer(start)
+
+    root.after(0, _prepare)
+
+    if source == "local":
+        if not sd_model_path:
+            path = "Stable Diffusion model path required"
+        else:
+            path = sd_generator.generate_image(
+                prompt,
+                sd_model_path,
+                device=device,
+                save_dir=save_dir,
+                name=name,
+            )
+    else:
+        path = image_generator.generate_image(
+            prompt,
+            model=model,
+            size=size,
+            save_dir=save_dir,
+            name=name,
+        )
+
+    duration = time.time() - start
+    record_image_duration(duration)
+
+    def _finish() -> None:
+        global _eta_running
+        _eta_running = False
+        if path.endswith(".png") and os.path.exists(path):
+            if Image and ImageTk:
+                try:
+                    img = Image.open(path)
+                    photo = ImageTk.PhotoImage(img)
+                    img_canvas.delete("all")
+                    img_canvas.config(width=photo.width(), height=photo.height())
+                    img_canvas.create_image(0, 0, anchor="nw", image=photo)
+                    img_canvas.image = photo
+                except Exception:
+                    img_canvas.delete("all")
+            img_status.config(text=f"Saved to {path}")
+        else:
+            img_canvas.delete("all")
+            img_canvas.create_text(128, 128, text=path, fill="black")
+
+    root.after(0, _finish)
+    return path
+
+imagine_generator.set_gui_callback(imagine_via_gui)
 
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
 

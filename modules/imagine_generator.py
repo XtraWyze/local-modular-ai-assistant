@@ -2,14 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Callable
+
+from error_logger import log_error
 
 from . import image_generator as ig
 from . import stable_diffusion_generator as sd
 
 MODULE_NAME = "imagine_generator"
 
-__all__ = ["imagine", "get_info", "get_description"]
+_gui_callback: Callable[..., str] | None = None
+
+def set_gui_callback(func: Callable[..., str] | None) -> None:
+    """Register a GUI callback for real-time image generation."""
+    global _gui_callback
+    _gui_callback = func
+
+__all__ = ["imagine", "get_info", "get_description", "set_gui_callback"]
 
 
 def imagine(
@@ -46,6 +55,21 @@ def imagine(
     device:
         Torch device string for local generation.
     """
+    if _gui_callback is not None:
+        try:
+            return _gui_callback(
+                prompt,
+                source=source,
+                model=model,
+                size=size,
+                save_dir=save_dir,
+                name=name,
+                sd_model_path=sd_model_path,
+                device=device,
+            )
+        except Exception as exc:  # pragma: no cover - callback failures
+            log_error(f"[imagine_generator] gui callback error: {exc}")
+
     if source == "local":
         if not sd_model_path:
             return "Stable Diffusion model path required"
