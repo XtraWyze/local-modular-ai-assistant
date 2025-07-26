@@ -25,6 +25,7 @@ except Exception:  # Pillow is optional
 import threading
 import os
 import sys
+import subprocess
 import json
 import time
 import atexit
@@ -57,7 +58,7 @@ from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning
 # utils is located within the modules package
-from modules.utils import resource_path
+from modules.utils import resource_path, project_path
 from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import debug_panel
@@ -875,6 +876,32 @@ size_var = tk.StringVar(value="512x512")
 ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
 ttk.OptionMenu(image_tab, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
 
+img_dir_var = tk.StringVar(value="generated_images")
+ttk.Label(image_tab, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
+img_dir_entry = ttk.Entry(image_tab, textvariable=img_dir_var, width=50)
+img_dir_entry.pack(fill="x", padx=10)
+
+def open_folder(path: str) -> None:
+    if not os.path.isabs(path):
+        path = project_path(path)
+    os.makedirs(path, exist_ok=True)
+    try:
+        if hasattr(os, "startfile"):
+            os.startfile(path)  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path])
+    except Exception as exc:
+        img_status.config(text=f"Failed to open: {exc}")
+
+ttk.Button(image_tab, text="Open Folder", command=lambda: open_folder(img_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+
+img_name_var = tk.StringVar(value="")
+ttk.Label(image_tab, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
+img_name_entry = ttk.Entry(image_tab, textvariable=img_name_var, width=50)
+img_name_entry.pack(fill="x", padx=10)
+
 def toggle_source(*_args) -> None:
     """Enable or disable local model fields based on ``source_var``."""
     state = tk.NORMAL if source_var.get() == "local" else tk.DISABLED
@@ -940,9 +967,16 @@ def generate_image_btn() -> None:
                 prompt,
                 sd_model_var.get(),
                 device=sd_device_var.get(),
+                save_dir=img_dir_var.get(),
+                name=img_name_var.get().strip() or None,
             )
         else:
-            path = image_generator.generate_image(prompt, size=size_var.get())
+            path = image_generator.generate_image(
+                prompt,
+                size=size_var.get(),
+                save_dir=img_dir_var.get(),
+                name=img_name_var.get().strip() or None,
+            )
 
         duration = time.time() - start
         record_image_duration(duration)

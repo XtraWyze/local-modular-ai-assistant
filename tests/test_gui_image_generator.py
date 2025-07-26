@@ -22,14 +22,25 @@ class DummyStatus:
         self.text = text
 
 
-def run_generate_image(img_prompt, img_status, source_var, sd_model_var, sd_device_var, size_var):
+def run_generate_image(img_prompt, img_status, source_var, sd_model_var, sd_device_var, size_var, dir_var, name_var):
     prompt = img_prompt.get("1.0", None).strip()
     if not prompt:
         img_status.config(text="Enter a prompt first.")
         return
     if source_var.get() == "local":
-        return sd_gen.generate_image(prompt, sd_model_var.get(), device=sd_device_var.get())
-    return image_gen.generate_image(prompt, size=size_var.get())
+        return sd_gen.generate_image(
+            prompt,
+            sd_model_var.get(),
+            device=sd_device_var.get(),
+            save_dir=dir_var.get(),
+            name=name_var.get() or None,
+        )
+    return image_gen.generate_image(
+        prompt,
+        size=size_var.get(),
+        save_dir=dir_var.get(),
+        name=name_var.get() or None,
+    )
 
 
 def test_generate_image_local(monkeypatch):
@@ -44,11 +55,16 @@ def test_generate_image_local(monkeypatch):
         sd_model_var=DummyVar("model"),
         sd_device_var=DummyVar("cpu"),
         size_var=DummyVar("512x512"),
+        dir_var=DummyVar("imgs"),
+        name_var=DummyVar("test"),
     )
 
     run_generate_image(**vars)
 
-    assert calls.get("sd") == [(('cat', 'model'), {'device': 'cpu'})]
+    assert calls.get("sd") == [(
+        ('cat', 'model'),
+        {'device': 'cpu', 'save_dir': 'imgs', 'name': 'test'},
+    )]
     assert calls.get("ig") is None
 
 
@@ -64,9 +80,14 @@ def test_generate_image_cloud(monkeypatch):
         sd_model_var=DummyVar("model"),
         sd_device_var=DummyVar("cuda"),
         size_var=DummyVar("256x256"),
+        dir_var=DummyVar("imgs"),
+        name_var=DummyVar("foo"),
     )
 
     run_generate_image(**vars)
 
-    assert calls.get("ig") == [(('dog',), {'size': '256x256'})]
+    assert calls.get("ig") == [(
+        ('dog',),
+        {'size': '256x256', 'save_dir': 'imgs', 'name': 'foo'},
+    )]
     assert calls.get("sd") is None

@@ -37,6 +37,7 @@ def generate_image(
     model: str = "dall-e-3",
     size: str = "512x512",
     save_dir: str = "generated_images",
+    name: str | None = None,
 ) -> str:
     """Generate an image from ``prompt`` and save it locally.
 
@@ -53,6 +54,9 @@ def generate_image(
     save_dir:
         Folder within the project directory to store generated images. If an
         absolute path is provided it will be used as-is.
+    name:
+        Optional file name for the image without extension. Invalid characters
+        are stripped and ``.png`` is appended.
 
     Returns
     -------
@@ -95,7 +99,14 @@ def generate_image(
         if not os.path.isabs(save_dir):
             save_dir = project_path(save_dir)
         os.makedirs(save_dir, exist_ok=True)
-        filename = os.path.join(save_dir, f"image_{len(os.listdir(save_dir)) + 1}.png")
+        if name:
+            safe = "".join(c for c in name if c.isalnum() or c in "-_")
+            filename = os.path.join(save_dir, f"{safe}.png")
+        else:
+            filename = os.path.join(
+                save_dir,
+                f"image_{len(os.listdir(save_dir)) + 1}.png",
+            )
         with open(filename, "wb") as f:
             f.write(image_bytes)
         return filename

@@ -70,6 +70,7 @@ def generate_image(
     *,
     device: str | None = None,
     save_dir: str = "generated_images",
+    name: str | None = None,
 ) -> str:
     """Generate an image using a local Stable Diffusion model.
 
@@ -85,6 +86,9 @@ def generate_image(
     save_dir:
         Directory within the project where images will be saved. Relative paths
         are resolved against the project root.
+    name:
+        Optional file name for the image without extension. Invalid characters
+        are stripped and ``.png`` is appended.
 
     Returns
     -------
@@ -115,7 +119,14 @@ def generate_image(
         if not os.path.isabs(save_dir):
             save_dir = project_path(save_dir)
         os.makedirs(save_dir, exist_ok=True)
-        filename = os.path.join(save_dir, f"sd_image_{len(os.listdir(save_dir))+1}.png")
+        if name:
+            safe = "".join(c for c in name if c.isalnum() or c in "-_")
+            filename = os.path.join(save_dir, f"{safe}.png")
+        else:
+            filename = os.path.join(
+                save_dir,
+                f"sd_image_{len(os.listdir(save_dir))+1}.png",
+            )
         image.save(filename)
         return filename
     except Exception as exc:  # pragma: no cover - safety net
