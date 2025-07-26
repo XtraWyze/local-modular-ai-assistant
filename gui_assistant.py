@@ -63,6 +63,7 @@ from modules import api_keys
 from modules import debug_panel
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
+from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
 try:
@@ -813,6 +814,48 @@ sd_model_var = tk.StringVar(value="")
 ttk.Label(image_tab, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
 sd_model_entry = ttk.Entry(image_tab, textvariable=sd_model_var, width=50)
 sd_model_entry.pack(fill="x", padx=10)
+
+saved_sd_models = sd_model_manager.load_models()
+sd_model_list = tk.Listbox(image_tab, height=3)
+for _m in saved_sd_models:
+    sd_model_list.insert(tk.END, _m)
+sd_model_list.pack(fill="x", padx=10, pady=(5, 0))
+
+
+def select_sd_model(_event=None) -> None:
+    if sd_model_list.curselection():
+        sd_model_var.set(sd_model_list.get(sd_model_list.curselection()[0]))
+
+
+def add_sd_model() -> None:
+    path = sd_model_var.get().strip()
+    if not path:
+        img_status.config(text="Enter a model path first.")
+        return
+    if path not in saved_sd_models:
+        saved_sd_models.append(path)
+        sd_model_manager.save_models(saved_sd_models)
+        sd_model_list.insert(tk.END, path)
+        img_status.config(text=f"Saved {path}")
+    else:
+        img_status.config(text="Model already saved.")
+
+
+def remove_sd_model() -> None:
+    if not sd_model_list.curselection():
+        img_status.config(text="Select a model to remove.")
+        return
+    idx = sd_model_list.curselection()[0]
+    path = saved_sd_models.pop(idx)
+    sd_model_list.delete(idx)
+    sd_model_manager.save_models(saved_sd_models)
+    img_status.config(text=f"Removed {path}")
+
+sd_model_list.bind("<Double-Button-1>", select_sd_model)
+btn_sd = ttk.Frame(image_tab)
+btn_sd.pack(pady=(0, 5))
+ttk.Button(btn_sd, text="Save Model Path", command=add_sd_model).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_sd, text="Remove Selected", command=remove_sd_model).pack(side=tk.LEFT, padx=5)
 
 sd_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
