@@ -87,10 +87,11 @@ def get_description() -> str:
     return "Operate the Xbox Game Bar capture widget via hotkeys."
 
 
-def register():
+def register(registry=None):
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "open_capture": open_capture,

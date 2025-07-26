@@ -65,10 +65,12 @@ def get_description() -> str:
     return "Stores and retrieves conversation history in a local SQLite database."
 
 
-def register():
+def register(registry=None):
     """Register this module with ``ModuleRegistry``."""
     from module_manager import ModuleRegistry
-    ModuleRegistry.register(
+
+    registry = registry or ModuleRegistry()
+    registry.register(
         "long_term_storage",
         {
             "initialize": initialize,

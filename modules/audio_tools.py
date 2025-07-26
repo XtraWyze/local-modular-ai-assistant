@@ -147,11 +147,12 @@ def get_description() -> str:
     return "Capture system audio to detect sounds or transcribe speech."
 
 
-def register():
+def register(registry=None):
     """Register this module with ``ModuleRegistry``."""
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "transcribe_speaker": transcribe_speaker,

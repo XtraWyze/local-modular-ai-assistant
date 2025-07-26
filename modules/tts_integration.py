@@ -236,19 +236,24 @@ def get_description() -> str:
     """Return a short description of this module."""
     return "Provides offline text-to-speech playback using Coqui TTS."
 
-def register():
+def register(registry=None):
     """Register with assistant plugin system."""
     from module_manager import ModuleRegistry
-    ModuleRegistry.register(MODULE_NAME, {
-        "speak": speak,
-        "list_voices": list_voices,
-        "set_voice": set_voice,
-        "set_volume": set_volume,
-        "set_speed": set_speed,
-        "is_speaking": is_speaking,
-        "stop_speech": stop_speech,
-        "get_info": get_info
-    })
+
+    registry = registry or ModuleRegistry()
+    registry.register(
+        MODULE_NAME,
+        {
+            "speak": speak,
+            "list_voices": list_voices,
+            "set_voice": set_voice,
+            "set_volume": set_volume,
+            "set_speed": set_speed,
+            "is_speaking": is_speaking,
+            "stop_speech": stop_speech,
+            "get_info": get_info,
+        },
+    )
 
 # Optionally enable auto-registration if your loader supports it:
 # register()

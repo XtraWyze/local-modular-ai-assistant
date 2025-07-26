@@ -130,21 +130,24 @@ def get_description() -> str:
     return "Low-level screen automation using pyautogui for clicking, typing and screenshots."
 
 # --- Plugin Registration ---
-def register():
-    """
-    Register this module's functions with the assistant's plugin system.
-    """
+def register(registry=None):
+    """Register this module's functions with the assistant."""
     from module_manager import ModuleRegistry
-    ModuleRegistry.register(MODULE_NAME, {
-        "click": click,
-        "move": move,
-        "type_text": type_text,
-        "press": press,
-        "screenshot": screenshot,
-        "locate_on_screen": locate_on_screen,
-        "get_mouse_position": get_mouse_position,
-        "get_info": get_info
-    })
+
+    registry = registry or ModuleRegistry()
+    registry.register(
+        MODULE_NAME,
+        {
+            "click": click,
+            "move": move,
+            "type_text": type_text,
+            "press": press,
+            "screenshot": screenshot,
+            "locate_on_screen": locate_on_screen,
+            "get_mouse_position": get_mouse_position,
+            "get_info": get_info,
+        },
+    )
 
 # Uncomment if you want auto-registration:
 # register()
