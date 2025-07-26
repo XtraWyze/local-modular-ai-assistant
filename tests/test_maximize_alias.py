@@ -4,16 +4,16 @@ import sys
 
 
 def test_parse_and_execute_maximize(monkeypatch):
-    wt = types.ModuleType('modules.window_tools')
+    awm = types.ModuleType('modules.app_window_manager')
     calls = {}
 
     def mock_maximize(title):
         calls['title'] = title
         return True, f"maximized {title}"
 
-    wt.maximize_window = mock_maximize
-    wt.__all__ = ['maximize_window']
-    monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
+    awm.maximize_window = mock_maximize
+    awm.__all__ = ['maximize_window']
+    monkeypatch.setitem(sys.modules, 'modules.app_window_manager', awm)
 
     stub_assistant = types.ModuleType('assistant')
     stub_assistant.talk_to_llm = lambda t: 'ignored'

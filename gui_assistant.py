@@ -53,8 +53,6 @@ from assistant import (
 )
 # voice_input module lives inside the modules package
 from modules.voice_input import start_voice_listener
-# TTS now processes full responses without sentence boundaries, but
-# we keep the module import for voice training utilities.
 from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning
@@ -844,23 +842,6 @@ img_preview.pack(pady=10)
 img_status = ttk.Label(image_tab, text="")
 img_status.pack(anchor="w", padx=10, pady=(5, 0))
 
-def load_latest_image() -> None:
-    """Display the most recently generated image, if available."""
-    path = image_generator.get_latest_image()
-    if not path:
-        img_status.config(text="No generated images found")
-        img_preview.configure(image="")
-        return
-    if Image and ImageTk:
-        try:
-            img = Image.open(path)
-            photo = ImageTk.PhotoImage(img)
-            img_preview.configure(image=photo)
-            img_preview.image = photo
-        except Exception:
-            img_preview.configure(image="")
-    img_status.config(text=f"Loaded {path}")
-
 def generate_image_btn() -> None:
     prompt = img_prompt.get("1.0", tk.END).strip()
     if not prompt:
@@ -895,10 +876,9 @@ def generate_image_btn() -> None:
 
         img_status.after(0, _update)
 
-threading.Thread(target=_run, daemon=True).start()
+    threading.Thread(target=_run, daemon=True).start()
 
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
-ttk.Button(image_tab, text="View Last Image", command=load_latest_image).pack(pady=(0, 10))
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()
