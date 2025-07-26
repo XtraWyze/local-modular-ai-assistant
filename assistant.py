@@ -19,7 +19,7 @@ from modules.actions import detect_action
 # speak() now synthesizes whole responses without sentence splitting since
 # splitting was not used for timing or control logic.
 from modules.tts_manager import speak, is_speaking, stop_speech
-from modules import window_tools, vision_tools
+from modules import window_tools, vision_tools, app_window_manager
 from modules.automation_learning import record_macro, play_macro
 from modules import command_macros
 from modules.desktop_shortcuts import build_shortcut_map, open_shortcut
@@ -413,7 +413,11 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "increase speech volume" in text.lower() or "speech volume up" in text.lower() or "increase volume" in text.lower():
+            if (
+                "increase speech volume" in text.lower()
+                or "speech volume up" in text.lower()
+                or "increase volume" in text.lower()
+            ):
                 from modules import tts_integration
 
                 val = min(tts_integration.config.get("tts_volume", 0.8) + 0.1, 1.0)
@@ -971,7 +975,7 @@ def process_input(user_input, output_widget):
                 parts = text.lower().split("on")
                 action = "play"
                 app = parts[1].strip()
-                found, msg = window_tools.focus_window(app)
+                found, msg = app_window_manager.focus_window(app)
                 if not found:
                     result[0] = msg
                     return
@@ -1023,7 +1027,7 @@ def process_input(user_input, output_widget):
                 parts = text.lower().split("on")
                 action = "pause"
                 app = parts[1].strip()
-                found, msg = window_tools.focus_window(app)
+                found, msg = app_window_manager.focus_window(app)
                 if not found:
                     result[0] = msg
                     return
