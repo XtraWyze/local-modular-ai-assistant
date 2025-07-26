@@ -12,7 +12,7 @@ except ImportError as e:
 else:
     _IMPORT_ERROR = None
 
-from error_logger import log_error
+from error_logger import log_error, log_info
 from . import gpu
 
 CONFIG_PATH = "config.json"
@@ -54,7 +54,7 @@ def get_tts_model():
         raise ImportError(_IMPORT_ERROR)
     global _model
     if _model is None:
-        print(f"[TTS] Loading Coqui model: {config['tts_model']}")
+        log_info(f"[{MODULE_NAME}] Loading Coqui model: {config['tts_model']}")
         _model = TTS(
             model_name=config["tts_model"],
             progress_bar=False,
@@ -116,8 +116,9 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
             sd.wait()
             proc_time = time.time() - start
             rtf = proc_time / total_duration if total_duration else 0
-            print(f"Processing time: {proc_time:.2f}s")
-            print(f"Real-time factor: {rtf:.2f}")
+            log_info(
+                f"[{MODULE_NAME}] synth_time={proc_time:.2f}s rtf={rtf:.2f}"
+            )
             if on_complete:
                 try:
                     on_complete()
@@ -170,7 +171,7 @@ def set_voice(new_voice):
         all_cfg["tts_voice"] = new_voice
         with open(CONFIG_PATH, "w") as f:
             json.dump(all_cfg, f, indent=2)
-        print(f"[TTS] Voice switched to: {new_voice}")
+        log_info(f"[{MODULE_NAME}] Voice switched to: {new_voice}")
         return True
     except Exception as e:
         log_error(f"[{MODULE_NAME}] Could not update config.json: {e}")
@@ -192,7 +193,7 @@ def set_volume(new_volume):
         all_cfg["tts_volume"] = vol
         with open(CONFIG_PATH, "w") as f:
             json.dump(all_cfg, f, indent=2)
-        print(f"[TTS] Volume set to: {vol}")
+        log_info(f"[{MODULE_NAME}] Volume set to: {vol}")
         return True
     except Exception as e:
         log_error(f"[{MODULE_NAME}] Could not update config.json: {e}")
@@ -214,7 +215,7 @@ def set_speed(new_speed):
         all_cfg["tts_speed"] = val
         with open(CONFIG_PATH, "w") as f:
             json.dump(all_cfg, f, indent=2)
-        print(f"[TTS] Speed set to: {val}")
+        log_info(f"[{MODULE_NAME}] Speed set to: {val}")
         return True
     except Exception as e:
         log_error(f"[{MODULE_NAME}] Could not update config.json: {e}")
