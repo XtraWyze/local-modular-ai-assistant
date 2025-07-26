@@ -63,6 +63,7 @@ from modules import api_keys
 from modules import debug_panel
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
+from modules import video_generator
 from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
@@ -113,6 +114,7 @@ config_tab = ttk.Frame(notebook)
 hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
 image_tab = ttk.Frame(notebook)
+video_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
 notebook.add(main_tab, text="Assistant")
@@ -121,6 +123,7 @@ notebook.add(config_tab, text="Config Editor")
 notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
+notebook.add(video_tab, text="Video Generator")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
 
@@ -968,6 +971,72 @@ def generate_image_btn() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
+
+# ---------- Video Generator Tab ----------
+video_prompt = tk.Text(video_tab, height=4)
+video_prompt.pack(fill="x", padx=10, pady=(10, 0))
+
+video_source_var = tk.StringVar(value="cloud")
+ttk.Label(video_tab, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(
+    video_tab,
+    video_source_var,
+    "cloud",
+    "cloud",
+    "local",
+).pack(anchor="w", padx=10)
+
+video_model_var = tk.StringVar(value="")
+ttk.Label(video_tab, text="Local Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+video_model_entry = ttk.Entry(video_tab, textvariable=video_model_var, width=50)
+video_model_entry.pack(fill="x", padx=10)
+
+video_device_var = tk.StringVar(value=gpu.get_device())
+ttk.Label(video_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(video_tab, video_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
+
+fps_var = tk.StringVar(value="8")
+ttk.Label(video_tab, text="FPS:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Entry(video_tab, textvariable=fps_var, width=10).pack(anchor="w", padx=10)
+
+video_status = ttk.Label(video_tab, text="")
+video_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+
+def generate_video_btn() -> None:
+    prompt = video_prompt.get("1.0", tk.END).strip()
+    if not prompt:
+        video_status.config(text="Enter a prompt first.")
+        return
+
+    video_status.config(text="Generating...")
+
+    def _run() -> None:
+        if video_source_var.get() == "local":
+            path = video_generator.generate_video(
+                prompt,
+                source="local",
+                local_model_path=video_model_var.get(),
+                device=video_device_var.get(),
+                fps=int(fps_var.get() or 8),
+            )
+        else:
+            path = video_generator.generate_video(
+                prompt,
+                fps=int(fps_var.get() or 8),
+            )
+
+        def _update() -> None:
+            if os.path.exists(path):
+                video_status.config(text=f"Saved to {path}")
+            else:
+                video_status.config(text=path)
+
+        video_status.after(0, _update)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+ttk.Button(video_tab, text="Generate Video", command=generate_video_btn).pack(pady=5)
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()
