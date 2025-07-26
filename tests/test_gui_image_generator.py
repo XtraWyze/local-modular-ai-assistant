@@ -22,14 +22,6 @@ class DummyStatus:
         self.text = text
 
 
-class DummyPreview:
-    def __init__(self):
-        self.path = ""
-
-    def configure(self, **_kwargs):
-        pass
-
-
 def run_generate_image(img_prompt, img_status, source_var, sd_model_var, sd_device_var, size_var):
     prompt = img_prompt.get("1.0", None).strip()
     if not prompt:
@@ -38,16 +30,6 @@ def run_generate_image(img_prompt, img_status, source_var, sd_model_var, sd_devi
     if source_var.get() == "local":
         return sd_gen.generate_image(prompt, sd_model_var.get(), device=sd_device_var.get())
     return image_gen.generate_image(prompt, size=size_var.get())
-
-
-def run_load_latest_image(img_preview, img_status, directory_var):
-    path = image_gen.get_latest_image(directory_var.get())
-    if not path:
-        img_status.config(text="No images found")
-        return None
-    img_status.config(text=f"Loaded {path}")
-    img_preview.path = path
-    return path
 
 
 def test_generate_image_local(monkeypatch):
@@ -88,12 +70,3 @@ def test_generate_image_cloud(monkeypatch):
 
     assert calls.get("ig") == [(('dog',), {'size': '256x256'})]
     assert calls.get("sd") is None
-
-
-def test_load_latest_image(monkeypatch):
-    monkeypatch.setattr(image_gen, "get_latest_image", lambda d: "foo.png")
-    preview = DummyPreview()
-    status = DummyStatus()
-    result = run_load_latest_image(preview, status, DummyVar("dir"))
-    assert result == "foo.png"
-    assert status.text == "Loaded foo.png"

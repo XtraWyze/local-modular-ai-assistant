@@ -175,21 +175,6 @@ def _handle_focus_alias(text: str) -> str | None:
         return f"Error running focus_window: {e}"
 
 
-def _handle_maximize_alias(text: str) -> str | None:
-    """Support ``maximize <window>`` as alias for ``maximize_window``."""
-    target = _extract_window_target(text, "maximize")
-    if not target:
-        return None
-    if "maximize_window" not in ALLOWED_FUNCTIONS:
-        return talk_to_llm(text)
-    func = ALLOWED_FUNCTIONS["maximize_window"]
-    try:
-        success, msg = func(target)
-        return msg
-    except Exception as e:
-        return f"Error running maximize_window: {e}"
-
-
 def _handle_move_window_alias(text: str) -> str | None:
     """Support ``move <title> to monitor N`` commands."""
     m = re.match(r"move\s+(.+?)\s+(?:to|onto)\s+(?:monitor|screen)\s+(\d+)", text, re.IGNORECASE)
@@ -298,7 +283,6 @@ def parse_and_execute(user_text: str) -> str:
         _handle_run_skill,
         _handle_terminate_alias,
         _handle_minimize_alias,
-        _handle_maximize_alias,
         _handle_focus_alias,
         _handle_move_window_alias,
         _handle_save_exit_alias,
