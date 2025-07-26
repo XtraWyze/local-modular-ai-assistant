@@ -34,3 +34,19 @@ def test_imagine_cloud(monkeypatch):
     )
     assert out == "cloud.png"
     assert calls["cloud"] == ("dog", "dall-e-2", "256x256", "imgs", "foo")
+
+
+def test_imagine_gui_callback(monkeypatch):
+    calls = {}
+
+    def gui_cb(prompt, **kwargs):
+        calls["prompt"] = prompt
+        calls.update(kwargs)
+        return "gui.png"
+
+    im_gen.set_gui_callback(gui_cb)
+    monkeypatch.setattr(im_gen, "ig", importlib.import_module("modules.image_generator"))
+    out = im_gen.imagine("frog")
+    im_gen.set_gui_callback(None)
+    assert out == "gui.png"
+    assert calls["prompt"] == "frog"

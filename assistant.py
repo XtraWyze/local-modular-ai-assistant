@@ -411,7 +411,11 @@ def process_input(user_input, output_widget):
                 speak(msg)
                 last_ai_response = msg
                 return
-            if "increase speech volume" in text.lower() or "speech volume up" in text.lower() or "increase volume" in text.lower():
+            if (
+                "increase speech volume" in text.lower()
+                or "speech volume up" in text.lower()
+                or "increase volume" in text.lower()
+            ):
                 from modules import tts_integration
 
                 val = min(tts_integration.config.get("tts_volume", 0.8) + 0.1, 1.0)

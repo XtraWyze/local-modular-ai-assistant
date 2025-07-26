@@ -45,8 +45,16 @@ def run_generate_image(img_prompt, img_status, source_var, sd_model_var, sd_devi
 
 def test_generate_image_local(monkeypatch):
     calls = {}
-    monkeypatch.setattr(sd_gen, "generate_image", lambda *a, **k: calls.setdefault("sd", []).append((a, k)) or "sd.png")
-    monkeypatch.setattr(image_gen, "generate_image", lambda *a, **k: calls.setdefault("ig", []).append((a, k)) or "ig.png")
+    def log_sd(*a, **k):
+        calls.setdefault("sd", []).append((a, k))
+        return "sd.png"
+
+    def log_ig(*a, **k):
+        calls.setdefault("ig", []).append((a, k))
+        return "ig.png"
+
+    monkeypatch.setattr(sd_gen, "generate_image", log_sd)
+    monkeypatch.setattr(image_gen, "generate_image", log_ig)
 
     vars = dict(
         img_prompt=DummyText("cat"),
@@ -70,8 +78,16 @@ def test_generate_image_local(monkeypatch):
 
 def test_generate_image_cloud(monkeypatch):
     calls = {}
-    monkeypatch.setattr(sd_gen, "generate_image", lambda *a, **k: calls.setdefault("sd", []).append((a, k)) or "sd.png")
-    monkeypatch.setattr(image_gen, "generate_image", lambda *a, **k: calls.setdefault("ig", []).append((a, k)) or "ig.png")
+    def log_sd(*a, **k):
+        calls.setdefault("sd", []).append((a, k))
+        return "sd.png"
+
+    def log_ig(*a, **k):
+        calls.setdefault("ig", []).append((a, k))
+        return "ig.png"
+
+    monkeypatch.setattr(sd_gen, "generate_image", log_sd)
+    monkeypatch.setattr(image_gen, "generate_image", log_ig)
 
     vars = dict(
         img_prompt=DummyText("dog"),
