@@ -240,14 +240,35 @@ def _execute_tool_call(fn_name: str, args: str, user_text: str) -> str:
         return f"Error running {fn_name}: {e}"
 
 
+def _extract_tool_call(text: str) -> tuple[str, str] | None:
+    """Return ``(fn_name, args)`` from the first function call in ``text``."""
+    match = re.search(r"([a-zA-Z_][\w]*)\s*\(", text)
+    if not match:
+        return None
+    fn = match.group(1)
+    idx = match.end()
+    depth = 1
+    start = idx
+    while idx < len(text):
+        ch = text[idx]
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return fn, text[start:idx].strip()
+        idx += 1
+    return None
+
+
 def _handle_llm_call(text: str) -> str:
     """Ask the LLM for a tool call and execute it."""
     call = talk_to_llm(f"{PROMPT_HEADER}\nUser: {text}\nAssistant:")
-    m = re.match(r"(\w+)\((.*)\)", call.strip())
-    if not m:
+    parsed = _extract_tool_call(call.strip())
+    if not parsed:
         return talk_to_llm(text)
 
-    fn, args = m.groups()
+    fn, args = parsed
     return _execute_tool_call(fn, args, text)
 
 
