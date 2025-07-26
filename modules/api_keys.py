@@ -49,7 +49,11 @@ def save_api_keys(keys: Dict[str, str]) -> None:
 def get_api_key(provider: str) -> str:
     """Return API key for ``provider`` from environment or config."""
     env_name = f"{provider.upper()}_API_KEY"
-    return os.getenv(env_name) or _config.get("api_keys", {}).get(provider, "")
+    env_val = os.getenv(env_name)
+    if env_val:
+        return env_val
+    cfg = _config_loader.config
+    return cfg.get("api_keys", {}).get(provider, "")
 
 
 def get_info() -> dict:

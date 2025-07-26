@@ -301,9 +301,9 @@ Enable/disable plugins in config.json (enable_plugins).
 
 Load plugin packages with `modules.plugin_loader` to dynamically add new
 modules at runtime. Launch `python config_gui.py` for a quick settings editor.
-Python files placed in a `skills/` folder are automatically loaded as
-hot-swappable plugins. Any public functions they define become callable by
-name through the orchestrator.
+Any plugin package with a `plugin.json` manifest inside `modules/` will be
+loaded automatically and its public functions exposed through the
+orchestrator.
 Use the **Edit Memory** button there or in the main GUI to view conversation
 history and adjust the `memory_max` limit.
 
@@ -521,10 +521,10 @@ Enjoy your private, modular, and truly local AI assistant!
      - Persist conversational context and task history.
 
 4. **Module Self-Description & Discoverability**
-   - Make all modules self-describing:
+  - Make all modules self-describing:
      - Add `get_description()` or similar to each module.
-     - Expose a "What can you do?" intent/command that lists all current skills.
-     - Enable the assistant to vocalize or display its skills to the user on demand.
+     - Expose a "What can you do?" intent/command that lists all available modules.
+     - Enable the assistant to vocalize or display its capabilities on demand.
 
 5. **Memory & Knowledge Recall**
    - Upgrade memory manager to:
