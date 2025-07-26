@@ -332,6 +332,16 @@ python -m modules.web_api
 By default the server listens on `127.0.0.1:5000`; pass `--host 0.0.0.0` if you
 need external access. Then POST JSON `{"command": "your text"}` to `/command`.
 
+### OpenAI Chat Example
+The repository includes `examples/openai_chat_example.py` as a minimal template
+for using the OpenAI API. It loads `OPENAI_API_KEY` from a `.env` file, sends a
+test message to GPT‑4, and logs the result.
+
+```bash
+pip install openai python-dotenv
+python examples/openai_chat_example.py
+```
+
 ### Allowed Plugin APIs
 The `ModuleRegistry` can optionally verify imports when loading modules. If this
 feature is enabled, any module that tries to import a banned package will fail
