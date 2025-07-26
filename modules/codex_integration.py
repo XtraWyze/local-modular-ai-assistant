@@ -1,4 +1,8 @@
-"""Codex integration utilities."""
+"""Codex integration utilities.
+
+This module wraps various code-generation APIs. When ``provider`` is ``openai``
+the :class:`CodexClient` uses the ChatGPT endpoint to produce code responses.
+"""
 
 import os
 import time
@@ -16,7 +20,7 @@ __all__ = ["CodexClient", "learn_new_automation", "get_info", "get_description"]
 class CodexClient:
     """Simple wrapper for various code-generation APIs."""
 
-    def __init__(self, engine: str = "code-davinci-002", provider: str = "openai"):
+    def __init__(self, engine: str = "gpt-3.5-turbo", provider: str = "openai"):
         self.engine = engine
         self.provider = provider.lower()
         self.api_key = get_api_key(self.provider)
@@ -30,7 +34,8 @@ class CodexClient:
                 "text-bison-001:generateText"
             )
         else:
-            self.url = "https://api.openai.com/v1/completions"
+            # Use ChatGPT-style endpoint for OpenAI
+            self.url = "https://api.openai.com/v1/chat/completions"
 
     def generate_code(self, prompt: str) -> str:
         """Return generated code for ``prompt`` or empty string on failure."""
@@ -54,7 +59,7 @@ class CodexClient:
         else:
             payload = {
                 "model": self.engine,
-                "prompt": prompt,
+                "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 256,
                 "temperature": 0,
             }
@@ -71,7 +76,7 @@ class CodexClient:
                 return data.get("completion", "")
             if self.provider == "google":
                 return data.get("candidates", [{}])[0].get("output", "")
-            return data.get("choices", [{}])[0].get("text", "")
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "")
         except Exception as exc:  # pragma: no cover - network failure
             log_error(f"[Codex] API error: {exc}")
             return ""

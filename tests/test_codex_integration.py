@@ -13,7 +13,7 @@ def mock_post(url, json=None, headers=None, timeout=60):
             pass
 
         def json(self):
-            return {"choices": [{"text": "def demo():\n    return True"}]}
+            return {"choices": [{"message": {"content": "def demo():\n    return True"}}]}
 
     return Dummy()
 
