@@ -91,6 +91,7 @@ def _generate_local(
     num_frames: int = 16,
     fps: int = 8,
     save_dir: str = "generated_videos",
+    name: str | None = None,
 ) -> str:
     if (
         StableVideoDiffusionPipeline is None
@@ -113,11 +114,17 @@ def _generate_local(
         with ctx:
             result = pipe(prompt, num_frames=num_frames)
         frames = getattr(result, "frames", None) or result
-        filename = os.path.join(
-            project_path(save_dir),
-            f"video_{len(os.listdir(project_path(save_dir))) + 1}.gif",
-        )
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        if not os.path.isabs(save_dir):
+            save_dir = project_path(save_dir)
+        os.makedirs(save_dir, exist_ok=True)
+        if name:
+            safe = "".join(c for c in name if c.isalnum() or c in "-_")
+            filename = os.path.join(save_dir, f"{safe}.gif")
+        else:
+            filename = os.path.join(
+                save_dir,
+                f"video_{len(os.listdir(save_dir)) + 1}.gif",
+            )
         _save_gif(frames, filename, fps)
         return filename
     except Exception as exc:  # pragma: no cover - generation failure
@@ -132,6 +139,7 @@ def _generate_cloud(
     num_frames: int = 16,
     fps: int = 8,
     save_dir: str = "generated_videos",
+    name: str | None = None,
 ) -> str:
     api_key = get_api_key("veo3")
     if not api_key:
@@ -164,7 +172,11 @@ def _generate_cloud(
         if not os.path.isabs(save_dir):
             save_dir = project_path(save_dir)
         os.makedirs(save_dir, exist_ok=True)
-        filename = os.path.join(save_dir, f"video_{len(os.listdir(save_dir)) + 1}.mp4")
+        if name:
+            safe = "".join(c for c in name if c.isalnum() or c in "-_")
+            filename = os.path.join(save_dir, f"{safe}.mp4")
+        else:
+            filename = os.path.join(save_dir, f"video_{len(os.listdir(save_dir)) + 1}.mp4")
         with open(filename, "wb") as f:
             f.write(video_bytes)
         return filename
@@ -183,6 +195,7 @@ def generate_video(
     save_dir: str = "generated_videos",
     local_model_path: str | None = None,
     device: str | None = None,
+    name: str | None = None,
 ) -> str:
     """Generate a video from ``prompt`` using either cloud or local backend."""
     if source == "local":
@@ -195,6 +208,7 @@ def generate_video(
             num_frames=num_frames,
             fps=fps,
             save_dir=save_dir,
+            name=name,
         )
     return _generate_cloud(
         prompt,
@@ -202,6 +216,7 @@ def generate_video(
         num_frames=num_frames,
         fps=fps,
         save_dir=save_dir,
+        name=name,
     )
 
 

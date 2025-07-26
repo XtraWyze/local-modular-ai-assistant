@@ -17,6 +17,28 @@ class ReadOnlyText(tk.Text):
         self.config(state=tk.NORMAL)
         super().insert(index, chars, *tags)
         self.config(state=tk.DISABLED)
+
+
+def make_scrollable_frame(parent: tk.Widget) -> tk.Frame:
+    """Return a scrollable frame inside ``parent``."""
+    canvas = tk.Canvas(parent, highlightthickness=0)
+    scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+    frame = ttk.Frame(canvas)
+    frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all")),
+    )
+    canvas.create_window((0, 0), window=frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    return frame
 try:
     from PIL import Image, ImageDraw, ImageTk  # type: ignore
 except Exception:  # Pillow is optional
@@ -31,6 +53,11 @@ import time
 import atexit
 from error_logger import log_error
 from modules import gpu
+import io
+try:
+    import trimesh
+except Exception:  # pragma: no cover - optional dependency
+    trimesh = None  # type: ignore
 try:
     from watchdog.observers import Observer
     from config_watcher import ConfigFileChangeHandler
@@ -58,7 +85,7 @@ from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning
 # utils is located within the modules package
-from modules.utils import resource_path, project_path
+from modules.utils import resource_path, project_path, hide_cmd_window
 from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import debug_panel
@@ -66,6 +93,7 @@ from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
 from modules import imagine_generator
 from modules import video_generator
+from modules import stable_fast_3d as fast3d_generator
 from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
@@ -106,6 +134,7 @@ else:
     root.title("AI Assistant")
     # Default size increased so all controls fit comfortably
     root.geometry("900x650")
+    hide_cmd_window()
 
 # Notebook with main UI and speech training tab
 notebook = ttk.Notebook(root)
@@ -117,8 +146,14 @@ hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
 image_tab = ttk.Frame(notebook)
 video_tab = ttk.Frame(notebook)
+fast3d_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
+
+image_frame = ttk.Frame(image_tab)
+image_frame.pack(fill="both", expand=True)
+video_frame = ttk.Frame(video_tab)
+video_frame.pack(fill="both", expand=True)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
@@ -126,8 +161,19 @@ notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
 notebook.add(video_tab, text="Video Generator")
+notebook.add(fast3d_tab, text="Stable Fast 3D")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
+
+
+def _fit_window(_event=None) -> None:
+    """Resize the main window to fit the selected tab."""
+    root.update_idletasks()
+    current = notebook.nametowidget(notebook.select())
+    root.minsize(current.winfo_reqwidth(), current.winfo_reqheight())
+
+
+notebook.bind("<<NotebookTabChanged>>", _fit_window)
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -798,14 +844,14 @@ cancel_btn = ttk.Button(btn_frame_gen, text="Cancel", state=tk.DISABLED, command
 cancel_btn.pack(side=tk.LEFT, padx=5)
 
 # ---------- Image Generator Tab ----------
-img_prompt = tk.Text(image_tab, height=4)
+img_prompt = tk.Text(image_frame, height=4)
 img_prompt.pack(fill="x", padx=10, pady=(10, 0))
 
 # Source toggle
 source_var = tk.StringVar(value="cloud")
-ttk.Label(image_tab, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Label(image_frame, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
 source_menu = ttk.OptionMenu(
-    image_tab,
+    image_frame,
     source_var,
     "cloud",
     "cloud",
@@ -816,12 +862,12 @@ source_menu.pack(anchor="w", padx=10)
 
 # Stable Diffusion settings
 sd_model_var = tk.StringVar(value="")
-ttk.Label(image_tab, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
-sd_model_entry = ttk.Entry(image_tab, textvariable=sd_model_var, width=50)
+ttk.Label(image_frame, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+sd_model_entry = ttk.Entry(image_frame, textvariable=sd_model_var, width=50)
 sd_model_entry.pack(fill="x", padx=10)
 
 saved_sd_models = sd_model_manager.load_models()
-sd_model_list = tk.Listbox(image_tab, height=3)
+sd_model_list = tk.Listbox(image_frame, height=3)
 for _m in saved_sd_models:
     sd_model_list.insert(tk.END, _m)
 sd_model_list.pack(fill="x", padx=10, pady=(5, 0))
@@ -857,15 +903,15 @@ def remove_sd_model() -> None:
     img_status.config(text=f"Removed {path}")
 
 sd_model_list.bind("<Double-Button-1>", select_sd_model)
-btn_sd = ttk.Frame(image_tab)
+btn_sd = ttk.Frame(image_frame)
 btn_sd.pack(pady=(0, 5))
 ttk.Button(btn_sd, text="Save Model Path", command=add_sd_model).pack(side=tk.LEFT, padx=5)
 ttk.Button(btn_sd, text="Remove Selected", command=remove_sd_model).pack(side=tk.LEFT, padx=5)
 
 sd_device_var = tk.StringVar(value=gpu.get_device())
-ttk.Label(image_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Label(image_frame, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
 sd_device_menu = ttk.OptionMenu(
-    image_tab,
+    image_frame,
     sd_device_var,
     "cpu",
     "cpu",
@@ -874,12 +920,12 @@ sd_device_menu = ttk.OptionMenu(
 sd_device_menu.pack(anchor="w", padx=10)
 
 size_var = tk.StringVar(value="512x512")
-ttk.Label(image_tab, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
-ttk.OptionMenu(image_tab, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
+ttk.Label(image_frame, text="Size:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(image_frame, size_var, "512x512", "256x256", "512x512", "1024x1024").pack(anchor="w", padx=10)
 
 img_dir_var = tk.StringVar(value="generated_images")
-ttk.Label(image_tab, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
-img_dir_entry = ttk.Entry(image_tab, textvariable=img_dir_var, width=50)
+ttk.Label(image_frame, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
+img_dir_entry = ttk.Entry(image_frame, textvariable=img_dir_var, width=50)
 img_dir_entry.pack(fill="x", padx=10)
 
 def open_folder(path: str) -> None:
@@ -896,15 +942,13 @@ def open_folder(path: str) -> None:
     except Exception as exc:
         img_status.config(text=f"Failed to open: {exc}")
 
-ttk.Button(
-    image_tab,
-    text="Open Folder",
-    command=lambda: open_folder(img_dir_var.get()),
-).pack(anchor="w", padx=10, pady=(0, 5))
+
+ttk.Button(image_frame, text="Open Folder", command=lambda: open_folder(img_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+
 
 img_name_var = tk.StringVar(value="")
-ttk.Label(image_tab, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
-img_name_entry = ttk.Entry(image_tab, textvariable=img_name_var, width=50)
+ttk.Label(image_frame, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
+img_name_entry = ttk.Entry(image_frame, textvariable=img_name_var, width=50)
 img_name_entry.pack(fill="x", padx=10)
 
 def toggle_source(*_args) -> None:
@@ -915,9 +959,9 @@ def toggle_source(*_args) -> None:
 
 toggle_source()
 
-img_canvas = tk.Canvas(image_tab, width=256, height=256, bg="white", highlightthickness=1, highlightbackground="gray")
+img_canvas = tk.Canvas(image_frame, width=256, height=256, bg="white", highlightthickness=1, highlightbackground="gray")
 img_canvas.pack(pady=10)
-img_status = ttk.Label(image_tab, text="")
+img_status = ttk.Label(image_frame, text="")
 img_status.pack(anchor="w", padx=10, pady=(5, 0))
 
 _eta_history: list[float] = []
@@ -1010,6 +1054,7 @@ def generate_image_btn() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 
+
 def imagine_via_gui(
     prompt: str,
     *,
@@ -1090,14 +1135,15 @@ imagine_generator.set_gui_callback(imagine_via_gui)
 
 ttk.Button(image_tab, text="Generate Image", command=generate_image_btn).pack(pady=5)
 
+
 # ---------- Video Generator Tab ----------
-video_prompt = tk.Text(video_tab, height=4)
+video_prompt = tk.Text(video_frame, height=4)
 video_prompt.pack(fill="x", padx=10, pady=(10, 0))
 
 video_source_var = tk.StringVar(value="cloud")
-ttk.Label(video_tab, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Label(video_frame, text="Source:").pack(anchor="w", padx=10, pady=(5, 0))
 ttk.OptionMenu(
-    video_tab,
+    video_frame,
     video_source_var,
     "cloud",
     "cloud",
@@ -1105,19 +1151,37 @@ ttk.OptionMenu(
 ).pack(anchor="w", padx=10)
 
 video_model_var = tk.StringVar(value="")
-ttk.Label(video_tab, text="Local Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
-video_model_entry = ttk.Entry(video_tab, textvariable=video_model_var, width=50)
+ttk.Label(video_frame, text="Local Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+video_model_entry = ttk.Entry(video_frame, textvariable=video_model_var, width=50)
 video_model_entry.pack(fill="x", padx=10)
 
 video_device_var = tk.StringVar(value=gpu.get_device())
-ttk.Label(video_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
-ttk.OptionMenu(video_tab, video_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
+ttk.Label(video_frame, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(video_frame, video_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
 
 fps_var = tk.StringVar(value="8")
-ttk.Label(video_tab, text="FPS:").pack(anchor="w", padx=10, pady=(5, 0))
-ttk.Entry(video_tab, textvariable=fps_var, width=10).pack(anchor="w", padx=10)
+ttk.Label(video_frame, text="FPS:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Entry(video_frame, textvariable=fps_var, width=10).pack(anchor="w", padx=10)
 
-video_status = ttk.Label(video_tab, text="")
+frames_var = tk.StringVar(value="16")
+ttk.Label(video_frame, text="Frames:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.Entry(video_frame, textvariable=frames_var, width=10).pack(anchor="w", padx=10)
+
+video_dir_var = tk.StringVar(value="generated_videos")
+ttk.Label(video_frame, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
+video_dir_entry = ttk.Entry(video_frame, textvariable=video_dir_var, width=50)
+video_dir_entry.pack(fill="x", padx=10)
+ttk.Button(video_frame, text="Open Folder", command=lambda: open_folder(video_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+
+video_name_var = tk.StringVar(value="")
+ttk.Label(video_frame, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
+video_name_entry = ttk.Entry(video_frame, textvariable=video_name_var, width=50)
+video_name_entry.pack(fill="x", padx=10)
+
+video_canvas = tk.Canvas(video_frame, width=256, height=256, bg="white", highlightthickness=1, highlightbackground="gray")
+video_canvas.pack(pady=10)
+
+video_status = ttk.Label(video_frame, text="")
 video_status.pack(anchor="w", padx=10, pady=(5, 0))
 
 
@@ -1130,31 +1194,136 @@ def generate_video_btn() -> None:
     video_status.config(text="Generating...")
 
     def _run() -> None:
+        common = dict(
+            num_frames=int(frames_var.get() or 16),
+            fps=int(fps_var.get() or 8),
+            save_dir=video_dir_var.get(),
+            name=video_name_var.get().strip() or None,
+        )
         if video_source_var.get() == "local":
             path = video_generator.generate_video(
                 prompt,
                 source="local",
                 local_model_path=video_model_var.get(),
                 device=video_device_var.get(),
-                fps=int(fps_var.get() or 8),
+                **common,
             )
         else:
             path = video_generator.generate_video(
                 prompt,
-                fps=int(fps_var.get() or 8),
+                **common,
             )
 
         def _update() -> None:
+            video_canvas.delete("all")
             if os.path.exists(path):
+                if path.endswith(".gif") and Image and ImageTk:
+                    try:
+                        img = Image.open(path)
+                        frame = img.convert("RGB")
+                        photo = ImageTk.PhotoImage(frame)
+                        video_canvas.config(width=photo.width(), height=photo.height())
+                        video_canvas.create_image(0, 0, anchor="nw", image=photo)
+                        video_canvas.image = photo
+                    except Exception:
+                        pass
                 video_status.config(text=f"Saved to {path}")
             else:
+                video_canvas.create_text(128, 128, text=path, fill="black")
                 video_status.config(text=path)
 
         video_status.after(0, _update)
 
     threading.Thread(target=_run, daemon=True).start()
 
-ttk.Button(video_tab, text="Generate Video", command=generate_video_btn).pack(pady=5)
+ttk.Button(video_frame, text="Generate Video", command=generate_video_btn).pack(pady=5)
+
+# ---------- Stable Fast 3D Tab ----------
+fast3d_prompt = tk.Text(fast3d_tab, height=4)
+fast3d_prompt.pack(fill="x", padx=10, pady=(10, 0))
+
+fast3d_model_var = tk.StringVar(value="")
+ttk.Label(fast3d_tab, text="Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_model_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_model_var, width=50)
+fast3d_model_entry.pack(fill="x", padx=10)
+
+fast3d_device_var = tk.StringVar(value=gpu.get_device())
+ttk.Label(fast3d_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(fast3d_tab, fast3d_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
+
+fast3d_dir_var = tk.StringVar(value="generated_3d")
+ttk.Label(fast3d_tab, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_dir_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_dir_var, width=50)
+fast3d_dir_entry.pack(fill="x", padx=10)
+ttk.Button(fast3d_tab, text="Open Folder", command=lambda: open_folder(fast3d_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+
+fast3d_name_var = tk.StringVar(value="")
+ttk.Label(fast3d_tab, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_name_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_name_var, width=50)
+fast3d_name_entry.pack(fill="x", padx=10)
+
+fast3d_status = ttk.Label(fast3d_tab, text="")
+fast3d_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+fast3d_canvas = tk.Canvas(
+    fast3d_tab,
+    width=256,
+    height=256,
+    bg="white",
+    highlightthickness=1,
+    highlightbackground="gray",
+)
+fast3d_canvas.pack(pady=10)
+
+
+def _preview_model(path: str) -> None:
+    """Render a preview of a 3D model on ``fast3d_canvas``."""
+    if not trimesh or not Image or not ImageTk or not os.path.exists(path):
+        return
+    try:
+        mesh = trimesh.load(path)
+        scene = mesh.scene()
+        png = scene.save_image(resolution=(256, 256))
+        if png:
+            img = Image.open(io.BytesIO(png))
+            photo = ImageTk.PhotoImage(img)
+            fast3d_canvas.delete("all")
+            fast3d_canvas.config(width=photo.width(), height=photo.height())
+            fast3d_canvas.create_image(0, 0, anchor="nw", image=photo)
+            fast3d_canvas.image = photo
+    except Exception as exc:  # pragma: no cover - preview failures
+        log_error(f"[fast3d_preview] {exc}")
+
+
+def generate_fast3d_btn() -> None:
+    prompt = fast3d_prompt.get("1.0", tk.END).strip()
+    if not prompt:
+        fast3d_status.config(text="Enter a prompt first.")
+        return
+
+    fast3d_status.config(text="Generating...")
+
+    def _run() -> None:
+        path = fast3d_generator.generate_model(
+            prompt,
+            fast3d_model_var.get(),
+            device=fast3d_device_var.get(),
+            save_dir=fast3d_dir_var.get(),
+            name=fast3d_name_var.get().strip() or None,
+        )
+
+        def _update() -> None:
+            if os.path.exists(path):
+                fast3d_status.config(text=f"Saved to {path}")
+                _preview_model(path)
+            else:
+                fast3d_status.config(text=path)
+
+        fast3d_status.after(0, _update)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+ttk.Button(fast3d_tab, text="Generate Model", command=generate_fast3d_btn).pack(pady=5)
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()
@@ -1388,6 +1557,11 @@ def stop_tray():
 if pystray is not None:
     threading.Thread(target=start_tray, daemon=True).start()
     atexit.register(stop_tray)
+
+# Update geometry after widgets are loaded so the window fits all content
+if not os.environ.get("PYTEST_CURRENT_TEST"):
+    root.update_idletasks()
+    _fit_window()
 
 # ========== WELCOME MESSAGE ==========
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
