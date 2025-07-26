@@ -97,6 +97,7 @@ from modules import stable_fast_3d as fast3d_generator
 from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
+from modules.hf_utils import has_internet
 try:
     from tkinterweb import HtmlFrame  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
@@ -150,6 +151,7 @@ video_tab = ttk.Frame(notebook)
 fast3d_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
+model_tab = ttk.Frame(notebook)
 
 image_frame = ttk.Frame(image_tab)
 image_frame.pack(fill="both", expand=True)
@@ -165,6 +167,7 @@ notebook.add(video_tab, text="Video Generator")
 notebook.add(fast3d_tab, text="Stable Fast 3D")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
+notebook.add(model_tab, text="Model Selection")
 
 
 def _fit_window(_event=None) -> None:
@@ -1426,6 +1429,43 @@ def save_settings() -> None:
 
 ttk.Button(settings_tab, text="Save Settings", command=save_settings).pack(pady=10)
 _toggle_remote()
+
+# ---------- Model Selection Tab ----------
+pro_var = tk.BooleanVar(value=config.get("pro_mode", False))
+
+
+def toggle_pro_mode() -> None:
+    """Switch STT and TTS backends when Pro Mode changes."""
+    from modules import tts_manager, voice_input
+    cfg = config_loader.config
+    if pro_var.get():
+        if not has_internet():
+            pro_var.set(False)
+            output.insert(tk.END, "[SYSTEM] Internet connection required for Pro Mode.\n")
+            return
+        tts_manager.BACKEND = "huggingface"
+        voice_input.STT_BACKEND = "huggingface"
+        cfg["tts_backend"] = "huggingface"
+        cfg["stt_backend"] = "huggingface"
+    else:
+        tts_manager.BACKEND = "coqui"
+        voice_input.STT_BACKEND = "vosk"
+        cfg["tts_backend"] = "coqui"
+        cfg["stt_backend"] = "vosk"
+    cfg["pro_mode"] = pro_var.get()
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    config_loader.config = cfg
+    reload_config()
+    output.insert(tk.END, f"[SYSTEM] Pro Mode {'enabled' if pro_var.get() else 'disabled'}.\n")
+
+
+ttk.Checkbutton(
+    model_tab,
+    text="Pro Mode (use Hugging Face models)",
+    variable=pro_var,
+    command=toggle_pro_mode,
+).pack(anchor="w", padx=10, pady=10)
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(

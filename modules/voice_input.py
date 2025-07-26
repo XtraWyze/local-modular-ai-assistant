@@ -33,7 +33,7 @@ ENABLE_BEEP = _CFG.get("voice_beep", False)
 CANCEL_PHRASES = [p.lower() for p in _CFG.get("cancel_phrases", ["stop assistant"])]
 EXIT_PHRASES = [p.lower() for p in _CFG.get("exit_phrases", ["exit environment"])]
 SOFT_MUTE_SECS = 3
-STT_BACKEND = _CFG.get("stt_backend", "google")  # "google" or "vosk"
+STT_BACKEND = _CFG.get("stt_backend", "google")  # "google", "vosk", or "huggingface"
 
 __all__ = [
     "start_voice_listener",
@@ -187,6 +187,9 @@ def start_voice_listener(output_widget, vosk_model_path, mic_hard_muted_func, st
                 try:
                     if STT_BACKEND == "google":
                         text = recognizer.recognize_google(audio)
+                    elif STT_BACKEND == "huggingface":
+                        from modules.hf_stt import recognize_from_audio
+                        text = recognize_from_audio(audio.get_wav_data())
                     else:
                         from modules.vosk_integration import recognize_from_mic
                         text = recognize_from_mic()
