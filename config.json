@@ -9,7 +9,7 @@
   "llm_model": "llama3",
   "emulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
-  "memory_max": 500,
+  "memory_max": 999999999,
   "auto_memory_increase": true,
   "enable_plugins": true,
   "wake_phrases": [
@@ -33,7 +33,7 @@
     "next answer"
   ],
   "mic_overlay": true,
-  "hide_cmd_window": true,
+  "hide_cmd_window": false,
   "mic_overlay_colors": {
     "listening": "green",
     "sleeping": "red",
