@@ -19,7 +19,13 @@ from modules.utils import project_path
 
 MODULE_NAME = "image_generator"
 
-__all__ = ["generate_image", "generate_image_url", "get_info", "get_description"]
+__all__ = [
+    "generate_image",
+    "generate_image_url",
+    "get_latest_image",
+    "get_info",
+    "get_description",
+]
 
 
 def generate_image(
@@ -147,12 +153,43 @@ def generate_image_url(prompt: str, *, size: str = "1024x1024") -> str:
         return f"Error: {exc}"
 
 
+def get_latest_image(save_dir: str = "generated_images") -> Optional[str]:
+    """Return the path to the most recently created image.
+
+    Parameters
+    ----------
+    save_dir:
+        Directory where generated images are stored. Relative paths are
+        resolved against the project root.
+
+    Returns
+    -------
+    Optional[str]
+        Absolute path to the newest image file, or ``None`` if none exist.
+    """
+    if not os.path.isabs(save_dir):
+        save_dir = project_path(save_dir)
+    if not os.path.isdir(save_dir):
+        return None
+    images = [
+        f for f in os.listdir(save_dir) if f.lower().endswith(".png")
+    ]
+    if not images:
+        return None
+    images.sort(key=lambda f: os.path.getmtime(os.path.join(save_dir, f)))
+    return os.path.join(save_dir, images[-1])
+
+
 def get_info() -> dict:
     """Return module metadata for discovery."""
     return {
         "name": MODULE_NAME,
         "description": "Generate images from text prompts using DALL-E or similar APIs.",
-        "functions": ["generate_image", "generate_image_url"],
+        "functions": [
+            "generate_image",
+            "generate_image_url",
+            "get_latest_image",
+        ],
     }
 
 
