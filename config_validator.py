@@ -32,6 +32,7 @@ CONFIG_SCHEMA = {
         "cancel_phrases": {"type": "array", "items": {"type": "string"}},
         "resume_phrases": {"type": "array", "items": {"type": "string"}},
         "mic_overlay": {"type": "boolean"},
+        "hide_cmd_window": {"type": "boolean"},
         "mic_overlay_colors": {
             "type": "object",
             "properties": {

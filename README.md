@@ -40,6 +40,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Memory viewer/editor:** adjust stored history and `memory_max` from the GUI
 - **Config editor tab:** tweak and save `config.json` without leaving the app
 - **Settings tab:** quickly switch between local and remote LLM servers
+- **Toggle console visibility on Windows from the Settings tab**
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
 - **Startup system/device/network scans populate registries and can be refreshed by voice**
@@ -167,6 +168,7 @@ Sample config.json:
   "resume_phrases": ["next question", "next answer"],
 
   "mic_overlay": true,
+  "hide_cmd_window": true,
   "mic_overlay_colors": {
     "listening": "green",
     "sleeping": "red",
