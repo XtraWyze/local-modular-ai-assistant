@@ -80,7 +80,7 @@ from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning
 # utils is located within the modules package
-from modules.utils import resource_path, project_path
+from modules.utils import resource_path, project_path, hide_cmd_window
 from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import debug_panel
@@ -127,6 +127,7 @@ else:
     root.title("AI Assistant")
     # Default size increased so all controls fit comfortably
     root.geometry("900x650")
+    hide_cmd_window()
 
 # Notebook with main UI and speech training tab
 notebook = ttk.Notebook(root)
