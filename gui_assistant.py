@@ -1618,6 +1618,75 @@ _toggle_remote()
 
 # ---------- Model Selection Section ----------
 pro_var = tk.BooleanVar(value=config.get("pro_mode", False))
+hf_tts_var = tk.StringVar(value=config.get("hf_tts_model", ""))
+hf_stt_var = tk.StringVar(value=config.get("hf_stt_model", ""))
+
+# Frames for Hugging Face model paths
+hf_tts_frame = ttk.Frame(settings_tab)
+ttk.Label(hf_tts_frame, text="HF TTS Model:").pack(side=tk.LEFT)
+hf_tts_entry = ttk.Entry(hf_tts_frame, textvariable=hf_tts_var, width=40)
+hf_tts_entry.pack(side=tk.LEFT, fill="x", expand=True, padx=(5, 0))
+
+
+def browse_hf_tts_model() -> None:
+    path = filedialog.askdirectory(title="Select HF TTS Model") or ""
+    if path:
+        hf_tts_var.set(path)
+
+
+def save_hf_tts_model() -> None:
+    from modules import hf_tts
+    cfg = config_loader.config
+    cfg["hf_tts_model"] = hf_tts_var.get().strip()
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    config_loader.config = cfg
+    hf_tts._CFG = cfg  # type: ignore
+    hf_tts._tts = None  # reset to load new model on next speak
+    reload_config()
+    output.insert(tk.END, f"[SYSTEM] HF TTS model set to {hf_tts_var.get()}\n")
+
+
+ttk.Button(hf_tts_frame, text="Browse", command=browse_hf_tts_model).pack(side=tk.LEFT, padx=5)
+ttk.Button(hf_tts_frame, text="Save", command=save_hf_tts_model).pack(side=tk.LEFT)
+
+hf_stt_frame = ttk.Frame(settings_tab)
+ttk.Label(hf_stt_frame, text="HF STT Model:").pack(side=tk.LEFT)
+hf_stt_entry = ttk.Entry(hf_stt_frame, textvariable=hf_stt_var, width=40)
+hf_stt_entry.pack(side=tk.LEFT, fill="x", expand=True, padx=(5, 0))
+
+
+def browse_hf_stt_model() -> None:
+    path = filedialog.askdirectory(title="Select HF STT Model") or ""
+    if path:
+        hf_stt_var.set(path)
+
+
+def save_hf_stt_model() -> None:
+    from modules import hf_stt
+    cfg = config_loader.config
+    cfg["hf_stt_model"] = hf_stt_var.get().strip()
+    with open("config.json", "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    config_loader.config = cfg
+    hf_stt._CFG = cfg  # type: ignore
+    hf_stt._model = None  # reset to load new model on next recognition
+    reload_config()
+    output.insert(tk.END, f"[SYSTEM] HF STT model set to {hf_stt_var.get()}\n")
+
+
+ttk.Button(hf_stt_frame, text="Browse", command=browse_hf_stt_model).pack(side=tk.LEFT, padx=5)
+ttk.Button(hf_stt_frame, text="Save", command=save_hf_stt_model).pack(side=tk.LEFT)
+
+
+def _update_pro_widgets() -> None:
+    """Show or hide HF model selection widgets based on Pro Mode."""
+    if pro_var.get():
+        hf_tts_frame.pack(fill="x", padx=10, pady=(5, 0))
+        hf_stt_frame.pack(fill="x", padx=10, pady=(0, 5))
+    else:
+        hf_tts_frame.pack_forget()
+        hf_stt_frame.pack_forget()
 
 
 def toggle_pro_mode() -> None:
@@ -1643,6 +1712,7 @@ def toggle_pro_mode() -> None:
         json.dump(cfg, f, indent=2)
     config_loader.config = cfg
     reload_config()
+    _update_pro_widgets()
     output.insert(tk.END, f"[SYSTEM] Pro Mode {'enabled' if pro_var.get() else 'disabled'}.\n")
 
 
@@ -1652,6 +1722,7 @@ ttk.Checkbutton(
     variable=pro_var,
     command=toggle_pro_mode,
 ).pack(anchor="w", padx=10, pady=10)
+_update_pro_widgets()
 
 # ---------- Speech Learning Tab ----------
 speech_label = ttk.Label(

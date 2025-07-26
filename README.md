@@ -42,6 +42,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Config editor tab:** tweak and save `config.json` without leaving the app
 - **Settings tab:** quickly switch between local and remote LLM servers
 - **Model Selection tab with Pro Mode:** instantly swap between local and Hugging Face speech models
+- **Choose HF STT and TTS models in Pro Mode for local paths or custom names**
 - **Toggle console visibility on Windows from the Settings tab**
 - **Automatic .exe scanning builds a registry of installed applications**
 - **Download game launchers like Epic Games**
