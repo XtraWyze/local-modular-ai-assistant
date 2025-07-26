@@ -86,6 +86,8 @@ pip install -r requirements.txt
 # Or run the cross‑platform helper:
 python install_requirements.py
 # Windows: run install_requirements.bat for a quick install
+python update_dependencies.py
+# Windows: run update_dependencies.bat to sync new modules
 # or run setup_venv.py (Windows: setup_venv.bat) to create the `venv/` folder
 # and install everything automatically
 # Optional: fetch local LLM backends (LocalAI, text-generation-webui, Ollama)
@@ -440,6 +442,7 @@ We welcome contributions to make the Local Modular AI Assistant even better! Her
 - Create a new Python file in the `modules/` directory.
 - Use the module template in `examples/my_module.py` (or see `generate_module.py`) for reference.
 - Be sure to include a `get_info()` function for discovery and testing.
+- List additional packages in a REQUIREMENTS = ["pkg"] variable so `update_dependencies.py` can install them.
  - Add your module to your local project and test it with `examples/test_full_run.py`.
 - (Optional) Add a test script in `/tests`.
 
