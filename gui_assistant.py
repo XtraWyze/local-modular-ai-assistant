@@ -98,6 +98,7 @@ from modules import stable_fast_3d as fast3d_generator
 from modules import sd_model_manager
 from modules import video_model_manager
 from modules import fast3d_model_manager
+from modules import llm_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
 from modules.hf_utils import has_internet
@@ -154,7 +155,6 @@ video_tab = ttk.Frame(notebook)
 fast3d_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
-model_tab = ttk.Frame(notebook)
 
 image_frame = ttk.Frame(image_tab)
 image_frame.pack(fill="both", expand=True)
@@ -170,7 +170,6 @@ notebook.add(video_tab, text="Video Generator")
 notebook.add(fast3d_tab, text="3D Generation")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
-notebook.add(model_tab, text="Model Selection")
 
 
 def _fit_window(_event=None) -> None:
@@ -1562,7 +1561,35 @@ ttk.Label(settings_tab, text="LLM URL:").pack(anchor="w", padx=10)
 url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
 url_entry.pack(fill="x", padx=10)
 
-# Settings tab currently only supports toggling remote LLM usage
+# LLM model path selection
+saved_llm_models = llm_model_manager.load_models()
+llm_model_var = tk.StringVar(value=llm_model_manager.get_last_model() or config.get("llm_model", ""))
+llm_frame = ttk.Frame(settings_tab)
+llm_frame.pack(fill="x", padx=10, pady=(5, 0))
+ttk.Label(llm_frame, text="Model Path:").pack(side=tk.LEFT)
+llm_entry = ttk.Entry(llm_frame, textvariable=llm_model_var, width=40)
+llm_entry.pack(side=tk.LEFT, fill="x", expand=True, padx=(5, 0))
+
+
+def browse_llm_model() -> None:
+    path = filedialog.askopenfilename(title="Select LLM Model")
+    if path:
+        llm_model_var.set(path)
+        if path not in saved_llm_models:
+            saved_llm_models.append(path)
+        llm_model_manager.save_models(saved_llm_models, path)
+        cfg = config_loader.config
+        cfg["llm_model"] = path
+        with open("config.json", "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2)
+        config_loader.config = cfg
+        reload_config()
+        output.insert(tk.END, f"[SYSTEM] LLM model set to {path}\n")
+
+
+ttk.Button(llm_frame, text="Browse", command=browse_llm_model).pack(side=tk.LEFT, padx=5)
+
+# Settings tab holds remote LLM settings and model selection
 
 def save_settings() -> None:
     cfg = config_loader.config
@@ -1571,6 +1598,11 @@ def save_settings() -> None:
     else:
         cfg.pop("llm_url", None)
     cfg["hide_cmd_window"] = hide_cmd_var.get()
+    path = llm_model_var.get().strip()
+    if path and path not in saved_llm_models:
+        saved_llm_models.append(path)
+    llm_model_manager.save_models(saved_llm_models, path)
+    cfg["llm_model"] = path
     with open("config.json", "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
     config_loader.config = cfg
@@ -1584,7 +1616,7 @@ def save_settings() -> None:
 ttk.Button(settings_tab, text="Save Settings", command=save_settings).pack(pady=10)
 _toggle_remote()
 
-# ---------- Model Selection Tab ----------
+# ---------- Model Selection Section ----------
 pro_var = tk.BooleanVar(value=config.get("pro_mode", False))
 
 
@@ -1615,7 +1647,7 @@ def toggle_pro_mode() -> None:
 
 
 ttk.Checkbutton(
-    model_tab,
+    settings_tab,
     text="Pro Mode (use Hugging Face models)",
     variable=pro_var,
     command=toggle_pro_mode,
