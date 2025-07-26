@@ -1135,7 +1135,7 @@ if pystray is not None:
 
 # ========== WELCOME MESSAGE ==========
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
-output.insert(tk.END, "Assistant: Try: 'open notepad', 'close chrome window', or 'resize spotify to 800 600'.\n")
+output.insert(tk.END, "Assistant: Try: capture region 100 200 300 300  | click image red_button.png\n\n")
 
 # ========= Watcher Thread ========
 def start_config_watcher():
