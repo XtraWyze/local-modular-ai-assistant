@@ -13,7 +13,6 @@ import types
 from pathlib import Path
 
 from assistant import talk_to_llm
-from skills.skill_loader import registry as SKILL_REGISTRY
 
 # Dynamically load all modules under the "modules" package and collect
 # functions exported via their ``__all__`` variables.
@@ -30,9 +29,7 @@ for info in pkgutil.iter_modules([str(module_dir)]):
         if callable(func):
             setattr(TOOLS, fname, func)
 
-# Load skill plugins and register their public callables
-for fname, func in SKILL_REGISTRY.get_functions().items():
-    setattr(TOOLS, fname, func)
+
 
 # Build allowed function mapping automatically from the TOOLS namespace
 ALLOWED_FUNCTIONS = {
@@ -55,12 +52,7 @@ def _rebuild_allowed() -> None:
     TOOL_LIST = ", ".join(sorted(ALLOWED_FUNCTIONS))
 
 
-def _refresh_skills() -> None:
-    """Reload skill plugins and update allowed functions."""
-    SKILL_REGISTRY.reload_modified()
-    for fname, func in SKILL_REGISTRY.get_functions().items():
-        setattr(TOOLS, fname, func)
-    _rebuild_allowed()
+
 
 HIGH_RISK_FUNCS = {"run_python", "open_app", "close_app", "copy_file", "move_file"}
 # Allow high-risk functions by default unless explicitly disabled
@@ -124,7 +116,8 @@ def _handle_open_alias(text: str) -> str | None:
         return None
     app = m.group(1).strip()
     if "open_application" not in ALLOWED_FUNCTIONS:
-        return talk_to_llm(text)
+        # Defer to the LLM handler so tools like ``open_app`` may still run
+        return None
     func = ALLOWED_FUNCTIONS["open_application"]
     msg = ""
     success = False
@@ -341,8 +334,6 @@ def _handle_llm_call(text: str) -> str:
 
 def parse_and_execute(user_text: str) -> str:
     """Parse ``user_text`` and execute an appropriate tool or fallback."""
-
-    _refresh_skills()
 
     for handler in (
         _handle_learning,
