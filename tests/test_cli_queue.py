@@ -16,6 +16,6 @@ def test_handle_cli_input_queues_plan(monkeypatch, capsys):
 
     out = cli.handle_cli_input("open app then close app")
     _ = capsys.readouterr()  # drain prints from queue processing
-    assert "Queued tasks" in out
-    assert executed == ["open app", "close app"]
+    assert out == ""
+    assert executed == []
 

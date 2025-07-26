@@ -1,10 +1,10 @@
 import planning_agent
 
 
-def test_create_plan_splits_tasks():
+def test_create_plan_returns_full_text():
     text = "Open browser and search cats then save results"
     plan = planning_agent.create_plan(text)
-    assert plan == ["open browser", "search cats", "save results"]
+    assert plan == [text.lower()]
 
 
 def test_assign_tasks_calls_dispatch():

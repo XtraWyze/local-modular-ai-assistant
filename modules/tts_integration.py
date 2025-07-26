@@ -13,7 +13,6 @@ else:
     _IMPORT_ERROR = None
 
 from error_logger import log_error
-from .utils import chunk_text
 from . import gpu
 
 CONFIG_PATH = "config.json"
@@ -94,7 +93,7 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
         return f"[TTS] load error: {e}"
     if speed is None:
         speed = config.get("tts_speed", 1.0)
-    chunks = chunk_text(text)
+    chunks = [text]
 
     def run():
         try:
@@ -119,8 +118,6 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
             rtf = proc_time / total_duration if total_duration else 0
             print(f"Processing time: {proc_time:.2f}s")
             print(f"Real-time factor: {rtf:.2f}")
-            if len(chunks) > 1:
-                print("Text splitted to sentences.")
             if on_complete:
                 try:
                     on_complete()

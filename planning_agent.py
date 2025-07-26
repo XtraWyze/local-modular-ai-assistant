@@ -6,19 +6,13 @@ callback. The planning logic is intentionally simple so it can run
 without heavy dependencies.
 """
 
-import re
 from typing import List, Callable
-
-KEYWORDS = ["then", "and", "after", "before", "next"]
 
 
 def create_plan(task: str) -> List[str]:
-    """Return a list of subtasks extracted from ``task``."""
-    lower = task.lower()
-    for kw in KEYWORDS:
-        lower = lower.replace(f" {kw} ", "|")
-    parts = re.split(r"[.!?\n|]", lower)
-    return [p.strip() for p in parts if p.strip()]
+    """Return ``task`` as a single-item plan."""
+    text = task.strip().lower()
+    return [text] if text else []
 
 
 def assign_tasks(plan: List[str], dispatch_func: Callable[[str], None]) -> None:
