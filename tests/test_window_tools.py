@@ -167,7 +167,7 @@ def test_focus_window_alt_tab(monkeypatch):
 
     ok, msg = wt.focus_window('music')
     assert ok
-    assert ('alt', 'tab') in actions
+    assert tuple(actions[0]) == wt._ALT_TAB_KEYS
     assert 'music' in msg.lower()
 
 

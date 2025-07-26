@@ -19,6 +19,14 @@ import ctypes
 from ctypes import wintypes
 from modules import vision_tools
 
+# OS-specific hotkeys for switching windows and maximizing them
+if platform.system() == "Darwin":
+    _ALT_TAB_KEYS = ("command", "tab")
+    _MAXIMIZE_HOTKEY = ("command", "ctrl", "f")
+else:
+    _ALT_TAB_KEYS = ("alt", "tab")
+    _MAXIMIZE_HOTKEY = ("alt", "space", "x")
+
 __all__ = [
     "focus_window",
     "minimize_window",
@@ -137,8 +145,9 @@ def close_taskbar_item(index: int):
 def focus_window(partial_title):
     """Bring the first window matching ``partial_title`` to the front.
 
-    Falls back to cycling windows with ``Alt+Tab`` if a direct match is not
-    found via ``pygetwindow``.
+    Falls back to cycling windows with a platform-specific window switch hotkey
+    (``Alt+Tab`` on Windows/Linux or ``Cmd+Tab`` on macOS) if a direct match is
+    not found via ``pygetwindow``.
     """
     if _IMPORT_ERROR:
         return False, f"pygetwindow not available: {_IMPORT_ERROR}"
@@ -160,7 +169,7 @@ def focus_window(partial_title):
 
     for _ in range(10):  # attempt a few Alt+Tab cycles
         try:
-            pyautogui.hotkey('alt', 'tab')
+            pyautogui.hotkey(*_ALT_TAB_KEYS)
             time.sleep(0.2)
             active = None
             try:
@@ -222,8 +231,10 @@ def minimize_window(partial_title: str):
 def maximize_window(partial_title: str) -> tuple[bool, str]:
     """Maximize or full-screen the first window matching ``partial_title``.
 
-    The window is focused first (with ``Alt+Tab`` fallback) then maximized using
-    the native API. If that fails, a platform-specific hotkey is attempted.
+    The window is focused first (with the same fallback used by
+    :func:`focus_window`) then maximized using the native API. If that fails, a
+    platform-specific hotkey is pressed (``Alt+Space,x`` on Windows,
+    ``Cmd+Ctrl+F`` on macOS, or ``F11`` elsewhere).
     """
     if _IMPORT_ERROR:
         return False, f"pygetwindow not available: {_IMPORT_ERROR}"
@@ -247,10 +258,12 @@ def maximize_window(partial_title: str) -> tuple[bool, str]:
         return False, f"Failed to maximize '{win.title}'"
 
     try:
-        if platform.system() == "Windows":
+        if _MAXIMIZE_HOTKEY == ("alt", "space", "x"):
             pyautogui.hotkey("alt", "space")
             time.sleep(0.1)
             pyautogui.press("x")
+        elif _MAXIMIZE_HOTKEY == ("command", "ctrl", "f"):
+            pyautogui.hotkey("command", "ctrl", "f")
         else:
             pyautogui.press("f11")
         return True, f"Maximized window via hotkey: {win.title}"
@@ -328,7 +341,8 @@ def get_info():
 def get_description() -> str:
     """Return a short summary of this module."""
     return (
-        "Utilities for listing taskbar windows, focusing them with an Alt+Tab "
-        "fallback, maximizing or minimizing windows, relocating them between "
+        "Utilities for listing taskbar windows, focusing them with a window "
+        "switch hotkey fallback, maximizing or minimizing windows, relocating "
+        "them between "
         "monitors, typing into a window, and closing by index."
     )
