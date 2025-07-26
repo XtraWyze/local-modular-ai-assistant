@@ -221,6 +221,52 @@ def _handle_save_exit_alias(text: str) -> str | None:
         return f"Error running save_and_exit: {e}"
 
 
+def _handle_open_alias(text: str) -> str | None:
+    """Support ``open <app>`` as alias for ``open_application``."""
+    m = re.match(r"(?:open|launch|start)\s+(.+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    app = m.group(1).strip()
+    if "open_application" not in ALLOWED_FUNCTIONS:
+        return None
+    func = ALLOWED_FUNCTIONS["open_application"]
+    try:
+        ok, msg = func(app)
+        return msg
+    except Exception as e:
+        return f"Error running open_application: {e}"
+
+
+def _handle_close_alias(text: str) -> str | None:
+    """Support ``close <window>`` as alias for ``close_window``."""
+    target = _extract_window_target(text, "close")
+    if not target:
+        return None
+    if "close_window" not in ALLOWED_FUNCTIONS:
+        return None
+    func = ALLOWED_FUNCTIONS["close_window"]
+    try:
+        ok, msg = func(target)
+        return msg
+    except Exception as e:
+        return f"Error running close_window: {e}"
+
+
+def _handle_resize_alias(text: str) -> str | None:
+    """Support ``resize <window> to WxH`` commands."""
+    m = re.match(r"resize\s+(.+?)\s+(?:to\s*)?(\d+)\s*[x, ]\s*(\d+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    title, w, h = m.groups()
+    if "resize_window" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["resize_window"]
+    try:
+        return func(title.strip(), int(w), int(h))
+    except Exception as e:
+        return f"Error running resize_window: {e}"
+
+
 def _execute_tool_call(fn_name: str, args: str, user_text: str) -> str:
     """Validate and execute a tool call returned by the LLM."""
     if fn_name not in ALLOWED_FUNCTIONS:
@@ -297,9 +343,12 @@ def parse_and_execute(user_text: str) -> str:
         _handle_module_generation,
         _handle_run_skill,
         _handle_terminate_alias,
+        _handle_open_alias,
+        _handle_close_alias,
         _handle_minimize_alias,
         _handle_maximize_alias,
         _handle_focus_alias,
+        _handle_resize_alias,
         _handle_move_window_alias,
         _handle_save_exit_alias,
     ):
