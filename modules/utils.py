@@ -5,7 +5,13 @@ import sys
 import re
 from pathlib import Path
 
-__all__ = ["resource_path", "project_path", "chunk_text", "clean_for_tts"]
+__all__ = [
+    "resource_path",
+    "project_path",
+    "chunk_text",
+    "clean_for_tts",
+    "hide_cmd_window",
+]
 
 def resource_path(relative_path: str) -> str:
     """Return absolute path for ``relative_path`` inside packaged app."""
@@ -58,6 +64,7 @@ def get_info():
             "project_path",
             "chunk_text",
             "clean_for_tts",
+            "hide_cmd_window",
         ]
     }
 
@@ -65,3 +72,16 @@ def get_info():
 def get_description() -> str:
     """Return a short summary of this module."""
     return "General helper utilities for file paths and text cleaning."
+
+
+def hide_cmd_window() -> None:
+    """Hide the console window on Windows, if present."""
+    if sys.platform != "win32":
+        return
+    try:  # pragma: no cover - Windows only
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)
+    except Exception as exc:  # pragma: no cover - optional failure
+        print(f"[utils] Could not hide console: {exc}")
