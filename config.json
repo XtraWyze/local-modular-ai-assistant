@@ -9,7 +9,7 @@
   "llm_model": "llama3",
   "emulate_actions": false,
   "vosk_model_path": "vosk-model-small-en-us-0.15",
-  "memory_max": 9999999,
+  "memory_max": 500,
   "auto_memory_increase": true,
   "enable_plugins": true,
   "wake_phrases": [
