@@ -33,6 +33,7 @@
     "next answer"
   ],
   "mic_overlay": true,
+  "hide_cmd_window": true,
   "mic_overlay_colors": {
     "listening": "green",
     "sleeping": "red",
