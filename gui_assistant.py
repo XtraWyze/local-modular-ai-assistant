@@ -53,6 +53,8 @@ from assistant import (
 )
 # voice_input module lives inside the modules package
 from modules.voice_input import start_voice_listener
+# TTS now processes full responses without sentence boundaries, but
+# we keep the module import for voice training utilities.
 from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning

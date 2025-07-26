@@ -13,7 +13,6 @@ else:
     _IMPORT_ERROR = None
 
 from error_logger import log_error
-from .utils import chunk_text
 from . import gpu
 
 CONFIG_PATH = "config.json"
@@ -94,22 +93,16 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
         return f"[TTS] load error: {e}"
     if speed is None:
         speed = config.get("tts_speed", 1.0)
-    chunks = chunk_text(text)
 
     def run():
         try:
             start = time.time()
-            wav = []
-            sample_rate = None
-            total_duration = 0.0
-            for part in chunks:
-                part_wav = model.tts(part, speaker=voice) if voice else model.tts(part)
-                part_wav = np.array(part_wav) * float(volume)
-                if sample_rate is None:
-                    sample_rate = model.synthesizer.output_sample_rate
-                total_duration += len(part_wav) / sample_rate
-                wav.extend(part_wav)
-            wav = np.array(wav)
+            # Generate audio for the entire response at once. Sentence splitting
+            # was removed because it was unused elsewhere and added latency.
+            wav = model.tts(text, speaker=voice) if voice else model.tts(text)
+            wav = np.array(wav) * float(volume)
+            sample_rate = model.synthesizer.output_sample_rate
+            total_duration = len(wav) / sample_rate
             rate = float(speed)
             global _speaking
             _speaking = True
@@ -119,8 +112,6 @@ def speak(text, voice=None, volume=None, speed=None, async_play=True, on_complet
             rtf = proc_time / total_duration if total_duration else 0
             print(f"Processing time: {proc_time:.2f}s")
             print(f"Real-time factor: {rtf:.2f}")
-            if len(chunks) > 1:
-                print("Text splitted to sentences.")
             if on_complete:
                 try:
                     on_complete()
