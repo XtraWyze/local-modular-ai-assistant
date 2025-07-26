@@ -43,7 +43,8 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Close or terminate apps by window title or process name (e.g. "terminate Rocket League")**
 - **List open windows via the taskbar (e.g. "what windows are open?")**
 - **Minimize windows by title (e.g. "minimize YouTube Music")**
-- **Focus windows by title (e.g. "focus Spotify")**
+- **Maximize windows by title (e.g. "maximize Chrome")**
+- **Focus windows by title with Alt+Tab/Cmd+Tab fallback (e.g. "focus Spotify")**
 - **Type text into any window by title (e.g. "type hello in Notepad")**
 - **Control music playback with media keys (play/pause, skip) using keyboard, Windows API, or pyautogui fallbacks**
 - **Control Xbox Game Bar capture:** open the overlay, start/stop recording, take screenshots, or capture the last 30 seconds

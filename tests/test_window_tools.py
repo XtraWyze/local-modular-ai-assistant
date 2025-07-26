@@ -142,3 +142,72 @@ def test_focus_window_success(monkeypatch):
     assert ok
     assert mock_win.activated
     assert 'activated' in msg.lower()
+
+
+def test_focus_window_alt_tab(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+
+    class MockGW:
+        def __init__(self):
+            self.calls = 0
+        def getAllTitles(self):
+            return []
+        def getActiveWindow(self):
+            self.calls += 1
+            if self.calls > 1:
+                return types.SimpleNamespace(title='Music App')
+            return types.SimpleNamespace(title='Other')
+
+    actions = []
+    monkeypatch.setattr(wt, 'gw', MockGW())
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *k: actions.append(k)))
+    monkeypatch.setattr(wt.time, 'sleep', lambda t: None)
+
+    ok, msg = wt.focus_window('music')
+    assert ok
+    assert tuple(actions[0]) == wt._ALT_TAB_KEYS
+    assert 'music' in msg.lower()
+
+
+def test_maximize_window_not_found(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+    mock_gw = types.SimpleNamespace(getAllTitles=lambda: [], getActiveWindow=lambda: None)
+    monkeypatch.setattr(wt, 'gw', mock_gw)
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
+
+    ok, msg = wt.maximize_window('nothing')
+    assert not ok
+    assert 'no window found' in msg.lower()
+
+
+def test_maximize_window_success(monkeypatch):
+    wt = importlib.import_module('modules.window_tools')
+
+    class MockWin:
+        def __init__(self, title):
+            self.title = title
+            self.maxed = False
+        def activate(self):
+            pass
+        def maximize(self):
+            self.maxed = True
+
+    mock_win = MockWin('Chrome')
+    mock_gw = types.SimpleNamespace(
+        getAllTitles=lambda: ['Chrome'],
+        getWindowsWithTitle=lambda t: [mock_win],
+        getActiveWindow=lambda: mock_win,
+    )
+    monkeypatch.setattr(wt, 'gw', mock_gw)
+    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
+
+    ok, msg = wt.maximize_window('chrome')
+    assert ok
+    assert mock_win.maxed
+    assert 'chrome' in msg.lower()
