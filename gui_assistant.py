@@ -94,6 +94,9 @@ from modules import stable_diffusion_generator as sd_generator
 from modules import imagine_generator
 from modules import video_generator
 from modules import stable_fast_3d as fast3d_generator
+from modules import opendream_generator
+from modules import shap_e_generator
+from modules import stable_dreamfusion_generator as dreamfusion_generator
 from modules import sd_model_manager
 from modules import video_model_manager
 from modules import fast3d_model_manager
@@ -166,7 +169,7 @@ notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
 notebook.add(video_tab, text="Video Generator")
-notebook.add(fast3d_tab, text="Stable Fast 3D")
+notebook.add(fast3d_tab, text="3D Models")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
 notebook.add(model_tab, text="Model Selection")
@@ -1306,25 +1309,35 @@ def generate_video_btn() -> None:
 
 ttk.Button(video_frame, text="Generate Video", command=generate_video_btn).pack(pady=5)
 
-# ---------- Stable Fast 3D Tab ----------
+# ---------- 3D Model Tools Tab ----------
+model_tool_var = tk.StringVar(value="Stable Fast 3D")
+ttk.Label(fast3d_tab, text="3D Generator:").pack(anchor="w", padx=10, pady=(10, 0))
+ttk.OptionMenu(
+    fast3d_tab,
+    model_tool_var,
+    "Stable Fast 3D",
+    "Stable Fast 3D",
+    "Shap-E",
+    "OpenDream",
+    "Stable DreamFusion",
+    command=lambda *_: update_tool_fields(),
+).pack(anchor="w", padx=10)
+
 fast3d_prompt = tk.Text(fast3d_tab, height=4)
 fast3d_prompt.pack(fill="x", padx=10, pady=(10, 0))
 
 saved_fast3d_models = fast3d_model_manager.load_models()
 fast3d_model_var = tk.StringVar(value=fast3d_model_manager.get_last_model() or "")
-ttk.Label(fast3d_tab, text="Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_model_label = ttk.Label(fast3d_tab, text="Model Path:")
 fast3d_model_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_model_var, width=50)
-fast3d_model_entry.pack(fill="x", padx=10)
-ttk.Button(
+fast3d_browse_btn = ttk.Button(
     fast3d_tab,
     text="Browse...",
     command=lambda: fast3d_model_var.set(filedialog.askdirectory() or fast3d_model_var.get()),
-).pack(anchor="w", padx=10, pady=(0, 5))
-
+)
 fast3d_model_list = tk.Listbox(fast3d_tab, height=3)
 for _m in saved_fast3d_models:
     fast3d_model_list.insert(tk.END, _m)
-fast3d_model_list.pack(fill="x", padx=10, pady=(5, 0))
 
 
 def select_fast3d_model(_event=None) -> None:
@@ -1359,13 +1372,51 @@ def remove_fast3d_model() -> None:
 
 fast3d_model_list.bind("<Double-Button-1>", select_fast3d_model)
 btn_f3d = ttk.Frame(fast3d_tab)
-btn_f3d.pack(pady=(0, 5))
 ttk.Button(btn_f3d, text="Save Model Path", command=add_fast3d_model).pack(side=tk.LEFT, padx=5)
 ttk.Button(btn_f3d, text="Remove Selected", command=remove_fast3d_model).pack(side=tk.LEFT, padx=5)
 
 fast3d_device_var = tk.StringVar(value=gpu.get_device())
-ttk.Label(fast3d_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
-ttk.OptionMenu(fast3d_tab, fast3d_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
+fast3d_device_label = ttk.Label(fast3d_tab, text="Device:")
+fast3d_device_option = ttk.OptionMenu(fast3d_tab, fast3d_device_var, "cpu", "cpu", "cuda")
+
+quality_var = tk.IntVar(value=32)
+quality_label = ttk.Label(fast3d_tab, text="Quality:")
+quality_spin = ttk.Spinbox(fast3d_tab, from_=16, to=128, textvariable=quality_var)
+
+
+def update_tool_fields(*_args) -> None:
+    """Show relevant options for the selected 3D generator."""
+    for widget in (
+        fast3d_model_label,
+        fast3d_model_entry,
+        fast3d_browse_btn,
+        fast3d_model_list,
+        btn_f3d,
+        fast3d_device_label,
+        fast3d_device_option,
+        quality_label,
+        quality_spin,
+    ):
+        widget.pack_forget()
+
+    tool = model_tool_var.get()
+    if tool in ("Stable Fast 3D", "Stable DreamFusion"):
+        fast3d_model_label.pack(anchor="w", padx=10, pady=(5, 0))
+        fast3d_model_entry.pack(fill="x", padx=10)
+        fast3d_browse_btn.pack(anchor="w", padx=10, pady=(0, 5))
+        fast3d_model_list.pack(fill="x", padx=10, pady=(5, 0))
+        btn_f3d.pack(pady=(0, 5))
+        fast3d_device_label.pack(anchor="w", padx=10, pady=(5, 0))
+        fast3d_device_option.pack(anchor="w", padx=10)
+    elif tool == "Shap-E":
+        fast3d_device_label.pack(anchor="w", padx=10, pady=(5, 0))
+        fast3d_device_option.pack(anchor="w", padx=10)
+    elif tool == "OpenDream":
+        quality_label.pack(anchor="w", padx=10, pady=(5, 0))
+        quality_spin.pack(anchor="w", padx=10)
+
+update_tool_fields()
+
 
 fast3d_dir_var = tk.StringVar(value="generated_3d")
 ttk.Label(fast3d_tab, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
@@ -1411,7 +1462,7 @@ def _preview_model(path: str) -> None:
         log_error(f"[fast3d_preview] {exc}")
 
 
-def generate_fast3d_btn() -> None:
+def generate_3d_btn() -> None:
     prompt = fast3d_prompt.get("1.0", tk.END).strip()
     if not prompt:
         fast3d_status.config(text="Enter a prompt first.")
@@ -1420,14 +1471,38 @@ def generate_fast3d_btn() -> None:
     fast3d_status.config(text="Generating...")
 
     def _run() -> None:
-        path = fast3d_generator.generate_model(
-            prompt,
-            fast3d_model_var.get(),
-            device=fast3d_device_var.get(),
-            save_dir=fast3d_dir_var.get(),
-            name=fast3d_name_var.get().strip() or None,
-        )
-        fast3d_model_manager.set_last_model(fast3d_model_var.get())
+        tool = model_tool_var.get()
+        if tool == "Stable Fast 3D":
+            path = fast3d_generator.generate_model(
+                prompt,
+                fast3d_model_var.get(),
+                device=fast3d_device_var.get(),
+                save_dir=fast3d_dir_var.get(),
+                name=fast3d_name_var.get().strip() or None,
+            )
+            fast3d_model_manager.set_last_model(fast3d_model_var.get())
+        elif tool == "Shap-E":
+            path = shap_e_generator.generate_model(
+                prompt,
+                device=fast3d_device_var.get(),
+                save_dir=fast3d_dir_var.get(),
+                name=fast3d_name_var.get().strip() or None,
+            )
+        elif tool == "OpenDream":
+            path = opendream_generator.generate_model(
+                prompt,
+                quality=quality_var.get(),
+                save_dir=fast3d_dir_var.get(),
+                name=fast3d_name_var.get().strip() or None,
+            )
+        else:  # Stable DreamFusion
+            path = dreamfusion_generator.generate_model(
+                prompt,
+                fast3d_model_var.get(),
+                device=fast3d_device_var.get(),
+                save_dir=fast3d_dir_var.get(),
+                name=fast3d_name_var.get().strip() or None,
+            )
 
         def _update() -> None:
             if os.path.exists(path):
@@ -1440,7 +1515,7 @@ def generate_fast3d_btn() -> None:
 
     threading.Thread(target=_run, daemon=True).start()
 
-ttk.Button(fast3d_tab, text="Generate Model", command=generate_fast3d_btn).pack(pady=5)
+ttk.Button(fast3d_tab, text="Generate Model", command=generate_3d_btn).pack(pady=5)
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()
