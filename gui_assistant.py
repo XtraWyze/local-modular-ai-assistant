@@ -87,6 +87,7 @@ from modules import debug_panel
 from modules import image_generator
 from modules import stable_diffusion_generator as sd_generator
 from modules import video_generator
+from modules import stable_fast_3d as fast3d_generator
 from modules import sd_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
@@ -138,6 +139,7 @@ hotkey_tab = ttk.Frame(notebook)
 module_tab = ttk.Frame(notebook)
 image_tab = ttk.Frame(notebook)
 video_tab = ttk.Frame(notebook)
+fast3d_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
 
@@ -150,6 +152,7 @@ notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
 notebook.add(video_tab, text="Video Generator")
+notebook.add(fast3d_tab, text="Stable Fast 3D")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
 
@@ -1132,6 +1135,63 @@ def generate_video_btn() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 ttk.Button(video_frame, text="Generate Video", command=generate_video_btn).pack(pady=5)
+
+# ---------- Stable Fast 3D Tab ----------
+fast3d_prompt = tk.Text(fast3d_tab, height=4)
+fast3d_prompt.pack(fill="x", padx=10, pady=(10, 0))
+
+fast3d_model_var = tk.StringVar(value="")
+ttk.Label(fast3d_tab, text="Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_model_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_model_var, width=50)
+fast3d_model_entry.pack(fill="x", padx=10)
+
+fast3d_device_var = tk.StringVar(value=gpu.get_device())
+ttk.Label(fast3d_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
+ttk.OptionMenu(fast3d_tab, fast3d_device_var, "cpu", "cpu", "cuda").pack(anchor="w", padx=10)
+
+fast3d_dir_var = tk.StringVar(value="generated_3d")
+ttk.Label(fast3d_tab, text="Save Folder:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_dir_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_dir_var, width=50)
+fast3d_dir_entry.pack(fill="x", padx=10)
+ttk.Button(fast3d_tab, text="Open Folder", command=lambda: open_folder(fast3d_dir_var.get())).pack(anchor="w", padx=10, pady=(0, 5))
+
+fast3d_name_var = tk.StringVar(value="")
+ttk.Label(fast3d_tab, text="File Name:").pack(anchor="w", padx=10, pady=(5, 0))
+fast3d_name_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_name_var, width=50)
+fast3d_name_entry.pack(fill="x", padx=10)
+
+fast3d_status = ttk.Label(fast3d_tab, text="")
+fast3d_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+
+def generate_fast3d_btn() -> None:
+    prompt = fast3d_prompt.get("1.0", tk.END).strip()
+    if not prompt:
+        fast3d_status.config(text="Enter a prompt first.")
+        return
+
+    fast3d_status.config(text="Generating...")
+
+    def _run() -> None:
+        path = fast3d_generator.generate_model(
+            prompt,
+            fast3d_model_var.get(),
+            device=fast3d_device_var.get(),
+            save_dir=fast3d_dir_var.get(),
+            name=fast3d_name_var.get().strip() or None,
+        )
+
+        def _update() -> None:
+            if os.path.exists(path):
+                fast3d_status.config(text=f"Saved to {path}")
+            else:
+                fast3d_status.config(text=path)
+
+        fast3d_status.after(0, _update)
+
+    threading.Thread(target=_run, daemon=True).start()
+
+ttk.Button(fast3d_tab, text="Generate Model", command=generate_fast3d_btn).pack(pady=5)
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()
