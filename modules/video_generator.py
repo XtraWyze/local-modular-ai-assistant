@@ -13,6 +13,14 @@ from modules.utils import project_path
 from modules import gpu
 
 try:
+    from PIL import Image  # type: ignore
+except Exception as e:  # pragma: no cover - optional dependency
+    Image = None  # type: ignore
+    _PIL_ERROR = e
+else:
+    _PIL_ERROR = None
+
+try:
     from diffusers import StableVideoDiffusionPipeline
 except Exception as e:  # pragma: no cover - optional dependency
     StableVideoDiffusionPipeline = None
@@ -64,6 +72,8 @@ def load_local_model(model_path: str, device: str | None = None) -> str:
 def _save_gif(frames, filename: str, fps: int) -> None:
     if not frames:
         raise ValueError("No frames returned")
+    if Image is None:
+        raise ImportError(_PIL_ERROR)
     frames[0].save(
         filename,
         save_all=True,
@@ -82,8 +92,12 @@ def _generate_local(
     fps: int = 8,
     save_dir: str = "generated_videos",
 ) -> str:
-    if StableVideoDiffusionPipeline is None or torch is None:
-        return f"Missing dependencies: {_IMPORT_ERROR or _TORCH_ERROR}"
+    if (
+        StableVideoDiffusionPipeline is None
+        or torch is None
+        or Image is None
+    ):
+        return f"Missing dependencies: {_IMPORT_ERROR or _TORCH_ERROR or _PIL_ERROR}"
 
     if device is None:
         device = gpu.get_device()
