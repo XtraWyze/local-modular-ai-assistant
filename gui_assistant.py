@@ -837,10 +837,47 @@ def toggle_source(*_args) -> None:
 
 toggle_source()
 
-img_preview = ttk.Label(image_tab)
-img_preview.pack(pady=10)
+img_canvas = tk.Canvas(image_tab, width=256, height=256, bg="white", highlightthickness=1, highlightbackground="gray")
+img_canvas.pack(pady=10)
 img_status = ttk.Label(image_tab, text="")
 img_status.pack(anchor="w", padx=10, pady=(5, 0))
+
+_eta_history: list[float] = []
+_eta_running = False
+_eta_text: int | None = None
+
+
+def estimate_image_eta() -> float:
+    """Return the average generation time in seconds."""
+    if not _eta_history:
+        return 10.0
+    return sum(_eta_history) / len(_eta_history)
+
+
+def record_image_duration(seconds: float) -> None:
+    """Record a completed generation duration for future ETA estimates."""
+    _eta_history.append(seconds)
+    if len(_eta_history) > 5:
+        del _eta_history[0]
+
+
+def _start_eta_timer(start: float) -> None:
+    """Display and update the ETA countdown in the preview canvas."""
+    global _eta_running, _eta_text
+    _eta_running = True
+    eta = estimate_image_eta()
+    img_canvas.delete("all")
+    img_canvas.config(width=256, height=256, bg="white")
+    _eta_text = img_canvas.create_text(128, 128, text="", fill="black")
+
+    def _update() -> None:
+        remaining = int(max(0, eta - (time.time() - start)))
+        if _eta_text is not None:
+            img_canvas.itemconfigure(_eta_text, text=f"ETA: {remaining}s")
+        if remaining > 0 and _eta_running:
+            img_canvas.after(1000, _update)
+
+    _update()
 
 def generate_image_btn() -> None:
     prompt = img_prompt.get("1.0", tk.END).strip()
@@ -848,6 +885,8 @@ def generate_image_btn() -> None:
         img_status.config(text="Enter a prompt first.")
         return
     img_status.config(text="Generating...")
+    start = time.time()
+    _start_eta_timer(start)
 
     def _run() -> None:
         if source_var.get() == "local":
@@ -859,20 +898,27 @@ def generate_image_btn() -> None:
         else:
             path = image_generator.generate_image(prompt, size=size_var.get())
 
+        duration = time.time() - start
+        record_image_duration(duration)
+
         def _update() -> None:
+            global _eta_running
+            _eta_running = False
             if path.endswith(".png") and os.path.exists(path):
                 if Image and ImageTk:
                     try:
                         img = Image.open(path)
                         photo = ImageTk.PhotoImage(img)
-                        img_preview.configure(image=photo)
-                        img_preview.image = photo
+                        img_canvas.delete("all")
+                        img_canvas.config(width=photo.width(), height=photo.height())
+                        img_canvas.create_image(0, 0, anchor="nw", image=photo)
+                        img_canvas.image = photo
                     except Exception:
-                        img_preview.configure(image="")
+                        img_canvas.delete("all")
                 img_status.config(text=f"Saved to {path}")
             else:
-                img_preview.configure(image="")
-                img_status.config(text=path)
+                img_canvas.delete("all")
+                img_canvas.create_text(128, 128, text=path, fill="black")
 
         img_status.after(0, _update)
 
