@@ -7,6 +7,14 @@ import os
 from typing import Optional
 
 import importlib
+import types
+
+try:
+    import openai  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    openai = types.SimpleNamespace(
+        Image=types.SimpleNamespace(create=lambda **_k: None),
+    )
 
 from error_logger import log_error
 from modules.api_keys import get_api_key
@@ -14,7 +22,12 @@ from modules.utils import project_path
 
 MODULE_NAME = "image_generator"
 
-__all__ = ["generate_image", "get_info", "get_description"]
+__all__ = [
+    "generate_image",
+    "generate_image_url",
+    "get_info",
+    "get_description",
+]
 
 
 def generate_image(
@@ -91,12 +104,49 @@ def generate_image(
         return f"Error: {exc}"
 
 
+def generate_image_url(
+    prompt: str,
+    *,
+    provider: str = "openai",
+    model: str = "dall-e-3",
+    size: str = "512x512",
+) -> str:
+    """Generate an image and return the direct URL instead of saving locally."""
+    prov = provider.lower()
+    if prov != "openai":
+        return f"Provider '{provider}' not supported"
+
+    api_key = get_api_key(prov)
+    if not api_key:
+        return "Missing API key"
+
+    try:
+        if hasattr(openai, "OpenAI") and callable(getattr(openai, "OpenAI", None)):
+            client = openai.OpenAI(api_key=api_key)
+            resp = client.images.generate(
+                prompt=prompt,
+                model=model,
+                n=1,
+                size=size,
+            )
+            return resp.data[0].url
+        if hasattr(openai, "Image") and hasattr(openai.Image, "create"):
+            resp = openai.Image.create(prompt=prompt, n=1, size=size)
+            return resp["data"][0]["url"]
+        return "OpenAI package unavailable"
+    except Exception as exc:  # pragma: no cover - network failure
+        log_error(f"[image_generator] {exc}")
+        if not api_key:
+            return "Missing API key"
+        return f"Error: {exc}"
+
+
 def get_info() -> dict:
     """Return module metadata for discovery."""
     return {
         "name": MODULE_NAME,
         "description": "Generate images from text prompts using DALL-E or similar APIs.",
-        "functions": ["generate_image"],
+        "functions": ["generate_image", "generate_image_url"],
     }
 
 

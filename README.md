@@ -352,6 +352,17 @@ pip install openai python-dotenv
 python examples/openai_chat_example.py
 ```
 
+### Local Stable Diffusion Example
+Use the CLI script in `examples/stable_diffusion_example.py` to generate an image
+with your local model:
+
+```bash
+pip install diffusers huggingface-hub torch Pillow
+python examples/stable_diffusion_example.py --prompt "A sunset over the hills" --model /path/to/model
+```
+The script saves images under `generated_images/` and opens a preview window if
+Pillow is available.
+
 ### Allowed Plugin APIs
 The `ModuleRegistry` can optionally verify imports when loading modules. If this
 feature is enabled, any module that tries to import a banned package will fail
