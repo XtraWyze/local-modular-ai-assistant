@@ -56,6 +56,9 @@
   "home_assistant_url": "",
   "home_assistant_token": "",
   "enable_home_assistant": false,
+  "pro_mode": false,
+  "tts_backend": "coqui",
+  "stt_backend": "vosk",
   "api_keys": {
     "openai": "",
     "anthropic": "",
