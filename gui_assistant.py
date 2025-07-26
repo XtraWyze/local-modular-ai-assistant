@@ -53,6 +53,11 @@ import time
 import atexit
 from error_logger import log_error
 from modules import gpu
+import io
+try:
+    import trimesh
+except Exception:  # pragma: no cover - optional dependency
+    trimesh = None  # type: ignore
 try:
     from watchdog.observers import Observer
     from config_watcher import ConfigFileChangeHandler
@@ -144,8 +149,10 @@ fast3d_tab = ttk.Frame(notebook)
 web_tab = ttk.Frame(notebook)
 settings_tab = ttk.Frame(notebook)
 
-image_frame = make_scrollable_frame(image_tab)
-video_frame = make_scrollable_frame(video_tab)
+image_frame = ttk.Frame(image_tab)
+image_frame.pack(fill="both", expand=True)
+video_frame = ttk.Frame(video_tab)
+video_frame.pack(fill="both", expand=True)
 notebook.add(main_tab, text="Assistant")
 notebook.add(speech_tab, text="Speech Learning")
 notebook.add(config_tab, text="Config Editor")
@@ -156,6 +163,16 @@ notebook.add(video_tab, text="Video Generator")
 notebook.add(fast3d_tab, text="Stable Fast 3D")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
+
+
+def _fit_window(_event=None) -> None:
+    """Resize the main window to fit the selected tab."""
+    root.update_idletasks()
+    current = notebook.nametowidget(notebook.select())
+    root.minsize(current.winfo_reqwidth(), current.winfo_reqheight())
+
+
+notebook.bind("<<NotebookTabChanged>>", _fit_window)
 
 # ---------- Config Editor Tab ----------
 config_text = tk.Text(config_tab, wrap=tk.WORD)
@@ -1164,6 +1181,35 @@ fast3d_name_entry.pack(fill="x", padx=10)
 fast3d_status = ttk.Label(fast3d_tab, text="")
 fast3d_status.pack(anchor="w", padx=10, pady=(5, 0))
 
+fast3d_canvas = tk.Canvas(
+    fast3d_tab,
+    width=256,
+    height=256,
+    bg="white",
+    highlightthickness=1,
+    highlightbackground="gray",
+)
+fast3d_canvas.pack(pady=10)
+
+
+def _preview_model(path: str) -> None:
+    """Render a preview of a 3D model on ``fast3d_canvas``."""
+    if not trimesh or not Image or not ImageTk or not os.path.exists(path):
+        return
+    try:
+        mesh = trimesh.load(path)
+        scene = mesh.scene()
+        png = scene.save_image(resolution=(256, 256))
+        if png:
+            img = Image.open(io.BytesIO(png))
+            photo = ImageTk.PhotoImage(img)
+            fast3d_canvas.delete("all")
+            fast3d_canvas.config(width=photo.width(), height=photo.height())
+            fast3d_canvas.create_image(0, 0, anchor="nw", image=photo)
+            fast3d_canvas.image = photo
+    except Exception as exc:  # pragma: no cover - preview failures
+        log_error(f"[fast3d_preview] {exc}")
+
 
 def generate_fast3d_btn() -> None:
     prompt = fast3d_prompt.get("1.0", tk.END).strip()
@@ -1185,6 +1231,7 @@ def generate_fast3d_btn() -> None:
         def _update() -> None:
             if os.path.exists(path):
                 fast3d_status.config(text=f"Saved to {path}")
+                _preview_model(path)
             else:
                 fast3d_status.config(text=path)
 
@@ -1430,7 +1477,7 @@ if pystray is not None:
 # Update geometry after widgets are loaded so the window fits all content
 if not os.environ.get("PYTEST_CURRENT_TEST"):
     root.update_idletasks()
-    root.minsize(root.winfo_reqwidth(), root.winfo_reqheight())
+    _fit_window()
 
 # ========== WELCOME MESSAGE ==========
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
