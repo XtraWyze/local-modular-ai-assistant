@@ -105,16 +105,20 @@ def get_description() -> str:
     return "Provides drag-drop, window resize and clipboard utilities via pyautogui."
 
 
-def register():
-    """Register this module with the plugin manager."""
+def register(registry=None):
+    """Register this module with ``ModuleRegistry``."""
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(MODULE_NAME, {
-        "drag_drop": drag_drop,
-        "resize_window": resize_window,
-        "copy_to_clipboard": copy_to_clipboard,
-        "get_clipboard": get_clipboard,
-        "get_info": get_info,
-    })
+    registry = registry or ModuleRegistry()
+    registry.register(
+        MODULE_NAME,
+        {
+            "drag_drop": drag_drop,
+            "resize_window": resize_window,
+            "copy_to_clipboard": copy_to_clipboard,
+            "get_clipboard": get_clipboard,
+            "get_info": get_info,
+        },
+    )
 
 # register()  # Optional auto-registration

@@ -48,9 +48,10 @@ def get_info():
         ]
     }}
 
-def register():
+def register(registry=None):
     from module_manager import ModuleRegistry
-    ModuleRegistry.register("{module_name}", {{
+    registry = registry or ModuleRegistry()
+    registry.register("{module_name}", {{
         "initialize": initialize,
         "get_status": get_status,
         "main_function": main_function,

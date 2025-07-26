@@ -9,6 +9,10 @@ __pycache__/
 *.log
 *.db
 
+# Local secrets
+.env
+config.local.json
+
 # Local state files
 assistant_memory.json
 assistant_state.json

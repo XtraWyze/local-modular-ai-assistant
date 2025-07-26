@@ -56,7 +56,7 @@
   "home_assistant_token": "",
   "enable_home_assistant": false,
   "api_keys": {
-    "openai": "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",
+    "openai": "",
     "anthropic": "",
     "google": ""
   }

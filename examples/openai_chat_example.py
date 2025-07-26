@@ -1,14 +1,23 @@
 
 """Minimal script to confirm your OpenAI key and connection."""
-
-
-main
 import logging
 import os
 from typing import Optional
 
-from dotenv import load_dotenv
-import openai
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    def load_dotenv() -> None:
+        pass
+
+try:
+    import openai
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    import types
+    openai = types.SimpleNamespace(
+        ChatCompletion=types.SimpleNamespace(create=lambda **_k: None),
+        OpenAI=None,
+    )
 
 # Configure basic logging to a local file
 logging.basicConfig(

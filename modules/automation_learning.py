@@ -200,10 +200,11 @@ def get_description() -> str:
     return "Allows recording and playback of desktop macros taught by the user."
 
 
-def register():  # pragma: no cover - simple registration
+def register(registry=None):  # pragma: no cover - simple registration
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "record_events": record_events,

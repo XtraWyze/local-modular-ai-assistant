@@ -189,6 +189,16 @@ Key options:
 - `min_good_response_words` / `min_good_response_chars`: treat a local
   response as poor quality if shorter than these thresholds.
 
+### API Key Setup
+The `api_keys` section of `config.json` is intentionally left blank. Set your
+credentials using environment variables or with `modules/api_keys.py`:
+
+```bash
+export OPENAI_API_KEY=your-key-here
+python -m modules.api_keys save_api_keys '{"openai": "your-key"}'
+```
+Add a `.env` file if desired, but keep it out of version control.
+
 ### Remote Ollama Server
 You can run the LLM on another machine and point the assistant to it over
 your local network:
