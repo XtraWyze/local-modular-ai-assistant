@@ -36,6 +36,7 @@ coqpit==0.0.17
 cycler==0.12.1
 cymem==2.0.11
 Cython==3.1.2
+datasets==2.11.0
 dateparser==1.1.8
 decorator==5.2.1
 distlib==0.4.0
@@ -144,6 +145,7 @@ protobuf==6.31.1
 psutil==7.0.0
 ptyprocess==0.7.0
 pulsar-client==3.7.0
+pyarrow==12.0.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 PyAudio==0.2.14
@@ -156,11 +158,11 @@ pytest==8.4.1
 pydantic==2.11.7
 pydantic_core==2.33.2
 pygame==2.6.1
-PyGetWindow==0.0.9
+pygetwindow==0.0.9
 Pygments==2.19.2
 pyinstaller==6.14.2
 pyinstaller-hooks-contrib==2025.6
-PyMsgBox==1.0.9
+pymsgbox==1.0.9
 pynndescent==0.5.13
 pyparsing==3.2.3
 pyperclip==1.9.0
@@ -182,7 +184,7 @@ pytweening==1.2.0
 pytz==2025.2
 pywin32==311
 pywin32-ctypes==0.2.3
-PyYAML==6.0.2
+pyyaml==6.0.2
 referencing==0.36.2
 regex==2024.11.6
 requests==2.32.4
