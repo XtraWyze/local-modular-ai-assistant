@@ -117,6 +117,73 @@ def _handle_run_skill(text: str) -> str | None:
     return f"I don\u2019t know a skill called '{skill_name}'."
 
 
+def _handle_open_alias(text: str) -> str | None:
+    """Support ``open <app>`` as alias for ``open_application``."""
+    m = re.match(r"open\s+(.+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    app = m.group(1).strip()
+    if "open_application" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["open_application"]
+    msg = ""
+    success = False
+    try:
+        success, msg = func(app)
+        if success:
+            return msg
+    except Exception as e:
+        msg = str(e)
+    if "open_app" in ALLOWED_FUNCTIONS:
+        return None
+    return f"Error running open_application: {msg}"
+
+
+def _handle_close_alias(text: str) -> str | None:
+    """Support ``close <window>`` as alias for ``close_window``."""
+    target = _extract_window_target(text, "close")
+    if not target:
+        return None
+    if "close_window" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["close_window"]
+    try:
+        _, msg = func(target)
+        return msg
+    except Exception as e:
+        return f"Error running close_window: {e}"
+
+
+def _handle_maximize_alias(text: str) -> str | None:
+    """Support ``maximize <window>`` as alias for ``maximize_window``."""
+    target = _extract_window_target(text, "maximize")
+    if not target:
+        return None
+    if "maximize_window" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["maximize_window"]
+    try:
+        _, msg = func(target)
+        return msg
+    except Exception as e:
+        return f"Error running maximize_window: {e}"
+
+
+def _handle_resize_alias(text: str) -> str | None:
+    """Support ``resize <window> to W H`` as alias for ``resize_window``."""
+    m = re.match(r"resize\s+(.+?)\s+to\s+(\d+)\s+(\d+)", text, re.IGNORECASE)
+    if not m:
+        return None
+    title, w, h = m.groups()
+    if "resize_window" not in ALLOWED_FUNCTIONS:
+        return talk_to_llm(text)
+    func = ALLOWED_FUNCTIONS["resize_window"]
+    try:
+        return func(title, int(w), int(h))
+    except Exception as e:
+        return f"Error running resize_window: {e}"
+
+
 def _handle_terminate_alias(text: str) -> str | None:
     """Support ``terminate <app>`` as alias for ``close_app``."""
     term = re.match(r"\b(?:terminate|kill)\s+(.+)", text, re.IGNORECASE)
@@ -281,6 +348,10 @@ def parse_and_execute(user_text: str) -> str:
         _handle_learning,
         _handle_module_generation,
         _handle_run_skill,
+        _handle_open_alias,
+        _handle_close_alias,
+        _handle_maximize_alias,
+        _handle_resize_alias,
         _handle_terminate_alias,
         _handle_minimize_alias,
         _handle_focus_alias,
