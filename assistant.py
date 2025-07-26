@@ -16,6 +16,8 @@ import importlib
 import re
 
 from modules.actions import detect_action
+# speak() now synthesizes whole responses without sentence splitting since
+# splitting was not used for timing or control logic.
 from modules.tts_manager import speak, is_speaking, stop_speech
 from modules import window_tools, vision_tools
 from modules.automation_learning import record_macro, play_macro
