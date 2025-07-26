@@ -1,6 +1,6 @@
 # ========== IMPORTS ==========
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 
 
 class ReadOnlyText(tk.Text):
@@ -95,6 +95,8 @@ from modules import imagine_generator
 from modules import video_generator
 from modules import stable_fast_3d as fast3d_generator
 from modules import sd_model_manager
+from modules import video_model_manager
+from modules import fast3d_model_manager
 from modules.browser_automation import set_webview_callback
 from modules import web_activity
 try:
@@ -862,12 +864,19 @@ source_menu = ttk.OptionMenu(
 source_menu.pack(anchor="w", padx=10)
 
 # Stable Diffusion settings
-sd_model_var = tk.StringVar(value="")
+saved_sd_models = sd_model_manager.load_models()
+sd_model_var = tk.StringVar(value=sd_model_manager.get_last_model() or "")
 ttk.Label(image_frame, text="SD Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
 sd_model_entry = ttk.Entry(image_frame, textvariable=sd_model_var, width=50)
 sd_model_entry.pack(fill="x", padx=10)
+ttk.Button(
+    image_frame,
+    text="Browse...",
+    command=lambda: sd_model_var.set(
+        filedialog.askdirectory() or sd_model_var.get()
+    ),
+).pack(anchor="w", padx=10, pady=(0, 5))
 
-saved_sd_models = sd_model_manager.load_models()
 sd_model_list = tk.Listbox(image_frame, height=3)
 for _m in saved_sd_models:
     sd_model_list.insert(tk.END, _m)
@@ -886,11 +895,13 @@ def add_sd_model() -> None:
         return
     if path not in saved_sd_models:
         saved_sd_models.append(path)
-        sd_model_manager.save_models(saved_sd_models)
         sd_model_list.insert(tk.END, path)
-        img_status.config(text=f"Saved {path}")
+        msg = f"Saved {path}"
     else:
-        img_status.config(text="Model already saved.")
+        msg = "Model already saved."
+    sd_model_manager.save_models(saved_sd_models, path)
+    sd_model_manager.set_last_model(path)
+    img_status.config(text=msg)
 
 
 def remove_sd_model() -> None:
@@ -901,6 +912,8 @@ def remove_sd_model() -> None:
     path = saved_sd_models.pop(idx)
     sd_model_list.delete(idx)
     sd_model_manager.save_models(saved_sd_models)
+    if sd_model_manager.get_last_model() == path:
+        sd_model_manager.set_last_model(saved_sd_models[0] if saved_sd_models else None)
     img_status.config(text=f"Removed {path}")
 
 sd_model_list.bind("<Double-Button-1>", select_sd_model)
@@ -1020,6 +1033,7 @@ def generate_image_btn() -> None:
                 save_dir=img_dir_var.get(),
                 name=img_name_var.get().strip() or None,
             )
+            sd_model_manager.set_last_model(sd_model_var.get())
         else:
             path = image_generator.generate_image(
                 prompt,
@@ -1098,6 +1112,7 @@ def imagine_via_gui(
                 save_dir=save_dir,
                 name=name,
             )
+            sd_model_manager.set_last_model(sd_model_path)
     else:
         path = image_generator.generate_image(
             prompt,
@@ -1151,10 +1166,58 @@ ttk.OptionMenu(
     "local",
 ).pack(anchor="w", padx=10)
 
-video_model_var = tk.StringVar(value="")
+saved_video_models = video_model_manager.load_models()
+video_model_var = tk.StringVar(value=video_model_manager.get_last_model() or "")
 ttk.Label(video_frame, text="Local Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
 video_model_entry = ttk.Entry(video_frame, textvariable=video_model_var, width=50)
 video_model_entry.pack(fill="x", padx=10)
+ttk.Button(
+    video_frame,
+    text="Browse...",
+    command=lambda: video_model_var.set(filedialog.askdirectory() or video_model_var.get()),
+).pack(anchor="w", padx=10, pady=(0, 5))
+
+video_model_list = tk.Listbox(video_frame, height=3)
+for _m in saved_video_models:
+    video_model_list.insert(tk.END, _m)
+video_model_list.pack(fill="x", padx=10, pady=(5, 0))
+
+
+def select_video_model(_event=None) -> None:
+    if video_model_list.curselection():
+        video_model_var.set(video_model_list.get(video_model_list.curselection()[0]))
+
+
+def add_video_model() -> None:
+    path = video_model_var.get().strip()
+    if not path:
+        video_status.config(text="Enter a model path first.")
+        return
+    if path not in saved_video_models:
+        saved_video_models.append(path)
+        video_model_list.insert(tk.END, path)
+    video_model_manager.save_models(saved_video_models, path)
+    video_model_manager.set_last_model(path)
+    video_status.config(text=f"Saved {path}")
+
+
+def remove_video_model() -> None:
+    if not video_model_list.curselection():
+        video_status.config(text="Select a model to remove.")
+        return
+    idx = video_model_list.curselection()[0]
+    path = saved_video_models.pop(idx)
+    video_model_list.delete(idx)
+    video_model_manager.save_models(saved_video_models)
+    if video_model_manager.get_last_model() == path:
+        video_model_manager.set_last_model(saved_video_models[0] if saved_video_models else None)
+    video_status.config(text=f"Removed {path}")
+
+video_model_list.bind("<Double-Button-1>", select_video_model)
+btn_video = ttk.Frame(video_frame)
+btn_video.pack(pady=(0, 5))
+ttk.Button(btn_video, text="Save Model Path", command=add_video_model).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_video, text="Remove Selected", command=remove_video_model).pack(side=tk.LEFT, padx=5)
 
 video_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(video_frame, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
@@ -1209,6 +1272,7 @@ def generate_video_btn() -> None:
                 device=video_device_var.get(),
                 **common,
             )
+            video_model_manager.set_last_model(video_model_var.get())
         else:
             path = video_generator.generate_video(
                 prompt,
@@ -1243,10 +1307,58 @@ ttk.Button(video_frame, text="Generate Video", command=generate_video_btn).pack(
 fast3d_prompt = tk.Text(fast3d_tab, height=4)
 fast3d_prompt.pack(fill="x", padx=10, pady=(10, 0))
 
-fast3d_model_var = tk.StringVar(value="")
+saved_fast3d_models = fast3d_model_manager.load_models()
+fast3d_model_var = tk.StringVar(value=fast3d_model_manager.get_last_model() or "")
 ttk.Label(fast3d_tab, text="Model Path:").pack(anchor="w", padx=10, pady=(5, 0))
 fast3d_model_entry = ttk.Entry(fast3d_tab, textvariable=fast3d_model_var, width=50)
 fast3d_model_entry.pack(fill="x", padx=10)
+ttk.Button(
+    fast3d_tab,
+    text="Browse...",
+    command=lambda: fast3d_model_var.set(filedialog.askdirectory() or fast3d_model_var.get()),
+).pack(anchor="w", padx=10, pady=(0, 5))
+
+fast3d_model_list = tk.Listbox(fast3d_tab, height=3)
+for _m in saved_fast3d_models:
+    fast3d_model_list.insert(tk.END, _m)
+fast3d_model_list.pack(fill="x", padx=10, pady=(5, 0))
+
+
+def select_fast3d_model(_event=None) -> None:
+    if fast3d_model_list.curselection():
+        fast3d_model_var.set(fast3d_model_list.get(fast3d_model_list.curselection()[0]))
+
+
+def add_fast3d_model() -> None:
+    path = fast3d_model_var.get().strip()
+    if not path:
+        fast3d_status.config(text="Enter a model path first.")
+        return
+    if path not in saved_fast3d_models:
+        saved_fast3d_models.append(path)
+        fast3d_model_list.insert(tk.END, path)
+    fast3d_model_manager.save_models(saved_fast3d_models, path)
+    fast3d_model_manager.set_last_model(path)
+    fast3d_status.config(text=f"Saved {path}")
+
+
+def remove_fast3d_model() -> None:
+    if not fast3d_model_list.curselection():
+        fast3d_status.config(text="Select a model to remove.")
+        return
+    idx = fast3d_model_list.curselection()[0]
+    path = saved_fast3d_models.pop(idx)
+    fast3d_model_list.delete(idx)
+    fast3d_model_manager.save_models(saved_fast3d_models)
+    if fast3d_model_manager.get_last_model() == path:
+        fast3d_model_manager.set_last_model(saved_fast3d_models[0] if saved_fast3d_models else None)
+    fast3d_status.config(text=f"Removed {path}")
+
+fast3d_model_list.bind("<Double-Button-1>", select_fast3d_model)
+btn_f3d = ttk.Frame(fast3d_tab)
+btn_f3d.pack(pady=(0, 5))
+ttk.Button(btn_f3d, text="Save Model Path", command=add_fast3d_model).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_f3d, text="Remove Selected", command=remove_fast3d_model).pack(side=tk.LEFT, padx=5)
 
 fast3d_device_var = tk.StringVar(value=gpu.get_device())
 ttk.Label(fast3d_tab, text="Device:").pack(anchor="w", padx=10, pady=(5, 0))
@@ -1312,6 +1424,7 @@ def generate_fast3d_btn() -> None:
             save_dir=fast3d_dir_var.get(),
             name=fast3d_name_var.get().strip() or None,
         )
+        fast3d_model_manager.set_last_model(fast3d_model_var.get())
 
         def _update() -> None:
             if os.path.exists(path):

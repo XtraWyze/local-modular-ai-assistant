@@ -1,4 +1,4 @@
-"""Manage saved Stable Diffusion model paths."""
+"""Manage saved video model paths for the video generator GUI."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from typing import List, Optional
 
 from modules.utils import resource_path
 
-MODULE_NAME = "sd_model_manager"
-MODELS_FILE = resource_path("sd_models.json")
+MODULE_NAME = "video_model_manager"
+MODELS_FILE = resource_path("video_models.json")
 
 model_paths: List[str] = []
 last_model: Optional[str] = None
@@ -57,7 +57,7 @@ def save_models(models: List[str] | None = None, last: str | None = None) -> Non
 
 
 def add_model(path: str) -> None:
-    """Add ``path`` to :data:`model_paths` and save."""
+    """Add ``path`` to saved models."""
     if not path:
         return
     if path not in model_paths:
@@ -66,7 +66,7 @@ def add_model(path: str) -> None:
 
 
 def remove_model(path: str) -> bool:
-    """Remove ``path`` from :data:`model_paths` if present."""
+    """Remove ``path`` from saved models."""
     if path in model_paths:
         model_paths.remove(path)
         if path == last_model:
@@ -106,7 +106,7 @@ def get_info() -> dict:
 
 def get_description() -> str:
     """Return a short description of this module."""
-    return "Manage saved Stable Diffusion model paths."
+    return "Manage saved video model paths."
 
 
 # Initialize on import
