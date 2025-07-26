@@ -54,13 +54,21 @@ except Exception as e:  # pragma: no cover - optional dependency
 else:
     _PYWINAUTO_ERROR = None
 
-# Existing helpers from other modules ---------------------------------------
-from modules.window_tools import (
-    focus_window as _focus_window,
-    minimize_window as _minimize_window,
-    maximize_window as _maximize_window,
-)
-from modules.automation_actions import resize_window as _resize_window
+# Key combinations for common window actions
+if platform.system() == "Darwin":
+    _ALT_TAB_KEYS = ("command", "tab")
+    _MAXIMIZE_HOTKEY = ("command", "ctrl", "f")
+else:
+    _ALT_TAB_KEYS = ("alt", "tab")
+    _MAXIMIZE_HOTKEY = ("alt", "space", "x")
+
+
+# ---------------------------------------------------------------------------
+# Previous implementations lived across ``window_tools`` and
+# ``automation_actions``. The logic has been consolidated here so the
+# assistant can rely on a single window management API. These modules still
+# expose thin wrappers for backwards compatibility, but the real logic now
+# resides in this file.
 
 MODULE_NAME = "app_window_manager"
 
@@ -171,26 +179,105 @@ def close_window(partial_title: str) -> tuple[bool, str]:
     return False, f"Failed to close '{matches[0]}'"
 
 
-# Simple wrappers around existing implementations --------------------------
+# Window manipulation implementations ---------------------------------------
 
-def minimize_window(title: str) -> tuple[bool, str]:
-    """Minimize a window by title."""
-    return _minimize_window(title)
+def focus_window(partial_title: str) -> tuple[bool, str]:
+    """Bring the first window matching ``partial_title`` to the foreground."""
+    if gw is None or _GW_ERROR:
+        return False, f"pygetwindow not available: {_GW_ERROR}"
+    try:
+        matches = [w for w in gw.getAllTitles() if partial_title.lower() in w.lower()]
+    except Exception:
+        matches = []
+    if matches:
+        win = gw.getWindowsWithTitle(matches[0])[0]
+        try:
+            win.activate()
+            time.sleep(0.5)
+            return True, f"Activated window: {matches[0]}"
+        except Exception:
+            pass
+
+    if _PYAUTOGUI_ERROR:
+        return False, f"No window found containing '{partial_title}'"
+
+    for _ in range(10):
+        try:
+            pyautogui.hotkey(*_ALT_TAB_KEYS)
+            time.sleep(0.2)
+            active = None
+            try:
+                active = gw.getActiveWindow()
+            except Exception:
+                pass
+            if active and partial_title.lower() in active.title.lower():
+                return True, f"Activated window via Alt+Tab: {active.title}"
+        except Exception:
+            break
+
+    return False, f"No window found containing '{partial_title}'"
 
 
-def maximize_window(title: str) -> tuple[bool, str]:
-    """Maximize a window by title."""
-    return _maximize_window(title)
+def minimize_window(partial_title: str) -> tuple[bool, str]:
+    """Minimize the first window containing ``partial_title``."""
+    if gw is None or _GW_ERROR:
+        return False, f"pygetwindow not available: {_GW_ERROR}"
+    matches = [w for w in gw.getAllTitles() if partial_title.lower() in w.lower()]
+    if not matches:
+        return False, f"No window found containing '{partial_title}'"
+    win = gw.getWindowsWithTitle(matches[0])[0]
+    try:
+        win.minimize()
+        return True, f"Minimized window: {matches[0]}"
+    except Exception as e:
+        return False, f"Failed to minimize '{matches[0]}': {e}"
 
 
-def focus_window(title: str) -> tuple[bool, str]:
-    """Focus a window by title."""
-    return _focus_window(title)
+def maximize_window(partial_title: str) -> tuple[bool, str]:
+    """Maximize the first window containing ``partial_title``."""
+    if gw is None or _GW_ERROR:
+        return False, f"pygetwindow not available: {_GW_ERROR}"
+    ok, msg = focus_window(partial_title)
+    if not ok:
+        return False, msg
+    win = gw.getActiveWindow()
+    if not win:
+        return False, f"Could not activate '{partial_title}'"
+    try:
+        if hasattr(win, "maximize"):
+            win.maximize()
+            return True, f"Maximized window: {win.title}"
+    except Exception:
+        pass
+    if _PYAUTOGUI_ERROR:
+        return False, f"Failed to maximize '{win.title}'"
+    try:
+        if _MAXIMIZE_HOTKEY == ("alt", "space", "x"):
+            pyautogui.hotkey("alt", "space")
+            time.sleep(0.1)
+            pyautogui.press("x")
+        elif _MAXIMIZE_HOTKEY == ("command", "ctrl", "f"):
+            pyautogui.hotkey("command", "ctrl", "f")
+        else:
+            pyautogui.press("f11")
+        return True, f"Maximized window via hotkey: {win.title}"
+    except Exception as e:
+        return False, f"Failed to maximize '{win.title}': {e}"
 
 
 def resize_window(title: str, width: int, height: int) -> str:
-    """Resize a window using ``automation_actions.resize_window``."""
-    return _resize_window(title, width, height)
+    """Resize the first window matching ``title``."""
+    if gw is None or _GW_ERROR:
+        return f"pygetwindow not available: {_GW_ERROR}"
+    try:
+        matches = gw.getWindowsWithTitle(title)
+        if not matches:
+            return f"Window '{title}' not found"
+        win = matches[0]
+        win.resizeTo(width, height)
+        return f"Resized '{title}' to {width}x{height}"
+    except Exception as e:
+        return f"Error resizing window: {e}"
 
 
 # Workflow helpers ---------------------------------------------------------

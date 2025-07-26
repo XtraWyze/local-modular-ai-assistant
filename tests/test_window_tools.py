@@ -1,6 +1,7 @@
 import importlib
 import types
-from modules.window_tools import close_taskbar_item, minimize_window, focus_window
+from modules.window_tools import close_taskbar_item
+from modules.app_window_manager import minimize_window, focus_window, maximize_window, _ALT_TAB_KEYS
 
 def test_invalid_index():
     ok, msg = close_taskbar_item(-1)
@@ -9,19 +10,19 @@ def test_invalid_index():
 
 
 def test_minimize_window_not_found(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
     mock_gw1 = type('GW', (), {
         'getAllTitles': lambda: [],
     })
-    monkeypatch.setattr(wt, 'gw', mock_gw1)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(awm, 'gw', mock_gw1)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
     ok, msg = minimize_window('xyz')
     assert not ok
     assert 'No window found' in msg
 
 
 def test_minimize_window_success(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
     events = {}
 
     class MockWin:
@@ -34,8 +35,8 @@ def test_minimize_window_success(monkeypatch):
         'getAllTitles': lambda: ['My App'],
         'getWindowsWithTitle': lambda t: [MockWin(t)],
     })
-    monkeypatch.setattr(wt, 'gw', mock_gw2)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(awm, 'gw', mock_gw2)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
     ok, msg = minimize_window('my app')
     assert ok
     assert events.get('min')
@@ -109,18 +110,18 @@ def test_type_in_window(monkeypatch):
 
 
 def test_focus_window_not_found(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
     mock_gw6 = types.SimpleNamespace(getAllTitles=lambda: [])
-    monkeypatch.setattr(wt, 'gw', mock_gw6)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(awm, 'gw', mock_gw6)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
 
-    ok, msg = wt.focus_window('missing')
+    ok, msg = focus_window('missing')
     assert not ok
     assert 'no window found' in msg.lower()
 
 
 def test_focus_window_success(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
 
     class MockWin:
         def __init__(self, title):
@@ -135,17 +136,17 @@ def test_focus_window_success(monkeypatch):
         getAllTitles=lambda: ['Test App'],
         getWindowsWithTitle=lambda t: [mock_win]
     )
-    monkeypatch.setattr(wt, 'gw', mock_gw7)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
+    monkeypatch.setattr(awm, 'gw', mock_gw7)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
 
-    ok, msg = wt.focus_window('test app')
+    ok, msg = focus_window('test app')
     assert ok
     assert mock_win.activated
     assert 'activated' in msg.lower()
 
 
 def test_focus_window_alt_tab(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
 
     class MockGW:
         def __init__(self):
@@ -159,33 +160,33 @@ def test_focus_window_alt_tab(monkeypatch):
             return types.SimpleNamespace(title='Other')
 
     actions = []
-    monkeypatch.setattr(wt, 'gw', MockGW())
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
-    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
-    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *k: actions.append(k)))
-    monkeypatch.setattr(wt.time, 'sleep', lambda t: None)
+    monkeypatch.setattr(awm, 'gw', MockGW())
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
+    monkeypatch.setattr(awm, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(awm, 'pyautogui', types.SimpleNamespace(hotkey=lambda *k: actions.append(k)))
+    monkeypatch.setattr(awm.time, 'sleep', lambda t: None)
 
-    ok, msg = wt.focus_window('music')
+    ok, msg = focus_window('music')
     assert ok
-    assert tuple(actions[0]) == wt._ALT_TAB_KEYS
+    assert tuple(actions[0]) == _ALT_TAB_KEYS
     assert 'music' in msg.lower()
 
 
 def test_maximize_window_not_found(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
     mock_gw = types.SimpleNamespace(getAllTitles=lambda: [], getActiveWindow=lambda: None)
-    monkeypatch.setattr(wt, 'gw', mock_gw)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
-    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
-    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
+    monkeypatch.setattr(awm, 'gw', mock_gw)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
+    monkeypatch.setattr(awm, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(awm, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
 
-    ok, msg = wt.maximize_window('nothing')
+    ok, msg = maximize_window('nothing')
     assert not ok
     assert 'no window found' in msg.lower()
 
 
 def test_maximize_window_success(monkeypatch):
-    wt = importlib.import_module('modules.window_tools')
+    awm = importlib.import_module('modules.app_window_manager')
 
     class MockWin:
         def __init__(self, title):
@@ -202,12 +203,12 @@ def test_maximize_window_success(monkeypatch):
         getWindowsWithTitle=lambda t: [mock_win],
         getActiveWindow=lambda: mock_win,
     )
-    monkeypatch.setattr(wt, 'gw', mock_gw)
-    monkeypatch.setattr(wt, '_IMPORT_ERROR', None)
-    monkeypatch.setattr(wt, '_PYAUTOGUI_ERROR', None)
-    monkeypatch.setattr(wt, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
+    monkeypatch.setattr(awm, 'gw', mock_gw)
+    monkeypatch.setattr(awm, '_GW_ERROR', None)
+    monkeypatch.setattr(awm, '_PYAUTOGUI_ERROR', None)
+    monkeypatch.setattr(awm, 'pyautogui', types.SimpleNamespace(hotkey=lambda *a: None, press=lambda *a: None))
 
-    ok, msg = wt.maximize_window('chrome')
+    ok, msg = maximize_window('chrome')
     assert ok
     assert mock_win.maxed
     assert 'chrome' in msg.lower()

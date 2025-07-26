@@ -4,16 +4,16 @@ import sys
 
 
 def test_parse_and_execute_minimize(monkeypatch):
-    wt = types.ModuleType('modules.window_tools')
+    awm = types.ModuleType('modules.app_window_manager')
     calls = {}
 
     def mock_minimize(title):
         calls['title'] = title
         return True, f"minimized {title}"
 
-    wt.minimize_window = mock_minimize
-    wt.__all__ = ['minimize_window']
-    monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
+    awm.minimize_window = mock_minimize
+    awm.__all__ = ['minimize_window']
+    monkeypatch.setitem(sys.modules, 'modules.app_window_manager', awm)
 
     stub_assistant = types.ModuleType('assistant')
     stub_assistant.talk_to_llm = lambda t: 'ignored'
@@ -27,16 +27,16 @@ def test_parse_and_execute_minimize(monkeypatch):
 
 
 def test_parse_and_execute_minimize_with_window_word(monkeypatch):
-    wt = types.ModuleType('modules.window_tools')
+    awm = types.ModuleType('modules.app_window_manager')
     args = {}
 
     def mock_minimize(title):
         args['title'] = title
         return True, f'minimized {title}'
 
-    wt.minimize_window = mock_minimize
-    wt.__all__ = ['minimize_window']
-    monkeypatch.setitem(sys.modules, 'modules.window_tools', wt)
+    awm.minimize_window = mock_minimize
+    awm.__all__ = ['minimize_window']
+    monkeypatch.setitem(sys.modules, 'modules.app_window_manager', awm)
 
     stub_assistant = types.ModuleType('assistant')
     stub_assistant.talk_to_llm = lambda t: 'ignored'

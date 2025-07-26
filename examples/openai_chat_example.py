@@ -18,6 +18,12 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency
         ChatCompletion=types.SimpleNamespace(create=lambda **_k: None),
         OpenAI=None,
     )
+else:  # ensure legacy exception names exist across versions
+    if not hasattr(openai, "AuthenticationError") and hasattr(openai, "error"):
+        openai.AuthenticationError = openai.error.AuthenticationError
+        openai.InvalidRequestError = openai.error.InvalidRequestError
+        openai.PermissionError = openai.error.PermissionError
+        openai.APIConnectionError = openai.error.APIConnectionError
 
 # Configure basic logging to a local file
 logging.basicConfig(
@@ -62,7 +68,17 @@ def send_test_message(text: str = "Hello") -> str:
         else:
             openai.api_key = api_key
             resp = openai.ChatCompletion.create(**request_opts)
-            message = resp.choices[0].message["content"]
+            choices = getattr(resp, "choices", None)
+            if choices is None:
+                choices = resp["choices"]
+            first = choices[0]
+            msg = getattr(first, "message", None)
+            if msg is None:
+                msg = first["message"]
+            if isinstance(msg, dict):
+                message = msg.get("content")
+            else:
+                message = getattr(msg, "content", msg)
 
         logging.info("API call succeeded")
         return message
