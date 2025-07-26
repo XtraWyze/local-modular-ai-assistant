@@ -78,10 +78,12 @@ def get_description() -> str:
     """Return a short description of this module."""
     return "Simple Vosk-based offline speech recognition helper functions."
 
-def register():
+def register(registry=None):
     """Register this module with ``ModuleRegistry``."""
     from module_manager import ModuleRegistry
-    ModuleRegistry.register(
+
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "recognize_from_mic": recognize_from_mic,

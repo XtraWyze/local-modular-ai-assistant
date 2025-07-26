@@ -2,6 +2,7 @@
 
 from functools import wraps
 import time
+import traceback
 from typing import Callable, Any, Optional
 
 from error_logger import log_error
@@ -31,12 +32,16 @@ def watchdog(
                 try:
                     return func(*args, **kwargs)
                 except Exception as exc:  # pragma: no cover - runtime depends on user func
-                    log_error(f"[watchdog:{func.__name__}] {exc}")
+                    log_error(
+                        f"[watchdog:{func.__name__}] {exc}\n{traceback.format_exc()}"
+                    )
                     if speak_func:
                         try:
                             speak_func(phrase)
                         except Exception as speak_exc:  # pragma: no cover - speak may fail
                             log_error(f"[watchdog:speak] {speak_exc}")
+                    else:
+                        print(phrase)
                     time.sleep(delay)
         return wrapper
 

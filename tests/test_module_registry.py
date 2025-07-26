@@ -87,3 +87,31 @@ def test_call_logs_errors_on_exception(monkeypatch):
     assert result is None
     assert any("boom" in msg for msg, _ in logged)
 
+
+def test_register_adds_and_calls():
+    registry = ModuleRegistry()
+
+    def hi():
+        return "hi"
+
+    registry.register("demo", {"hi": hi})
+
+    assert registry.call("demo", "hi") == "hi"
+    assert registry.get_functions()["hi"] is hi
+
+
+def test_auto_discover_collects_functions(tmp_path, monkeypatch):
+    pkg = tmp_path / "mods"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text("")
+    (pkg / "codex_demo.py").write_text("def ping():\n    return 'pong'\n")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.syspath_prepend(str(tmp_path))
+    sys.modules.pop('mods', None)
+
+    registry = ModuleRegistry()
+    registry.auto_discover("mods")
+
+    assert registry.call("mods.codex_demo", "ping") == "pong"
+    assert "ping" in registry.get_functions()
+

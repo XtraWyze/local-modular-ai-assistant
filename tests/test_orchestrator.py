@@ -143,3 +143,27 @@ def test_parse_and_execute_create_module(monkeypatch):
     assert result == "modules/demo_mod.py"
     assert calls == [("does things", "demo_mod")]
 
+
+def test_parse_and_execute_with_extra_text(monkeypatch):
+    """The LLM output may include text around the tool call."""
+    stub_tools = types.ModuleType("modules.tools")
+    called: list[str] = []
+
+    def _open_app(path):
+        called.append(path)
+        return "opened"
+
+    stub_tools.open_app = _open_app
+    stub_tools.__all__ = ["open_app"]
+    monkeypatch.setitem(sys.modules, "modules.tools", stub_tools)
+
+    stub_assistant = types.ModuleType("assistant")
+    stub_assistant.talk_to_llm = lambda prompt: "Sure.\nopen_app('notepad')\n"
+    monkeypatch.setitem(sys.modules, "assistant", stub_assistant)
+
+    orch = importlib.reload(importlib.import_module("orchestrator"))
+
+    result = orch.parse_and_execute("open notepad")
+    assert result == "opened"
+    assert called == ["notepad"]
+

@@ -136,10 +136,11 @@ def get_description() -> str:
     return "Send OS media keys for play/pause, track skipping and volume."
 
 
-def register():
+def register(registry=None):
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "play_pause": play_pause,

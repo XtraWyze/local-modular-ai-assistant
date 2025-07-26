@@ -189,6 +189,16 @@ Key options:
 - `min_good_response_words` / `min_good_response_chars`: treat a local
   response as poor quality if shorter than these thresholds.
 
+### API Key Setup
+The `api_keys` section of `config.json` is intentionally left blank. Set your
+credentials using environment variables or with `modules/api_keys.py`:
+
+```bash
+export OPENAI_API_KEY=your-key-here
+python -m modules.api_keys save_api_keys '{"openai": "your-key"}'
+```
+Add a `.env` file if desired, but keep it out of version control.
+
 ### Remote Ollama Server
 You can run the LLM on another machine and point the assistant to it over
 your local network:
@@ -331,6 +341,16 @@ python -m modules.web_api
 ```
 By default the server listens on `127.0.0.1:5000`; pass `--host 0.0.0.0` if you
 need external access. Then POST JSON `{"command": "your text"}` to `/command`.
+
+### OpenAI Chat Example
+The repository includes `examples/openai_chat_example.py` as a minimal template
+for using the OpenAI API. It loads `OPENAI_API_KEY` from a `.env` file, sends a
+test message to GPT‑4, and logs the result.
+
+```bash
+pip install openai python-dotenv
+python examples/openai_chat_example.py
+```
 
 ### Allowed Plugin APIs
 The `ModuleRegistry` can optionally verify imports when loading modules. If this
