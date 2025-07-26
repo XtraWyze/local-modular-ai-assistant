@@ -85,7 +85,7 @@ from modules.tts_integration import is_speaking
 import modules.tts_integration as tts_module
 from modules import speech_learning
 # utils is located within the modules package
-from modules.utils import resource_path, project_path, hide_cmd_window
+from modules.utils import resource_path, project_path, hide_cmd_window, show_cmd_window
 from modules import wake_sleep_hotkey
 from modules import api_keys
 from modules import debug_panel
@@ -134,7 +134,8 @@ else:
     root.title("AI Assistant")
     # Default size increased so all controls fit comfortably
     root.geometry("900x650")
-    hide_cmd_window()
+    if config.get("hide_cmd_window", True):
+        hide_cmd_window()
 
 # Notebook with main UI and speech training tab
 notebook = ttk.Notebook(root)
@@ -1381,6 +1382,7 @@ set_webview_callback(_load_url)
 # ---------- Settings Tab ----------
 use_remote_var = tk.BooleanVar(value=bool(config.get("llm_url")))
 url_var = tk.StringVar(value=config.get("llm_url", "http://localhost:11434/v1/chat/completions"))
+hide_cmd_var = tk.BooleanVar(value=config.get("hide_cmd_window", True))
 
 def _toggle_remote() -> None:
     state = tk.NORMAL if use_remote_var.get() else tk.DISABLED
@@ -1392,6 +1394,12 @@ ttk.Checkbutton(
     variable=use_remote_var,
     command=_toggle_remote,
 ).pack(anchor="w", padx=10, pady=(10, 5))
+
+ttk.Checkbutton(
+    settings_tab,
+    text="Hide console window (Windows)",
+    variable=hide_cmd_var,
+).pack(anchor="w", padx=10, pady=5)
 
 ttk.Label(settings_tab, text="LLM URL:").pack(anchor="w", padx=10)
 url_entry = ttk.Entry(settings_tab, textvariable=url_var, width=50)
@@ -1405,10 +1413,15 @@ def save_settings() -> None:
         cfg["llm_url"] = url_var.get().strip()
     else:
         cfg.pop("llm_url", None)
+    cfg["hide_cmd_window"] = hide_cmd_var.get()
     with open("config.json", "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
     config_loader.config = cfg
     output.insert(tk.END, "[SYSTEM] Settings saved.\n")
+    if hide_cmd_var.get():
+        hide_cmd_window()
+    else:
+        show_cmd_window()
     reload_config()
 
 ttk.Button(settings_tab, text="Save Settings", command=save_settings).pack(pady=10)
