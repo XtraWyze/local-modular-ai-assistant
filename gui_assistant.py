@@ -51,6 +51,7 @@ import subprocess
 import json
 import time
 import atexit
+import shutil
 from error_logger import log_error
 from modules import gpu
 import io
@@ -166,7 +167,7 @@ notebook.add(hotkey_tab, text="Hotkeys")
 notebook.add(module_tab, text="Module Generator")
 notebook.add(image_tab, text="Image Generator")
 notebook.add(video_tab, text="Video Generator")
-notebook.add(fast3d_tab, text="Stable Fast 3D")
+notebook.add(fast3d_tab, text="3D Generation")
 notebook.add(web_tab, text="Web Activity")
 notebook.add(settings_tab, text="Settings")
 notebook.add(model_tab, text="Model Selection")
@@ -1391,6 +1392,8 @@ fast3d_canvas = tk.Canvas(
 )
 fast3d_canvas.pack(pady=10)
 
+_generated_fast3d_path: str | None = None
+
 
 def _preview_model(path: str) -> None:
     """Render a preview of a 3D model on ``fast3d_canvas``."""
@@ -1411,6 +1414,37 @@ def _preview_model(path: str) -> None:
         log_error(f"[fast3d_preview] {exc}")
 
 
+def browse_fast3d_file() -> None:
+    """Select an existing 3D model file and preview it."""
+    path = filedialog.askopenfilename(
+        title="Select 3D Model",
+        filetypes=[("OBJ files", "*.obj"), ("All files", "*.*")],
+    )
+    if path:
+        global _generated_fast3d_path
+        _generated_fast3d_path = path
+        fast3d_status.config(text=f"Loaded {path}")
+        _preview_model(path)
+
+
+def save_fast3d_file() -> None:
+    """Save the last generated or loaded 3D model to a new location."""
+    if not _generated_fast3d_path or not os.path.exists(_generated_fast3d_path):
+        fast3d_status.config(text="No model to save.")
+        return
+    dest = filedialog.asksaveasfilename(
+        title="Save 3D Model",
+        defaultextension=".obj",
+        filetypes=[("OBJ files", "*.obj"), ("All files", "*.*")],
+    )
+    if dest:
+        try:
+            shutil.copy(_generated_fast3d_path, dest)
+            fast3d_status.config(text=f"Saved to {dest}")
+        except Exception as exc:  # pragma: no cover - copy may fail
+            fast3d_status.config(text=f"Failed to save: {exc}")
+
+
 def generate_fast3d_btn() -> None:
     prompt = fast3d_prompt.get("1.0", tk.END).strip()
     if not prompt:
@@ -1429,6 +1463,9 @@ def generate_fast3d_btn() -> None:
         )
         fast3d_model_manager.set_last_model(fast3d_model_var.get())
 
+        global _generated_fast3d_path
+        _generated_fast3d_path = path
+
         def _update() -> None:
             if os.path.exists(path):
                 fast3d_status.config(text=f"Saved to {path}")
@@ -1440,7 +1477,11 @@ def generate_fast3d_btn() -> None:
 
     threading.Thread(target=_run, daemon=True).start()
 
-ttk.Button(fast3d_tab, text="Generate Model", command=generate_fast3d_btn).pack(pady=5)
+btn_f3d_actions = ttk.Frame(fast3d_tab)
+btn_f3d_actions.pack(pady=5)
+ttk.Button(btn_f3d_actions, text="Browse Model...", command=browse_fast3d_file).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_f3d_actions, text="Save Model", command=save_fast3d_file).pack(side=tk.LEFT, padx=5)
+ttk.Button(btn_f3d_actions, text="Generate Model", command=generate_fast3d_btn).pack(side=tk.LEFT, padx=5)
 
 # ---------- Web Activity Tab ----------
 web_search_var = tk.StringVar()

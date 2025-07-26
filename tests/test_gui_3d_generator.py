@@ -1,4 +1,6 @@
 import modules.stable_fast_3d as fast3d
+import os
+import shutil
 
 
 class DummyVar:
@@ -28,7 +30,7 @@ class DummyStatus:
         self.text = text
 
 
-def run_generate_model(prompt_widget, status_widget, model_var, device_var, dir_var, name_var):
+def run_generate_3d(prompt_widget, status_widget, model_var, device_var, dir_var, name_var):
     prompt = prompt_widget.get("1.0", None).strip()
     if not prompt:
         status_widget.config(text="Enter a prompt first.")
@@ -59,10 +61,26 @@ def test_generate_model(monkeypatch):
         name_var=DummyVar("cube"),
     )
 
-    run_generate_model(**vars)
+    run_generate_3d(**vars)
 
     assert calls["gen"] == [(
         ("cube", "model"),
         {"device": "cpu", "save_dir": "models", "name": "cube"},
     )]
+
+
+def run_save_model(current_path, status_widget, dest):
+    if not current_path or not os.path.exists(current_path):
+        status_widget.config(text="No model to save.")
+        return None
+    shutil.copy(current_path, dest)
+    status_widget.config(text=f"Saved to {dest}")
+    return dest
+
+
+def test_save_model_no_file(tmp_path):
+    status = DummyStatus()
+    result = run_save_model("", status, tmp_path / "x.obj")
+    assert result is None
+    assert status.text == "No model to save."
 

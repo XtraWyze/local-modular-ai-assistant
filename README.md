@@ -25,6 +25,7 @@ A privacy-first, voice-enabled local AI assistant with modular automation, custo
 - **Save and switch between multiple Stable Diffusion model paths**
 - **Cloud image generation via the Imagine API or DALL-E**
 - **Image requests automatically open the GUI image tab with live progress**
+- **3D Generation tab with preview and local model selection**
 - **Home Assistant integration via REST API (disabled by default)**
 - **Plugin system:** Easy extension with your own Python modules
 - **Interactive module generator with preview and confirmation**
