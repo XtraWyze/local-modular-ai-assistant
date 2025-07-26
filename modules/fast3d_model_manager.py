@@ -1,4 +1,4 @@
-"""Manage saved Stable Diffusion model paths."""
+"""Manage saved Stable Fast 3D model paths for the GUI."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from typing import List, Optional
 
 from modules.utils import resource_path
 
-MODULE_NAME = "sd_model_manager"
-MODELS_FILE = resource_path("sd_models.json")
+MODULE_NAME = "fast3d_model_manager"
+MODELS_FILE = resource_path("fast3d_models.json")
 
 model_paths: List[str] = []
 last_model: Optional[str] = None
@@ -26,7 +26,7 @@ __all__ = [
 
 
 def load_models() -> List[str]:
-    """Load saved model paths and last selection from :data:`MODELS_FILE`."""
+    """Load saved model paths and last selection."""
     global model_paths, last_model
     try:
         with open(MODELS_FILE, "r", encoding="utf-8") as f:
@@ -46,7 +46,7 @@ def load_models() -> List[str]:
 
 
 def save_models(models: List[str] | None = None, last: str | None = None) -> None:
-    """Persist ``models`` and ``last`` to :data:`MODELS_FILE`."""
+    """Save ``models`` and ``last`` to disk."""
     global model_paths, last_model
     if models is not None:
         model_paths = models
@@ -57,7 +57,6 @@ def save_models(models: List[str] | None = None, last: str | None = None) -> Non
 
 
 def add_model(path: str) -> None:
-    """Add ``path`` to :data:`model_paths` and save."""
     if not path:
         return
     if path not in model_paths:
@@ -66,7 +65,6 @@ def add_model(path: str) -> None:
 
 
 def remove_model(path: str) -> bool:
-    """Remove ``path`` from :data:`model_paths` if present."""
     if path in model_paths:
         model_paths.remove(path)
         if path == last_model:
@@ -77,19 +75,16 @@ def remove_model(path: str) -> bool:
 
 
 def get_last_model() -> Optional[str]:
-    """Return the last selected model path."""
     return last_model
 
 
 def set_last_model(path: str | None) -> None:
-    """Persist ``path`` as the last selected model."""
     global last_model
     last_model = path
     save_models(model_paths, last_model)
 
 
 def get_info() -> dict:
-    """Return module metadata for discovery."""
     return {
         "name": MODULE_NAME,
         "description": get_description(),
@@ -105,9 +100,7 @@ def get_info() -> dict:
 
 
 def get_description() -> str:
-    """Return a short description of this module."""
-    return "Manage saved Stable Diffusion model paths."
+    return "Manage saved Stable Fast 3D model paths."
 
 
-# Initialize on import
 load_models()
