@@ -172,10 +172,11 @@ def get_description() -> str:
     return "Practice speech recognition by reading sample sentences."
 
 
-def register():
+def register(registry=None):
     from module_manager import ModuleRegistry
 
-    ModuleRegistry.register(
+    registry = registry or ModuleRegistry()
+    registry.register(
         MODULE_NAME,
         {
             "read_sentences": read_sentences,

@@ -23,6 +23,8 @@ def get_description() -> str:
     return "Wrapper around llm_interface for chatting with the local LLM backend."
 
 
-def register():  # pragma: no cover - simple delegation
+def register(registry=None):  # pragma: no cover - simple delegation
     from module_manager import ModuleRegistry
-    ModuleRegistry.register(MODULE_NAME, {"chat": chat, "get_info": get_info})
+
+    registry = registry or ModuleRegistry()
+    registry.register(MODULE_NAME, {"chat": chat, "get_info": get_info})

@@ -3,13 +3,24 @@ import importlib
 import ast
 import importlib.util
 from pathlib import Path
+import types
 
 from error_logger import log_error
 
 class ModuleRegistry:
+    """Load and manage assistant modules."""
+
     def __init__(self, banned_imports=None):
         self.modules = {}
+        self.functions = {}
         self.banned_imports = set(banned_imports or [])
+
+    # ------------------------------------------------------------------
+    def register(self, name: str, funcs: dict) -> None:
+        """Manually register a module by ``name`` with exported ``funcs``."""
+        mod = types.SimpleNamespace(**funcs)
+        self.modules[name] = mod
+        self.functions.update(funcs)
 
     def _verify_imports(self, module_name):
         if not self.banned_imports:
@@ -57,10 +68,14 @@ class ModuleRegistry:
             if not name.startswith("_") and callable(getattr(mod, name))
         }
         if funcs:
-            self.modules[module_name] = mod
+            self.functions.update(funcs)
 
     def get_module(self, module_name):
         return self.modules.get(module_name, None)
+
+    def get_functions(self):
+        """Return all registered functions."""
+        return dict(self.functions)
 
     def call(self, module_name, func_name, *args, **kwargs):
         """Call ``func_name`` from ``module_name`` with error handling."""
