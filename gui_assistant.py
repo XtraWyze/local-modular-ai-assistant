@@ -1366,6 +1366,11 @@ if pystray is not None:
     threading.Thread(target=start_tray, daemon=True).start()
     atexit.register(stop_tray)
 
+# Update geometry after widgets are loaded so the window fits all content
+if not os.environ.get("PYTEST_CURRENT_TEST"):
+    root.update_idletasks()
+    root.minsize(root.winfo_reqwidth(), root.winfo_reqheight())
+
 # ========== WELCOME MESSAGE ==========
 output.insert(tk.END, "Assistant: Welcome to your local AI assistant! Speak or type your prompt.\n")
 output.insert(tk.END, "Assistant: Try: capture region 100 200 300 300  | click image red_button.png\n\n")
