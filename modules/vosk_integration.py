@@ -11,7 +11,7 @@ except ImportError as e:
 else:
     _IMPORT_ERROR = None
 
-from error_logger import log_error
+from error_logger import log_error, log_info
 
 MODULE_NAME = "vosk_integration"
 
@@ -52,7 +52,8 @@ def recognize_from_mic(
             q.put(bytes(indata))
         with sd.RawInputStream(samplerate=samplerate, blocksize=8000, dtype='int16', channels=1, callback=callback):
             rec = vosk.KaldiRecognizer(model, samplerate)
-            print(f"Listening ({duration} sec)...")
+            # Using concise logging instead of noisy prints
+            log_info(f"[{MODULE_NAME}] Listening for {duration} sec")
             sd.sleep(duration * 1000)
             while not q.empty():
                 data = q.get()
