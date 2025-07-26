@@ -3,6 +3,7 @@ import importlib
 import os
 import types
 from pathlib import Path
+import time
 
 import pytest
 
@@ -51,4 +52,17 @@ def test_default_save_dir(monkeypatch):
     assert path.parent == project_root / "generated_images"
     assert path.exists()
     path.unlink()
+
+
+def test_get_latest_image(tmp_path, monkeypatch):
+    ig = importlib.import_module("modules.image_generator")
+    save_dir = tmp_path / "imgs"
+    save_dir.mkdir()
+    f1 = save_dir / "img1.png"
+    f1.write_text("a")
+    time.sleep(0.01)
+    f2 = save_dir / "img2.png"
+    f2.write_text("b")
+    result = ig.get_latest_image(str(save_dir))
+    assert result and result.endswith("img2.png")
 
